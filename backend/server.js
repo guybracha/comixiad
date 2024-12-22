@@ -4,8 +4,8 @@ const multer = require('multer');
 const { GridFsStorage } = require('multer-gridfs-storage');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const comicRouter = require('./routers/comics');  // Import the comics routes
 const gridfsStream = require('gridfs-stream');
+const comicsRouter = require('./routers/comics'); // תיקון נתיב הייבוא
 
 dotenv.config();
 
@@ -22,80 +22,56 @@ mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
 
 const conn = mongoose.connection;
 
-// Initialize GridFS Stream once the connection is open
+// Initialize GridFS Stream and multer storage
 let gfs;
+let upload; // Declare upload for later initialization
+
 conn.once('open', () => {
+  console.log("MongoDB connection is open");
+  
+  // Initialize GridFS stream
   gfs = gridfsStream(conn.db, mongoose.mongo);
-  gfs.collection('uploads');  // Ensure that GridFS uses the 'uploads' collection
-  console.log("GridFS bucket initialized");
-});
+  gfs.collection('uploads'); // Use the 'uploads' collection
+  
+  // Initialize GridFsStorage
+  const storage = new GridFsStorage({
+    db: conn.db, // Pass the active db instance
+    file: (req, file) => ({
+      bucketName: 'uploads', // GridFS bucket name
+      filename: `${Date.now()}-${Math.random().toString(36).substring(7)}-${file.originalname}`,
+    }),
+  });
 
-// Set up multer storage
-const storage = new GridFsStorage({
-  url: mongoURI,
-  file: (req, file) => {
-    return {
-      bucketName: 'uploads',
-      filename: `${Date.now()}-${Math.random().toString(36).substring(7)}-${file.originalname}` // Ensure unique filenames
-    };
-  }
+  upload = multer({ storage }); // Assign multer with storage
+  console.log("GridFsStorage initialized");
 });
-
-const upload = multer({
-  storage,
-  limits: { fileSize: 10000000 }, // Set size limit (optional)
-  timeout: 600000 // Set timeout to avoid upload issues with multiple files
-});
-
-// Create a Comic model for storing metadata
-const comicSchema = new mongoose.Schema({
-  title: String,
-  description: String,
-  genre: String,
-  language: String,
-  fileIds: [mongoose.Schema.Types.ObjectId], // Array of fileIds for multiple files
-  filenames: [String], // Array of filenames for multiple files
-  uploadDate: { type: Date, default: Date.now }
-});
-
-const Comic = mongoose.model('Comic', comicSchema);
 
 // Express setup
 const app = express();
 const port = 5000;
 
-const corsOptions = {
-  origin: 'http://localhost:3000', // React frontend URL
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type']
-};
-
-app.use(cors(corsOptions));
-
+app.use(cors());
 app.use(express.json());
 
-app.use('/comics', comicRouter);  // This is where you include your comic routes
-
-// Route for uploading comic files and metadata
-app.post('/api/upload', upload.array('files'), async (req, res) => {
+// Route for uploading files
+app.post('/api/upload', (req, res, next) => {
+  if (!upload) {
+    return res.status(500).json({ message: 'File upload middleware not initialized' });
+  }
+  upload.array('files')(req, res, next);
+}, async (req, res) => {
   const { title, description, genre, language } = req.body;
 
   if (!title || !description || !genre || !language || !req.files || req.files.length === 0) {
     return res.status(400).json({ message: 'All fields and files are required' });
   }
 
-  // Save the comic metadata and fileIds in the database
-  const fileIds = req.files.map(file => file.id); // Get the fileIds of all files
-  const filenames = req.files.map(file => file.filename); // Get the filenames
+  const fileIds = req.files.map(file => file.id);
+  const filenames = req.files.map(file => file.filename);
 
-  const newComic = new Comic({
-    title,
-    description,
-    genre,
-    language,
-    fileIds,  // Save array of fileIds
-    filenames,  // Save array of filenames
-  });
+  const Comic = mongoose.model('Comic');  // use pre-defined model
+
+  const newComic = new Comic({ title, description, genre, language, fileIds, filenames });
 
   try {
     await newComic.save();
@@ -106,53 +82,9 @@ app.post('/api/upload', upload.array('files'), async (req, res) => {
   }
 });
 
-// Route for fetching all comics with metadata
-app.get('/api/comics', async (req, res) => {
-  try {
-    const comics = await Comic.find();
-    res.status(200).json({ comics });
-  } catch (err) {
-    console.error('Error fetching comics:', err);
-    res.status(500).json({ message: 'Error fetching comics from database' });
-  }
-});
+app.use('/api/comics', comicsRouter);  // תיקון כאן
 
-// Route for fetching a specific comic by fileId
-app.get('/comic/:id', async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    // Find the comic metadata
-    const comic = await Comic.findById(id);
-    if (!comic) {
-      return res.status(404).json({ message: 'Comic not found' });
-    }
-
-    // Fetch the comic file from GridFS
-    const fileStream = gfs.openDownloadStream(comic.fileIds[0]); // Assuming single file per comic for now
-    res.set('Content-Type', 'application/pdf'); // Set the content type (change as per the file type)
-    fileStream.pipe(res);
-  } catch (err) {
-    console.error('Error fetching comic file:', err);
-    res.status(500).json({ message: 'Error fetching comic file from GridFS' });
-  }
-});
-
-// Route for fetching a comic image by filename (for displaying the file)
-app.get('/image/:filename', (req, res) => {
-  const { filename } = req.params;
-
-  try {
-    const fileStream = gfs.openDownloadStreamByName(filename);
-    res.set('Content-Type', 'image/jpeg'); // Assuming it's a JPEG image; adjust based on your file type
-    fileStream.pipe(res);
-  } catch (err) {
-    console.error('Error fetching image:', err);
-    res.status(500).json({ message: 'Error fetching image from GridFS' });
-  }
-});
-
-// Start server
+// Start the server
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
 });
