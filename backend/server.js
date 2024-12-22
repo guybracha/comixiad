@@ -1,90 +1,115 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const { GridFSBucket } = require('mongodb');
 const multer = require('multer');
-const { GridFsStorage } = require('multer-gridfs-storage');
 const cors = require('cors');
-const dotenv = require('dotenv');
-const gridfsStream = require('gridfs-stream');
-const comicsRouter = require('./routers/comics'); // תיקון נתיב הייבוא
+const comicsRouter = require('./api/comics'); // Path to your comics.js file
+const path = require('path');
+const fs = require('fs');
+const app = express();
+const mongoURI = 'mongodb://localhost:27017/comixiad'; // Update your Mongo URI
+const dbName = 'comixiad'; // Update database name
 
-dotenv.config();
+// Enable CORS
+app.use(cors({
+  origin: 'http://localhost:3000', // Only allow this domain
+  methods: ['GET', 'POST'], // Adjust methods as needed
+  allowedHeaders: ['Content-Type'] // Include additional headers if needed
+}));
 
-const mongoURI = process.env.MONGO_URI;
-
-if (!mongoURI) {
-  throw new Error('Mongo URI is not defined in .env file');
-}
-
-// Create MongoDB connection
-mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log("MongoDB connected"))
-  .catch((err) => console.error("MongoDB connection error:", err));
-
-const conn = mongoose.connection;
-
-// Initialize GridFS Stream and multer storage
-let gfs;
-let upload; // Declare upload for later initialization
-
-conn.once('open', () => {
-  console.log("MongoDB connection is open");
-  
-  // Initialize GridFS stream
-  gfs = gridfsStream(conn.db, mongoose.mongo);
-  gfs.collection('uploads'); // Use the 'uploads' collection
-  
-  // Initialize GridFsStorage
-  const storage = new GridFsStorage({
-    db: conn.db, // Pass the active db instance
-    file: (req, file) => ({
-      bucketName: 'uploads', // GridFS bucket name
-      filename: `${Date.now()}-${Math.random().toString(36).substring(7)}-${file.originalname}`,
-    }),
+// MongoDB connection
+mongoose.connect(mongoURI, { useUnifiedTopology: true })
+  .then(() => {
+    console.log('MongoDB connected');
+  })
+  .catch((err) => {
+    console.error('MongoDB connection error:', err);
   });
 
-  upload = multer({ storage }); // Assign multer with storage
-  console.log("GridFsStorage initialized");
-});
+// Set up GridFS bucket after MongoDB connection
+const conn = mongoose.connection;
+conn.once('open', () => {
+  const gfs = new GridFSBucket(conn.db, { bucketName: 'uploads' }); // GridFS bucket name
 
-// Express setup
-const app = express();
-const port = 5000;
+  // Multer setup to handle memory storage
+  const storage = multer.memoryStorage();
+  const upload = multer({ storage });
 
-app.use(cors());
-app.use(express.json());
+  // Route for file upload to GridFS
+  app.post('/upload', upload.single('file'), (req, res) => {
+    if (!req.file) {
+      return res.status(400).send('No file uploaded.');
+    }
 
-// Route for uploading files
-app.post('/api/upload', (req, res, next) => {
-  if (!upload) {
-    return res.status(500).json({ message: 'File upload middleware not initialized' });
-  }
-  upload.array('files')(req, res, next);
-}, async (req, res) => {
-  const { title, description, genre, language } = req.body;
+    // Log file information to verify upload
+    console.log('Uploaded file:', req.file.originalname);
 
-  if (!title || !description || !genre || !language || !req.files || req.files.length === 0) {
-    return res.status(400).json({ message: 'All fields and files are required' });
-  }
+    // Upload file to GridFS
+    const stream = gfs.openUploadStream(req.file.originalname);
+    stream.end(req.file.buffer);
 
-  const fileIds = req.files.map(file => file.id);
-  const filenames = req.files.map(file => file.filename);
+    stream.on('finish', () => {
+      console.log('File uploaded successfully!');
+      res.status(200).send('File uploaded successfully!');
+    });
 
-  const Comic = mongoose.model('Comic');  // use pre-defined model
+    stream.on('error', (err) => {
+      console.error('Error uploading file:', err);
+      res.status(500).send('Failed to upload file.');
+    });
+  });
 
-  const newComic = new Comic({ title, description, genre, language, fileIds, filenames });
+  // Route to fetch file by filename
+  app.get('/file/:filename', (req, res) => {
+    const filename = req.params.filename;
+    const file = gfs.openDownloadStreamByName(filename);
 
-  try {
-    await newComic.save();
-    res.status(200).json({ comic: newComic });
-  } catch (err) {
-    console.error('Error saving comic:', err);
-    res.status(500).json({ message: 'Error saving comic to database' });
-  }
-});
+    // Set the appropriate headers to indicate file type
+    res.set('Content-Type', 'image/jpeg');
+    file.pipe(res);
 
-app.use('/api/comics', comicsRouter);  // תיקון כאן
+    file.on('error', (err) => {
+      console.error('Error fetching file:', err);
+      res.status(500).send('Failed to fetch file.');
+    });
+  });
 
-// Start the server
-app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
+  // Route to fetch file by ObjectId (alternative way to retrieve)
+  app.get('/file/id/:fileId', (req, res) => {
+    const fileId = new mongoose.Types.ObjectId(req.params.fileId); // Convert to correct ObjectId type
+    const file = gfs.openDownloadStream(fileId);
+
+    file.pipe(res);
+
+    file.on('error', (err) => {
+      console.error('Error fetching file:', err);
+      res.status(500).send('Failed to fetch file.');
+    });
+  });
+
+  // Route for uploading images in Base64 format (to the local filesystem)
+  const saveImage = (base64String, imageName) => {
+    const filePath = path.join(__dirname, 'public', 'images', imageName);
+    const buffer = Buffer.from(base64String, 'base64');
+    fs.writeFileSync(filePath, buffer);
+  };
+
+  app.post('/uploadBase64', (req, res) => {
+    const base64Image = req.body.image; // Image as Base64 string
+    const imageName = 'Page1.jpg'; // Name of the file to save as
+
+    // Save the image as a file on the server
+    saveImage(base64Image, imageName);
+
+    res.send({ message: 'Image uploaded successfully' });
+  });
+
+  // API routes
+  app.use('/api/comics', comicsRouter);
+  app.use('/images', express.static(path.join(__dirname, 'public', 'images')));
+
+  // Start the server
+  app.listen(5000, () => {
+    console.log('Server running on http://localhost:5000');
+  });
 });

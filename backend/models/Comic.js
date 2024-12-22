@@ -1,14 +1,14 @@
+// backend/models/comic.js
 const mongoose = require('mongoose');
 
-// יצירת מודל קומיקס עם שדות נדרשים
 const comicSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  description: { type: String, required: true },
-  genre: { type: String, required: true },
-  language: { type: String, required: true },
-  fileIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'File' }],
-  filenames: [String],
-  uploadDate: { type: Date, default: Date.now },
-});
+    title: { type: String, required: true },
+    description: { type: String, required: true },
+    genre: { type: String },
+    language: { type: String },
+    pages: [{ type: mongoose.Schema.Types.Mixed }] // Array to store images or other content
+}, { timestamps: true });
 
-module.exports = mongoose.model('Comic', comicSchema);
+const Comic = mongoose.model('Comic', comicSchema);
+
+module.exports = Comic;

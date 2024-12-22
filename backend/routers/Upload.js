@@ -23,9 +23,10 @@ const storage = new GridFsStorage({
     db: conn.db,
     file: (req, file) => ({
         bucketName: 'uploads', // Store files in this bucket
-        filename: `${Date.now()}-${file.originalname}`,
+        filename: `${Date.now()}-${file.originalname}`, // Save with timestamp to ensure unique filename
     }),
 });
+
 
 const upload = multer({ storage });
 
@@ -51,9 +52,11 @@ router.post('/upload', upload.array('files'), async (req, res) => {
             return res.status(400).json({ message: 'No files uploaded' });
         }
 
+        // Map file information
         const fileIds = req.files.map(file => file.id);
         const filenames = req.files.map(file => file.filename);
 
+        // Create a new comic entry
         const newComic = new Comic({
             title,
             description,
@@ -63,12 +66,40 @@ router.post('/upload', upload.array('files'), async (req, res) => {
             filenames,
         });
 
+        // Save the comic to the database
         await newComic.save();
+
+        // Return success response
         res.status(201).json({ message: 'Comic uploaded successfully', comic: newComic });
     } catch (err) {
         console.error('Error uploading comic:', err);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error', error: err.message });
     }
 });
+
+// Route לשליפת התמונה הראשונה
+// Route לשליפת התמונה הראשונה
+router.get('/image/:comicId', async (req, res) => {
+    try {
+        const { comicId } = req.params;
+        const comic = await Comic.findById(comicId);
+
+        if (!comic || !comic.pages || comic.pages.length === 0) {
+            return res.status(404).json({ message: 'No images found for this comic' });
+        }
+
+        const pageFilename = comic.pages[0]; // Ensure this is the correct filename used in GridFS
+
+        // Fetch the image from GridFS
+        gfs.openDownloadStreamByName(pageFilename)
+            .pipe(res)
+            .on('error', (err) => {
+                res.status(404).json({ message: 'Image not found', error: err.message });
+            });
+    } catch (err) {
+        res.status(500).json({ message: 'Server error', error: err.message });
+    }
+});
+
 
 module.exports = router;

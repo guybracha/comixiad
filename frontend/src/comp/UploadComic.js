@@ -7,6 +7,8 @@ const UploadComic = () => {
   const [genre, setGenre] = useState('');
   const [language, setLanguage] = useState('');
   const [pages, setPages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleFileChange = (e) => {
     setPages(e.target.files);
@@ -27,7 +29,9 @@ const UploadComic = () => {
   
     try {
       const response = await axios.post('http://localhost:5000/api/comics/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
       });
       alert('Comic uploaded successfully!');
     } catch (error) {
@@ -40,6 +44,7 @@ const UploadComic = () => {
   return (
     <form onSubmit={handleSubmit} className="container mt-4">
       <h2>Upload a Comic</h2>
+      {error && <div className="alert alert-danger">{error}</div>} {/* הצגת שגיאה אם יש */}
       <div className="mb-3">
         <label>Title</label>
         <input
@@ -80,7 +85,7 @@ const UploadComic = () => {
         />
       </div>
       <div className="mb-3">
-        <label>Pages</label>
+        <label>Pages (Images Only)</label>
         <input
           type="file"
           className="form-control"
@@ -89,7 +94,9 @@ const UploadComic = () => {
           required
         />
       </div>
-      <button type="submit" className="btn btn-primary">Upload Comic</button>
+      <button type="submit" className="btn btn-primary" disabled={loading}>
+        {loading ? 'Uploading...' : 'Upload Comic'}
+      </button>
     </form>
   );
 };
