@@ -7,8 +7,9 @@ const comicsRouter = require('./api/comics'); // Path to your comics.js file
 const path = require('path');
 const fs = require('fs');
 const app = express();
+
+// Define your MongoDB URI
 const mongoURI = 'mongodb://localhost:27017/comixiad'; // Update your Mongo URI
-const dbName = 'comixiad'; // Update database name
 
 // Enable CORS
 app.use(cors({
@@ -17,14 +18,13 @@ app.use(cors({
   allowedHeaders: ['Content-Type'] // Include additional headers if needed
 }));
 
+// Use express.json() to parse incoming JSON bodies
+app.use(express.json()); // Add this line to parse JSON bodies
+
 // MongoDB connection
-mongoose.connect(mongoURI, { useUnifiedTopology: true })
-  .then(() => {
-    console.log('MongoDB connected');
-  })
-  .catch((err) => {
-    console.error('MongoDB connection error:', err);
-  });
+mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('Connected to MongoDB'))
+  .catch((err) => console.error('MongoDB connection error:', err));
 
 // Set up GridFS bucket after MongoDB connection
 const conn = mongoose.connection;
@@ -107,6 +107,12 @@ conn.once('open', () => {
   // API routes
   app.use('/api/comics', comicsRouter);
   app.use('/images', express.static(path.join(__dirname, 'public', 'images')));
+
+  // Error handling middleware
+  app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Something went wrong!');
+  });
 
   // Start the server
   app.listen(5000, () => {

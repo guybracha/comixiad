@@ -1,39 +1,46 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const ComicList = () => {
-  const [comics, setComics] = useState([]); // Start with an empty array
+  // Define error state and loading state
+  const [error, setError] = useState(null);
+  const [comics, setComics] = useState([]);
+  const [loading, setLoading] = useState(true); // Loading state to show a loading indicator
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/comics')
-      .then(response => response.json())
-      .then(data => {
-        const comicWithImage = data.map(comic => {
-          // Construct the URL to fetch the image from the /image/:comicId route
-          const imageUrl = `http://localhost:5000/image/${comic._id}`; // Use comic ID to fetch image
-          return { ...comic, imageUrl }; // Add imageUrl to the comic object
-        });
-        setComics(comicWithImage);
-      })
-      .catch(error => console.error('Error fetching comics:', error));
-  }, []);
+    const fetchComics = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/comics'); // Correct API URL for fetching comics
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+        setComics(data); // Assuming the API returns a list of comics
+      } catch (error) {
+        console.error('Error fetching comics:', error);
+        setError('There was an error fetching comics. Please try again later.');
+      } finally {
+        setLoading(false); // Stop loading once the request is done
+      }
+    };
+
+    fetchComics();
+  }, []); // Empty dependency array to fetch comics only once
 
   return (
-    <div>
-      {comics && comics.length > 0 ? (
-        comics.map((comic) => (
-          <div key={comic._id}>
-            <h3>{comic.title}</h3>
-            <p>{comic.description}</p>
-            {comic.imageUrl ? (
-              <img src={comic.imageUrl} alt={comic.title} style={{ width: '100px', height: 'auto' }} />
-            ) : (
-              <img src="default-image-url.jpg" alt="Default Comic" style={{ width: '100px', height: 'auto' }} />
-            )}
-          </div>
-        ))
-      ) : (
-        <p>No comics available.</p>
-      )}
+    <div className='container'>
+      <h1>Comic List</h1>
+      {loading && <div>Loading...</div>} {/* Show loading state while data is being fetched */}
+      {error && <div style={{ color: 'red' }}>{error}</div>} {/* Display error message */}
+      {/* Display comics list here */}
+      <ul>
+        {comics.length > 0 ? (
+          comics.map((comic) => (
+            <li key={comic._id}>{comic.title}</li>
+          ))
+        ) : (
+          <li>No comics available</li> // If no comics are available
+        )}
+      </ul>
     </div>
   );
 };
