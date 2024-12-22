@@ -4,73 +4,54 @@ const multer = require('multer');
 const Comic = require('../models/Comic'); // Assuming this is your Comic model
 
 // Setup multer for handling file uploads
-const storage = multer.memoryStorage(); // You can change this to file system storage if needed
-const upload = multer({
-  storage: storage,
-  fileFilter: (req, file, cb) => {
-    // Only allow images (you can add more file types as needed)
-    if (!file.mimetype.startsWith('image/')) {
-      return cb(new Error('Only image files are allowed'), false);
-    }
-    cb(null, true);
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
   },
-  limits: {
-    fileSize: 10 * 1024 * 1024, // 10 MB limit for each file
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
   },
 });
 
-// GET route to fetch all comics
-router.get('/', async (req, res) => {
-  try {
-    const comics = await Comic.find();
-    res.json(comics);
-  } catch (error) {
-    console.error('Error fetching comics:', error.message);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-      error: error.message,
-    });
-  }
-});
+const upload = multer({ storage });
 
-// POST route to upload comics (including images)
 router.post('/upload', upload.array('pages'), async (req, res) => {
-  // Check if files are uploaded
   if (!req.files || req.files.length === 0) {
     return res.status(400).send('No files uploaded.');
   }
 
-  // Ensure comic details are included in the request body
   const { title, description, genre, language } = req.body;
   if (!title || !description || !genre || !language) {
     return res.status(400).send('Title, description, genre, and language are required.');
   }
 
   try {
-    // Process the uploaded files (you can store the image files in GridFS or local file system)
-    const comicData = {
-      title,
-      description,
-      genre,
-      language,
-      pages: req.files.map(file => ({
-        filename: file.originalname,
-        mimetype: file.mimetype,
-        size: file.size,
-        data: file.buffer, // Or you could store the file path if saved on disk or in GridFS
-      })),
-    };
+    const pages = req.files.map(file => ({
+      url: `/uploads/${file.filename}`,
+      mimetype: file.mimetype,
+      size: file.size,
+    }));
 
-    // Create and save the comic data to the database
-    const comic = new Comic(comicData);
+    const comic = new Comic({ title, description, genre, language, pages });
     await comic.save();
 
-    res.status(200).send('Comic uploaded successfully!');
+    res.status(201).json({ message: 'Comic uploaded successfully', comic });
   } catch (error) {
     console.error('Error uploading comic:', error.message);
     res.status(500).send('Failed to upload comic.');
   }
 });
+
+// Fetch all comics
+router.get('/', async (req, res) => {
+  try {
+    const comics = await Comic.find(); // מבצע חיפוש על כל הקומיקסים במסד הנתונים
+    res.json(comics);
+  } catch (error) {
+    console.error('Error fetching comics:', error);
+    res.status(500).send('Failed to fetch comics.');
+  }
+});
+
 
 module.exports = router;

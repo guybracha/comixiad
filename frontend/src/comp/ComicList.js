@@ -1,46 +1,59 @@
 import React, { useState, useEffect } from 'react';
 
 const ComicList = () => {
-  // Define error state and loading state
   const [error, setError] = useState(null);
   const [comics, setComics] = useState([]);
-  const [loading, setLoading] = useState(true); // Loading state to show a loading indicator
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchComics = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/comics'); // Correct API URL for fetching comics
+        const response = await fetch('http://localhost:5000/api/comics');
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const data = await response.json();
-        setComics(data); // Assuming the API returns a list of comics
+        setComics(data);
       } catch (error) {
         console.error('Error fetching comics:', error);
         setError('There was an error fetching comics. Please try again later.');
       } finally {
-        setLoading(false); // Stop loading once the request is done
+        setLoading(false);
       }
     };
-
+  
     fetchComics();
-  }, []); // Empty dependency array to fetch comics only once
+  }, []);
+  
 
   return (
-    <div className='container'>
+    <div className="container">
       <h1>Comic List</h1>
-      {loading && <div>Loading...</div>} {/* Show loading state while data is being fetched */}
-      {error && <div style={{ color: 'red' }}>{error}</div>} {/* Display error message */}
-      {/* Display comics list here */}
-      <ul>
+      {loading && <div>Loading...</div>}
+      {error && <div style={{ color: 'red' }}>{error}</div>}
+      
+      <div className="row">
         {comics.length > 0 ? (
           comics.map((comic) => (
-            <li key={comic._id}>{comic.title}</li>
+            <div key={comic._id} className="col-md-4 mb-4"> {/* כל קולום יהיה בגודל של 4 מתוך 12 */}
+              <div className="card">
+                <img
+                  src={`http://localhost:5000${comic.pages[0]?.url}`} // הוספת הכתובת המלאה של השרת
+                  alt={`${comic.title} cover`}
+                  className="card-img-top"
+                  style={{ width: '100%', height: 'auto' }}
+                />
+                <div className="card-body">
+                  <h5 className="card-title">{comic.title}</h5>
+                  <p className="card-text">{comic.description}</p>
+                </div>
+              </div>
+            </div>
           ))
         ) : (
-          <li>No comics available</li> // If no comics are available
+          <div className="col-12">No comics available</div>
         )}
-      </ul>
+      </div>
     </div>
   );
 };

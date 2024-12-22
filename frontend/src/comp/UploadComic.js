@@ -18,41 +18,34 @@ const UploadComic = () => {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     const formData = new FormData();
     formData.append('title', title);
     formData.append('description', description);
     formData.append('genre', genre);
     formData.append('language', language);
-
-    // Append each page to the form data
+  
     for (let i = 0; i < pages.length; i++) {
       formData.append('pages', pages[i]);
     }
-
-    setLoading(true); // Show loading state
-
+  
     try {
-      const response = await axios.post('http://localhost:5000/api/comics/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+      const response = await axios.post('/api/comics/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
-
-      // Reset form and show success message
+  
+      alert('Comic uploaded successfully!');
       setTitle('');
       setDescription('');
       setGenre('');
       setLanguage('');
-      setPages([]); // Clear selected pages
-      alert('Comic uploaded successfully!');
+      setPages([]);
     } catch (error) {
-      console.error('Error:', error.response || error.message);
-      setError(error.response?.data?.message || 'Failed to upload comic.');
-    } finally {
-      setLoading(false); // Hide loading state
+      console.error(error);
+      alert('Error uploading comic.');
     }
   };
+  
 
   return (
     <form onSubmit={handleSubmit} className="container mt-4">
