@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 const ComicList = () => {
   const [error, setError] = useState(null);
@@ -24,7 +25,6 @@ const ComicList = () => {
   
     fetchComics();
   }, []);
-  
 
   return (
     <div className="container">
@@ -35,14 +35,16 @@ const ComicList = () => {
       <div className="row">
         {comics.length > 0 ? (
           comics.map((comic) => (
-            <div key={comic._id} className="col-md-4 mb-4"> {/* כל קולום יהיה בגודל של 4 מתוך 12 */}
+            <div key={comic._id} className="col-md-4 mb-4">
               <div className="card">
-                <img
-                  src={`http://localhost:5000${comic.pages[0]?.url}`} // הוספת הכתובת המלאה של השרת
-                  alt={`${comic.title} cover`}
-                  className="card-img-top"
-                  style={{ width: '100%', height: 'auto' }}
-                />
+                <Link to={`/comics/${comic._id}`}>
+                  <img
+                    src={`http://localhost:5000${comic.pages[0]?.url}`}
+                    alt={`${comic.title} cover`}
+                    className="card-img-top"
+                    style={{ width: '100%', height: 'auto', cursor: 'pointer' }}
+                  />
+                </Link>
                 <div className="card-body">
                   <h5 className="card-title">{comic.title}</h5>
                   <p className="card-text">{comic.description}</p>

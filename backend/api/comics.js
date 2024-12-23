@@ -53,5 +53,27 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Fetch a single comic by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const comic = await Comic.findById(req.params.id);
+    if (!comic) {
+      return res.status(404).json({ message: 'Comic not found' });
+    }
+
+    // עדכן את נתיב הקבצים לתמונות מלאים
+    comic.pages = comic.pages.map((page) => ({
+      ...page,
+      url: `http://localhost:5000${page.url}`,
+    }));
+
+    res.json(comic);
+  } catch (error) {
+    console.error('Error fetching comic by ID:', error);
+    res.status(500).send('Failed to fetch comic.');
+  }
+});
+
+
 
 module.exports = router;

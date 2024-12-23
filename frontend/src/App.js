@@ -4,6 +4,7 @@ import Navbar from './comp/Navbar';
 import ComicList from './comp/ComicList';
 import ComicReader from './comp/ComicReader';
 import UploadComic from './comp/UploadComic';
+import './App.css';
 
 const App = () => (
     <Router>
