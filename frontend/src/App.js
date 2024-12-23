@@ -5,6 +5,7 @@ import ComicList from './comp/ComicList';
 import ComicReader from './comp/ComicReader';
 import UploadComic from './comp/UploadComic';
 import './App.css';
+import Footer from './comp/Footer';
 
 const App = () => (
     <Router>
@@ -15,6 +16,7 @@ const App = () => (
             <Route path="/comics/:id" element={<ComicReader />} />
             <Route path="*" element={<div>Page Not Found</div>} />
         </Routes>
+        <Footer />
     </Router>
 );
 
