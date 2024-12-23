@@ -9,7 +9,10 @@ const Navbar = () => (
                 <ul className="navbar-nav ml-auto">
                     <li className="nav-item">
                         <Link className="nav-link" to="/upload">העלה קומיקס</Link>
-                    </li>
+                     </li>
+                     <li className="nav-item">
+                         <Link className="nav-link" to="/register">הרשם</Link>
+                     </li>
                 </ul>
             </div>
         </div>

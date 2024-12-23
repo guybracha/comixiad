@@ -7,6 +7,8 @@ const UploadComic = () => {
   const [description, setDescription] = useState('');
   const [genre, setGenre] = useState('');
   const [language, setLanguage] = useState('');
+  const [author, setAuthor] = useState('');
+  const [coverImage, setCoverImage] = useState(null);
   const [pages, setPages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -15,14 +17,24 @@ const UploadComic = () => {
     setPages(e.target.files);
   };
 
+  const handleCoverImageChange = (e) => {
+    setCoverImage(e.target.files[0]);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     const formData = new FormData();
     formData.append('title', title);
     formData.append('description', description);
     formData.append('genre', genre);
     formData.append('language', language);
+    formData.append('author', author);
+
+    if (coverImage) {
+      formData.append('coverImage', coverImage);
+    }
 
     for (let i = 0; i < pages.length; i++) {
       formData.append('pages', pages[i]);
@@ -38,10 +50,14 @@ const UploadComic = () => {
       setDescription('');
       setGenre('');
       setLanguage('');
+      setAuthor('');
+      setCoverImage(null);
       setPages([]);
     } catch (error) {
       console.error(error);
       alert('Error uploading comic.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -97,6 +113,27 @@ const UploadComic = () => {
           className="form-control"
           value={language}
           onChange={(e) => setLanguage(e.target.value)}
+          required
+        />
+      </div>
+
+      <div className="mb-3">
+        <label>מחבר</label>
+        <input
+          type="text"
+          className="form-control"
+          value={author}
+          onChange={(e) => setAuthor(e.target.value)}
+          required
+        />
+      </div>
+
+      <div className="mb-3">
+        <label>תמונת קאבר</label>
+        <input
+          type="file"
+          className="form-control"
+          onChange={handleCoverImageChange}
           required
         />
       </div>

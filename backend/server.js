@@ -4,9 +4,11 @@ const { GridFSBucket } = require('mongodb');
 const multer = require('multer');
 const cors = require('cors');
 const comicsRouter = require('./api/comics'); // Path to your comics.js file
+const registerRoute = require("./routers/Register"); // הנתיב לקובץ שמכיל את הקוד לעיל
 const path = require('path');
 const fs = require('fs');
 const app = express();
+const bodyParser = require("body-parser");
 
 // Define your MongoDB URI
 const mongoURI = 'mongodb://localhost:27017/comixiad'; // Update your Mongo URI
@@ -106,9 +108,13 @@ conn.once('open', () => {
     res.send({ message: 'Image uploaded successfully' });
   });
 
+  app.use(bodyParser.json());
+
   // API routes
   app.use('/api/comics', comicsRouter);
+  app.use("/api", registerRoute);
   app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 
   // Error handling middleware
   app.use((err, req, res, next) => {

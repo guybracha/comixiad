@@ -8,6 +8,7 @@ import './App.css';
 import Footer from './comp/Footer';
 import Homepage from './comp/Homepage';
 import CategoryPage from './comp/CategoryPage';
+import RegistrationForm from './comp/RegistrationForm';
 
 const App = () => (
     <Router>
@@ -16,6 +17,7 @@ const App = () => (
             <Route path="/" element={<Homepage />} />
             <Route path="/upload" element={<UploadComic/>}/>
             <Route path="/comics/:id" element={<ComicReader />} />
+            <Route path="/register" element={<RegistrationForm />} />
             <Route path="/category/:category" element={<CategoryPage />} />
             <Route path="*" element={<Error />} />
         </Routes>
