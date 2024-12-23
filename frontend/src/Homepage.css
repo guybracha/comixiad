@@ -1,0 +1,44 @@
+.homepage {
+    font-family: Arial, sans-serif;
+  }
+  
+  .homepage-banner {
+    text-align: center;
+    background: linear-gradient(to right, #ff7e5f, #feb47b);
+    color: white;
+    padding: 50px 20px;
+  }
+  
+  .homepage-banner h1 {
+    font-size: 3rem;
+  }
+  
+  .homepage-banner p {
+    font-size: 1.5rem;
+    margin: 20px 0;
+  }
+  
+  .homepage-categories, .homepage-featured, .homepage-latest {
+    margin: 40px 20px;
+  }
+  
+  .categories-list {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+  }
+  
+  .category-card {
+    text-decoration: none;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border-radius: 8px;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+  }
+  
+  .category-card:hover {
+    transform: scale(1.1);
+    background-color: #0056b3;
+  }
+  

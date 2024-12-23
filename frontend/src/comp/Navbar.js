@@ -8,7 +8,7 @@ const Navbar = () => (
             <div className="collapse navbar-collapse">
                 <ul className="navbar-nav ml-auto">
                     <li className="nav-item">
-                        <Link className="nav-link" to="/upload">Upload Comics</Link>
+                        <Link className="nav-link" to="/upload">העלה קומיקס</Link>
                     </li>
                 </ul>
             </div>
