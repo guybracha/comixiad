@@ -1,36 +1,45 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const User = require('./models/User'); // ייבוא מודל המשתמשים
+const User = require('../models/User'); // מודל המשתמשים
 const router = express.Router();
 
-// מסלול כניסה
-router.post('/api/login', async (req, res) => {
+// Secret key for JWT
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
+
+// Login route
+router.post('/', async (req, res) => {
     const { email, password } = req.body;
 
     try {
-        // חיפוש המשתמש במאגר
+        if (!email || !password) {
+            return res.status(400).json({ message: 'יש למלא את כל השדות.' });
+        }
+
         const user = await User.findOne({ email });
         if (!user) {
             return res.status(401).json({ message: 'אימייל או סיסמה שגויים.' });
         }
 
-        // אימות הסיסמה
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-        if (!isPasswordValid) {
+        const isPasswordMatch = await bcrypt.compare(password, user.password);
+        if (!isPasswordMatch) {
             return res.status(401).json({ message: 'אימייל או סיסמה שגויים.' });
         }
 
-        // יצירת טוקן JWT
-        const token = jwt.sign({ id: user._id }, 'secret_key', { expiresIn: '1h' });
+        const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, {
+            expiresIn: '1h',
+        });
 
-        // החזרת מידע המשתמש (ללא סיסמה)
         res.json({
-            message: 'התחברת בהצלחה.',
-            user: { id: user._id, name: user.name, email: user.email },
+            user: {
+                id: user._id,
+                email: user.email,
+                name: user.name,
+            },
             token,
         });
-    } catch (err) {
+    } catch (error) {
+        console.error('Error during login:', error);
         res.status(500).json({ message: 'שגיאה בשרת.' });
     }
 });

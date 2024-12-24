@@ -65,4 +65,10 @@ function Login({ onLogin }) {
     );
 }
 
+Login.defaultProps = {
+    onLogin: () => {
+        console.warn('onLogin לא הועבר!');
+    },
+};
+
 export default Login;

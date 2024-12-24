@@ -14,25 +14,27 @@ import Login from './comp/Login';
 const App = () => {
     const [user, setUser] = useState(null);
 
-    React.useEffect(() => {
-        const fetchedUser = {name: ''};
-        setUser(fetchedUser);
-    }, []);
-    return(
-    <Router>
-        <Navbar user={user} />
-        <Routes>
-            <Route path="/" element={<Homepage />} />
-            <Route path="/upload" element={<UploadComic/>}/>
-            <Route path="/comics/:id" element={<ComicReader />} />
-            <Route path="/register" element={<RegistrationForm />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/category/:category" element={<CategoryPage />} />
-            <Route path="*" element={<Error />} />
-        </Routes>
-        <Footer />
-    </Router>
-);
+    // Handle login
+    const handleLogin = (loggedInUser) => {
+        setUser(loggedInUser);
+        console.log('User logged in:', loggedInUser);
+    };
+
+    return (
+        <Router>
+            <Navbar user={user} />
+            <Routes>
+                <Route path="/" element={<Homepage />} />
+                <Route path="/upload" element={<UploadComic />} />
+                <Route path="/comics/:id" element={<ComicReader />} />
+                <Route path="/register" element={<RegistrationForm />} />
+                <Route path="/login" element={<Login onLogin={handleLogin} />} />
+                <Route path="/category/:category" element={<CategoryPage />} />
+                <Route path="*" element={<Error />} />
+            </Routes>
+            <Footer />
+        </Router>
+    );
 };
 
 export default App;
