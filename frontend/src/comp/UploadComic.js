@@ -1,17 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // לשימוש בהפניה לעמוד התחברות
 import axios from 'axios';
 import genres from '../config/Genres'; // עדכן את הנתיב לקובץ genres.js
 
-const UploadComic = () => {
+const UploadComic = ({ currentUser }) => {
+  const navigate = useNavigate(); // ניווט בין עמודים
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [genre, setGenre] = useState('');
   const [language, setLanguage] = useState('');
-  const [author, setAuthor] = useState('');
   const [coverImage, setCoverImage] = useState(null);
   const [pages, setPages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // בדוק אם המשתמש מחובר
+  useEffect(() => {
+    if (!currentUser || !currentUser.token) {
+      alert('אנא התחבר כדי להעלות קומיקס.');
+      navigate('/login'); // הפניה לעמוד התחברות
+    }
+  }, [currentUser, navigate]);
 
   const handleFileChange = (e) => {
     setPages(e.target.files);
@@ -30,7 +39,6 @@ const UploadComic = () => {
     formData.append('description', description);
     formData.append('genre', genre);
     formData.append('language', language);
-    formData.append('author', author);
 
     if (coverImage) {
       formData.append('coverImage', coverImage);
@@ -42,20 +50,22 @@ const UploadComic = () => {
 
     try {
       const response = await axios.post('/api/comics/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${currentUser.token}`, // טוקן לאימות המשתמש
+        },
       });
 
-      alert('Comic uploaded successfully!');
+      alert('קומיקס הועלה בהצלחה!');
       setTitle('');
       setDescription('');
       setGenre('');
       setLanguage('');
-      setAuthor('');
       setCoverImage(null);
       setPages([]);
     } catch (error) {
       console.error(error);
-      alert('Error uploading comic.');
+      alert('שגיאה בהעלאת הקומיקס.');
     } finally {
       setLoading(false);
     }
@@ -113,17 +123,6 @@ const UploadComic = () => {
           className="form-control"
           value={language}
           onChange={(e) => setLanguage(e.target.value)}
-          required
-        />
-      </div>
-
-      <div className="mb-3">
-        <label>מחבר</label>
-        <input
-          type="text"
-          className="form-control"
-          value={author}
-          onChange={(e) => setAuthor(e.target.value)}
           required
         />
       </div>

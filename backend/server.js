@@ -5,6 +5,7 @@ const multer = require('multer');
 const cors = require('cors');
 const comicsRouter = require('./api/comics'); // Path to your comics.js file
 const registerRoute = require("./routers/Register"); // הנתיב לקובץ שמכיל את הקוד לעיל
+const loginRoute = require('./routers/Login');
 const path = require('path');
 const fs = require('fs');
 const app = express();
@@ -112,6 +113,7 @@ conn.once('open', () => {
 
   // API routes
   app.use('/api/comics', comicsRouter);
+  app.use('/api/login', loginRoute);
   app.use("/api", registerRoute);
   app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
