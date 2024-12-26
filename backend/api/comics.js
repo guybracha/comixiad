@@ -20,32 +20,35 @@ router.post('/upload', upload.array('pages'), async (req, res) => {
     return res.status(400).send('No files uploaded.');
   }
 
-  const { title, description, genre, language } = req.body;
-  if (!title || !description || !genre || !language) {
-    return res.status(400).send('Title, description, genre, and language are required.');
-  }
-
   try {
+    const { title, description, genre, language, author } = req.body;
     const pages = req.files.map(file => ({
-      url: `/uploads/${file.filename}`,
+      url: file.filename,
       mimetype: file.mimetype,
       size: file.size,
     }));
 
-    const comic = new Comic({ title, description, genre, language, pages });
-    await comic.save();
+    const newComic = new Comic({
+      title,
+      description,
+      genre,
+      language,
+      coverImage: pages[0].url, // Assuming the first page is the cover image
+      author,
+      pages,
+    });
 
-    res.status(201).json({ message: 'Comic uploaded successfully', comic });
+    await newComic.save();
+    res.status(201).send(newComic);
   } catch (error) {
-    console.error('Error uploading comic:', error.message);
+    console.error('Error uploading comic:', error);
     res.status(500).send('Failed to upload comic.');
   }
 });
 
-// Fetch all comics
 router.get('/', async (req, res) => {
   try {
-    const comics = await Comic.find(); // מבצע חיפוש על כל הקומיקסים במסד הנתונים
+    const comics = await Comic.find();
     res.json(comics);
   } catch (error) {
     console.error('Error fetching comics:', error);
@@ -53,27 +56,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Fetch a single comic by ID
-router.get('/:id', async (req, res) => {
-  try {
-    const comic = await Comic.findById(req.params.id);
-    if (!comic) {
-      return res.status(404).json({ message: 'Comic not found' });
-    }
-
-    // עדכן את נתיב הקבצים לתמונות מלאים
-    comic.pages = comic.pages.map((page) => ({
-      ...page,
-      url: `http://localhost:5000${page.url}`,
-    }));
-
-    res.json(comic);
-  } catch (error) {
-    console.error('Error fetching comic by ID:', error);
-    res.status(500).send('Failed to fetch comic.');
-  }
-});
-
-
+// Serve static files from the uploads directory
+router.use('/uploads', express.static('uploads'));
 
 module.exports = router;
