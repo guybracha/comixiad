@@ -5,16 +5,30 @@ const comicSchema = new mongoose.Schema({
   description: { type: String, required: true },
   genre: { type: String, required: true },
   language: { type: String, required: true },
-  coverImage: { type: String, default: '' }, // URL לתמונת הקאבר
-  author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // מחבר הקומיקס
+  author: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User', 
+    required: false 
+  },
   pages: [
     {
-      url: { type: String, required: true }, // נתיב או URL של התמונה
+      filename: { 
+        type: String, 
+        required: true,
+        default: function() {
+          return `page_${Date.now()}`
+        }
+      },
+      url: { type: String },
       mimetype: { type: String },
       size: { type: Number },
     },
   ],
-  createdAt: { type: Date, default: Date.now },
+  createdAt: { type: Date, default: Date.now }
+}, {
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
 });
 
 module.exports = mongoose.model('Comic', comicSchema);

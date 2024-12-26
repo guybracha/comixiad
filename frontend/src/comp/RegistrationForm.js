@@ -1,79 +1,75 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { useUser } from '../context/UserContext';
 
 const RegistrationForm = () => {
+  const navigate = useNavigate();
+  const { setUser } = useUser();
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
   });
-
-  const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // בדיקת סיסמה ואישור סיסמה
-    if (formData.password !== formData.confirmPassword) {
-      setErrorMessage("Passwords do not match.");
-      return;
-    }
-
+    setError('');
+    setLoading(true);
+  
+    // Debug log
+    console.log('Submitting registration form:', formData);
+  
     try {
-      // שליחת המידע לשרת
-      const response = await fetch("http://localhost:5000/api/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
+      const response = await axios.post('http://localhost:5000/api/register', {
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        setErrorMessage(errorData.message || "Registration failed.");
-      } else {
-        setSuccessMessage("Registration successful!");
-        setErrorMessage("");
-        setFormData({
-          name: "",
-          email: "",
-          password: "",
-          confirmPassword: "",
-        });
+  
+      console.log('Registration response:', response.data);
+  
+      if (response.data.user) {
+        setUser(response.data.user);
+        navigate('/comics');
       }
-    } catch (error) {
-      setErrorMessage("An error occurred. Please try again later.");
+    } catch (err) {
+      console.error('Registration error details:', err.response?.data);
+      setError(err.response?.data?.error || 'Registration failed');
+    } finally {
+      setLoading(false);
     }
+  };
+  
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
   };
 
   return (
     <div className="container mt-5">
-      <h2 className="text-center">רישום</h2>
-      <p className="text-center">בואו תיקחו חלק במהפכת הקומיקס</p>
-      {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
-      {successMessage && <div className="alert alert-success">{successMessage}</div>}
+      <h2>הרשמה</h2>
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
-          <label htmlFor="name" className="form-label">שם משתמש</label>
+          <label htmlFor="username" className="form-label">שם משתמש</label>
           <input
             type="text"
             className="form-control"
-            id="name"
-            name="name"
-            value={formData.name}
+            id="username"
+            name="username"
+            value={formData.username}
             onChange={handleChange}
             required
           />
         </div>
         <div className="mb-3">
-          <label htmlFor="email" className="form-label">כתובת מייל</label>
+          <label htmlFor="email" className="form-label">אימייל</label>
           <input
             type="email"
             className="form-control"
@@ -98,7 +94,7 @@ const RegistrationForm = () => {
           />
         </div>
         <div className="mb-3">
-          <label htmlFor="confirmPassword" className="form-label">אמת סיסמא</label>
+          <label htmlFor="confirmPassword" className="form-label">אימות סיסמא</label>
           <input
             type="password"
             className="form-control"
@@ -107,9 +103,17 @@ const RegistrationForm = () => {
             value={formData.confirmPassword}
             onChange={handleChange}
             required
+            minLength="6"
           />
         </div>
-        <button type="submit" className="btn btn-primary w-100">הירשם</button>
+        {error && <div className="alert alert-danger">{error}</div>}
+        <button 
+          type="submit" 
+          className="btn btn-primary"
+          disabled={loading}
+        >
+          {loading ? 'מבצע הרשמה...' : 'הרשמה'}
+        </button>
       </form>
     </div>
   );

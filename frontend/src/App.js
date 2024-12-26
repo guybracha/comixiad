@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { UserProvider, useUser } from './context/UserContext';
+import { useUser } from './context/UserContext';
 import Navbar from './comp/Navbar';
 import Homepage from './comp/Homepage';
 import UploadComic from './comp/UploadComic';
@@ -22,10 +21,6 @@ const App = () => {
         }
     }, [setUser]);
 
-    const handleLogin = (user) => {
-        setUser(user);
-    };
-
     return (
         <Router>
             <Navbar user={user} />
@@ -37,7 +32,7 @@ const App = () => {
                 />
                 <Route path="/comics/:id" element={<ComicReader />} />
                 <Route path="/register" element={<RegistrationForm />} />
-                <Route path="/login" element={<Login onLogin={handleLogin} />} />
+                <Route path="/login" element={<Login />} />
                 <Route path="/category/:category" element={<CategoryPage />} />
                 <Route path="*" element={<Error />} />
             </Routes>
@@ -45,12 +40,5 @@ const App = () => {
         </Router>
     );
 };
-
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-    <UserProvider>
-        <App />
-    </UserProvider>
-);
 
 export default App;

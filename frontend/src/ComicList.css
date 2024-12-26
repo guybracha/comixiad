@@ -1,0 +1,29 @@
+.loading-spinner {
+    text-align: center;
+    padding: 20px;
+  }
+  
+  .comic-card {
+    transition: transform 0.2s;
+  }
+  
+  .comic-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .comic-image-container {
+    height: 300px;
+    overflow: hidden;
+  }
+  
+  .comic-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .no-comics {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+  }

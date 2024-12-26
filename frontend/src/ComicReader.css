@@ -1,0 +1,94 @@
+.comic-reader {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #f8f9fa;
+}
+
+.comic-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.comic-title {
+    font-size: 2.5rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.comic-description {
+    font-size: 1.1rem;
+    color: #666;
+}
+
+.comic-pages {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.comic-page {
+    width: 100%;
+    max-width: 800px;
+    background: white;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.comic-page:hover {
+    transform: scale(1.02);
+}
+
+.comic-page img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.modal-dialog {
+    max-width: 90vw !important;
+    margin: 10px auto;
+}
+
+.modal-content {
+    background: #333 !important;
+    border: none;
+}
+
+.modal-body {
+    padding: 0;
+}
+
+.modal-body img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.loading-spinner {
+    text-align: center;
+    padding: 50px;
+    font-size: 1.2rem;
+    color: #666;
+}
+
+.error-message {
+    text-align: center;
+    padding: 50px;
+    color: #dc3545;
+    font-size: 1.2rem;
+}
+
+@media (max-width: 768px) {
+    .comic-reader {
+        padding: 10px;
+    }
+    
+    .comic-title {
+        font-size: 2rem;
+    }
+}

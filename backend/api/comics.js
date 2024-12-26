@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const Comic = require('../models/Comic'); // Assuming this is your Comic model
+const path = require('path');
+const Comic = require('../models/Comic');
 
-// Setup multer for handling file uploads
+// Setup multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/');
+    cb(null, path.join(__dirname, '../uploads'));
   },
   filename: (req, file, cb) => {
     cb(null, `${Date.now()}-${file.originalname}`);
@@ -15,15 +16,28 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+// Get all comics
+router.get('/', async (req, res) => {
+  try {
+    const comics = await Comic.find();
+    console.log('Fetched comics:', comics);
+    res.json(comics);
+  } catch (error) {
+    console.error('Error fetching comics:', error);
+    res.status(500).json({ error: 'Failed to fetch comics' });
+  }
+});
+
+// Upload new comic
 router.post('/upload', upload.array('pages'), async (req, res) => {
   if (!req.files || req.files.length === 0) {
-    return res.status(400).send('No files uploaded.');
+    return res.status(400).json({ error: 'No files uploaded' });
   }
 
   try {
     const { title, description, genre, language, author } = req.body;
     const pages = req.files.map(file => ({
-      url: file.filename,
+      filename: file.filename,
       mimetype: file.mimetype,
       size: file.size,
     }));
@@ -33,30 +47,32 @@ router.post('/upload', upload.array('pages'), async (req, res) => {
       description,
       genre,
       language,
-      coverImage: pages[0].url, // Assuming the first page is the cover image
       author,
       pages,
     });
 
     await newComic.save();
-    res.status(201).send(newComic);
+    console.log('Saved new comic:', newComic);
+    res.status(201).json(newComic);
   } catch (error) {
     console.error('Error uploading comic:', error);
-    res.status(500).send('Failed to upload comic.');
+    res.status(500).json({ error: 'Failed to upload comic' });
   }
 });
 
-router.get('/', async (req, res) => {
+// Get comic by ID
+router.get('/:id', async (req, res) => {
   try {
-    const comics = await Comic.find();
-    res.json(comics);
+    const comic = await Comic.findById(req.params.id);
+    if (!comic) {
+      return res.status(404).json({ error: 'Comic not found' });
+    }
+    res.json(comic);
   } catch (error) {
-    console.error('Error fetching comics:', error);
-    res.status(500).send('Failed to fetch comics.');
+    console.error('Error fetching comic:', error);
+    res.status(500).json({ error: 'Failed to fetch comic' });
   }
 });
 
-// Serve static files from the uploads directory
-router.use('/uploads', express.static('uploads'));
-
+// Remove static file serving from here - it should be in server.js
 module.exports = router;
