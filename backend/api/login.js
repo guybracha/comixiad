@@ -20,31 +20,22 @@ router.post('/', async (req, res) => {
     // Find user by email
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(401).json({ message: 'אימייל או סיסמה שגויים.' });
+      return res.status(400).json({ message: 'משתמש לא נמצא.' });
     }
 
-    // Compare password
-    const isPasswordMatch = await bcrypt.compare(password, user.password);
-    if (!isPasswordMatch) {
-      return res.status(401).json({ message: 'אימייל או סיסמה שגויים.' });
+    // Check password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'סיסמה שגויה.' });
     }
 
-    // Generate JWT
-    const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, {
-      expiresIn: '1h',
-    });
+    // Create JWT token
+    const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '1h' });
 
-    // Respond with user data and token
-    res.json({
-      user: {
-        id: user._id,
-        email: user.email,
-        name: user.name, // Add other fields if needed
-      },
-      token,
-    });
+    // Return user and token
+    res.json({ user: { username: user.username, email: user.email }, token });
   } catch (error) {
-    console.error('Error during login:', error);
+    console.error(error);
     res.status(500).json({ message: 'שגיאה בשרת.' });
   }
 });
