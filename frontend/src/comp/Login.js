@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function Login({ onLogin }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -19,56 +21,39 @@ function Login({ onLogin }) {
             });
 
             const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'שגיאה בהתחברות');
+            if (response.ok) {
+                localStorage.setItem('user', JSON.stringify(data.user)); // שמירת פרטי המשתמש ב-Local Storage
+                localStorage.setItem('token', data.token); // שמירת ה-token ב-Local Storage
+                onLogin(data.user);
+                navigate('/');
+            } else {
+                setError(data.message);
             }
-
-            onLogin(data.user); // עדכון המשתמש המחובר
-        } catch (err) {
-            setError(err.message);
+        } catch (error) {
+            setError('An error occurred. Please try again.');
         }
     };
 
     return (
-        <div className="container mt-5">
-            <h2 className="mb-4">התחברות</h2>
-            {error && <div className="alert alert-danger">{error}</div>}
-            <form onSubmit={handleSubmit}>
-                <div className="form-group">
-                    <label htmlFor="email">אימייל</label>
-                    <input
-                        type="email"
-                        id="email"
-                        className="form-control"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="הכנס את האימייל שלך"
-                        required
-                    />
-                </div>
-                <div className="form-group mt-3">
-                    <label htmlFor="password">סיסמה</label>
-                    <input
-                        type="password"
-                        id="password"
-                        className="form-control"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="הכנס את הסיסמה שלך"
-                        required
-                    />
-                </div>
-                <button type="submit" className="btn btn-primary mt-4">התחבר</button>
-            </form>
-        </div>
+        <form onSubmit={handleSubmit}>
+            <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email"
+                required
+            />
+            <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+                required
+            />
+            {error && <p>{error}</p>}
+            <button type="submit">התחבר</button>
+        </form>
     );
 }
-
-Login.defaultProps = {
-    onLogin: () => {
-        console.warn('onLogin לא הועבר!');
-    },
-};
 
 export default Login;

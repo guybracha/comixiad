@@ -1,31 +1,40 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useUser } from '../context/UserContext';
 
 const Navbar = () => {
-    const { user } = useUser();
+    const [user, setUser] = useState(null);
+
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
+        }
+    }, []);
 
     return (
         <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
             <div className="container">
                 <Link className="navbar-brand" to="/">Comixiad</Link>
-                <div className="collapse navbar-collapse">
-                    <ul className="navbar-nav ml-auto">
-                        <li className="nav-item">
-                            <Link className="nav-link" to="/upload">העלה קומיקס</Link>
-                        </li>
-                        <li className="nav-item">
-                            <Link className="nav-link" to="/register">הרשם</Link>
-                        </li>
+                <button
+                    className="navbar-toggler"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navbarNav"
+                    aria-controls="navbarNav"
+                    aria-expanded="false"
+                    aria-label="Toggle navigation"
+                >
+                    <span className="navbar-toggler-icon"></span>
+                </button>
+                <div className="collapse navbar-collapse" id="navbarNav">
+                    <ul className="navbar-nav ms-auto">
                         {user ? (
                             <li className="nav-item">
-                                <span className="navbar-text text-light">
-                                    ברוך הבא, {user.name}
-                                </span>
+                                <span className="nav-link">שלום, {user.username}</span>
                             </li>
                         ) : (
                             <li className="nav-item">
-                                <Link className="nav-link" to="/login">התחבר</Link>
+                                <Link className="nav-link" to="/login">Login</Link>
                             </li>
                         )}
                     </ul>
