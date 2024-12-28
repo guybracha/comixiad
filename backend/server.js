@@ -6,10 +6,11 @@ const bodyParser = require("body-parser");
 const { GridFSBucket } = require('mongodb');
 const path = require('path');
 const fs = require('fs');
-
+require('dotenv').config(); // לקריאת משתנים סודיים
 const comicsRouter = require('./routers/comics');
 const registerRoute = require("./routers/Register");
 const loginRoute = require('./routers/Login');
+const userRoutes = require('./routers/User'); // נתיב ל-API של משתמשים
 
 const app = express();
 const mongoURI = 'mongodb://localhost:27017/comixiad'; // Update your Mongo URI
@@ -45,6 +46,7 @@ conn.once('open', () => {
 app.use('/api/comics', comicsRouter);
 app.use('/api/register', registerRoute);
 app.use('/api/login', loginRoute);
+app.use('/api/user', userRoutes);
 
 // Serve uploaded files statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -53,6 +55,23 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Something went wrong!' });
+});
+
+app.post('/api/users/login', async (req, res) => {
+  const { email, password } = req.body;
+  try {
+      const user = await User.findOne({ email, password });
+      if (!user) {
+          return res.status(401).json({ message: 'Invalid email or password' });
+      }
+      res.status(200).json({ 
+          username: user.username, 
+          email: user.email, 
+          token: 'fake-jwt-token' // להחליף עם JWT אמיתי
+      });
+  } catch (error) {
+      res.status(500).json({ message: 'Server error' });
+  }
 });
 
 // Start server

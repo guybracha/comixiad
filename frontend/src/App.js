@@ -10,6 +10,7 @@ import Login from './comp/Login';
 import CategoryPage from './comp/CategoryPage';
 import Error from './comp/Error';
 import Footer from './comp/Footer';
+import UserProfile from './comp/UserProfile';
 
 const App = () => {
     const { user, setUser } = useUser();
@@ -34,6 +35,7 @@ const App = () => {
                 <Route path="/register" element={<RegistrationForm />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/category/:category" element={<CategoryPage />} />
+                <Route path="/profile/:userId" element={<UserProfile />} />
                 <Route path="*" element={<Error />} />
             </Routes>
             <Footer />

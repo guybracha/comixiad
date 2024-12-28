@@ -13,26 +13,21 @@ const Login = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
-        setLoading(true);
-
         try {
-            const response = await axios.post('http://localhost:5000/api/login', {
-                email,
-                password
-            });
-
-            if (response.data.user) {
-                setUser(response.data.user);
-                navigate('/');
-            }
+          const response = await axios.post('http://localhost:5000/api/login', {
+            email,
+            password
+          });
+      
+          if (response.data.user) {
+            localStorage.setItem('user', JSON.stringify(response.data.user));
+            setUser(response.data.user);
+            navigate('/');
+          }
         } catch (err) {
-            console.error('Login error:', err);
-            setError(err.response?.data?.message || 'Login failed');
-        } finally {
-            setLoading(false);
+          setError(err.response?.data?.message || 'Login failed');
         }
-    };
+      };
 
     return (
         <div className="container mt-5">
