@@ -1,34 +1,44 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User'); // ייבוא מודל המשתמש
-const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 
-// Middleware לאימות משתמש
-const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+router.get('/:id', async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id).select('-password');
+        
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
 
-  if (!token) return res.status(401).json({ message: 'Access denied. No token provided.' });
+        res.json(user);
+    } catch (err) {
+        console.error('Error fetching user:', err);
+        if (err.kind === 'ObjectId') {
+            return res.status(404).json({ message: 'Invalid user ID' });
+        }
+        res.status(500).json({ message: 'Server error' });
+    }
+});
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET); // בדוק אם הטוקן חוקי
-    req.user = decoded; // שמור את פרטי המשתמש המבוקרים
-    next();
-  } catch (err) {
-    res.status(403).json({ message: 'Invalid token.' });
-  }
-};
+router.put('/:id', async (req, res) => {
+    try {
+        const { bio, location, favoriteGenres } = req.body;
+        
+        const user = await User.findByIdAndUpdate(
+            req.params.id,
+            { $set: { bio, location, favoriteGenres } },
+            { new: true }
+        ).select('-password');
 
-// נקודת קצה: שליפת נתוני המשתמש המחובר
-router.get('/profile', authenticateToken, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id).select('-password'); // שלוף את הנתונים בלי השדה של הסיסמה
-    if (!user) return res.status(404).json({ message: 'User not found.' });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
 
-    res.status(200).json(user);
-  } catch (err) {
-    res.status(500).json({ message: 'Server error.', error: err.message });
-  }
+        res.json(user);
+    } catch (err) {
+        console.error('Error updating user:', err);
+        res.status(500).json({ message: 'Server error' });
+    }
 });
 
 module.exports = router;

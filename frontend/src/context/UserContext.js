@@ -1,39 +1,40 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import axios from 'axios';
 
-const UserContext = createContext();
-
-export const useUser = () => {
-  const context = useContext(UserContext);
-  if (!context) {
-    throw new Error('useUser must be used within a UserProvider');
-  }
-  return context;
-};
+export const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchUserData = async (userId) => {
     try {
-      const savedUser = localStorage.getItem('user');
-      return savedUser ? JSON.parse(savedUser) : null;
+      const response = await axios.get(`http://localhost:5000/api/users/${userId}`);
+      setUser(response.data);
     } catch (error) {
-      console.error('Error parsing user:', error);
-      return null;
+      console.error('Error fetching user:', error);
+    } finally {
+      setLoading(false);
     }
-  });
+  };
 
   useEffect(() => {
-    if (user) {
-      localStorage.setItem('user', JSON.stringify(user));
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      if (parsedUser._id) {
+        fetchUserData(parsedUser._id);
+      }
     } else {
-      localStorage.removeItem('user');
+      setLoading(false);
     }
-  }, [user]);
+  }, []);
 
   return (
-    <UserContext.Provider value={{ user, setUser }}>
+    <UserContext.Provider value={{ user, setUser, loading }}>
       {children}
     </UserContext.Provider>
   );
 };
 
-export { UserContext };
+export const useUser = () => useContext(UserContext);

@@ -1,16 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useUser } from '../context/UserContext';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
 const Navbar = () => {
-    const [user, setUser] = useState(null);
+    const { user, setUser, loading } = useUser();
     const navigate = useNavigate();
-
-    useEffect(() => {
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-            setUser(JSON.parse(storedUser));
-        }
-    }, []);
 
     const handleLogout = () => {
         localStorage.removeItem('user');
@@ -35,32 +31,32 @@ const Navbar = () => {
                 </button>
                 <div className="collapse navbar-collapse" id="navbarNav">
                     <ul className="navbar-nav ms-auto">
-                    {user ? (
-                    <>
-                        <li className="nav-item">
-                            <Link className="nav-link" to={`/profile/${user._id}`}>
-                                שלום, {user.username}
-                            </Link>
-                        </li>
-                        <li className="nav-item">
-                            <Link className="nav-link" to="/upload">Upload</Link>
-                        </li>
-                        <li className="nav-item">
-                            <button className="btn btn-link nav-link" onClick={handleLogout}>
-                                התנתק
-                            </button>
-                        </li>
-                    </>
-                ) : (
-                    <>
-                        <li className="nav-item">
-                            <Link className="nav-link" to="/login">Login</Link>
-                        </li>
-                        <li className="nav-item">
-                            <Link className="nav-link" to="/register">Register</Link>
-                        </li>
-                    </>
-                )}
+                        {user ? (
+                            <>
+                                <li className="nav-item">
+                                    <Link className="nav-link" to={`/profile/${user._id}`}>
+                                        שלום, {user.username}
+                                    </Link>
+                                </li>
+                                <li className="nav-item">
+                                    <Link className="nav-link" to="/upload">Upload</Link>
+                                </li>
+                                <li className="nav-item">
+                                    <button className="btn btn-link nav-link" onClick={handleLogout}>
+                                        התנתק
+                                    </button>
+                                </li>
+                            </>
+                        ) : (
+                            <>
+                                <li className="nav-item">
+                                    <Link className="nav-link" to="/login">Login</Link>
+                                </li>
+                                <li className="nav-item">
+                                    <Link className="nav-link" to="/register">Register</Link>
+                                </li>
+                            </>
+                        )}
                     </ul>
                 </div>
             </div>

@@ -11,6 +11,9 @@ const comicsRouter = require('./routers/comics');
 const registerRoute = require("./routers/Register");
 const loginRoute = require('./routers/Login');
 const userRoutes = require('./routers/User'); // נתיב ל-API של משתמשים
+const authRouter = require('./routers/Auth');
+
+
 
 const app = express();
 const mongoURI = 'mongodb://localhost:27017/comixiad'; // Update your Mongo URI
@@ -47,6 +50,7 @@ app.use('/api/comics', comicsRouter);
 app.use('/api/register', registerRoute);
 app.use('/api/login', loginRoute);
 app.use('/api/user', userRoutes);
+app.use('/api/Auth', authRouter);
 
 // Serve uploaded files statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
