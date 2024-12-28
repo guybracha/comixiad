@@ -8,7 +8,7 @@ const comicSchema = new mongoose.Schema({
   author: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'User', 
-    required: false 
+    required: true  // Changed to required: true
   },
   pages: [
     {
@@ -21,14 +21,23 @@ const comicSchema = new mongoose.Schema({
       },
       url: { type: String },
       mimetype: { type: String },
-      size: { type: Number },
-    },
+      size: { type: Number }
+    }
   ],
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { 
+    type: Date, 
+    default: Date.now 
+  },
+  likes: [{ 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User' 
+  }],
+  views: { 
+    type: Number, 
+    default: 0 
+  }
 }, {
-  timestamps: true,
-  toJSON: { virtuals: true },
-  toObject: { virtuals: true }
+  timestamps: true
 });
 
 module.exports = mongoose.model('Comic', comicSchema);

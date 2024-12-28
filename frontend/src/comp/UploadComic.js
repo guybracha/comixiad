@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '../context/UserContext';
 import axios from 'axios';
 
 const UploadComic = () => {
   const navigate = useNavigate();
+  const { user } = useUser();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [genre, setGenre] = useState('');
@@ -15,6 +17,11 @@ const UploadComic = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    if (!user?._id) {
+      setError('Please log in to upload comics');
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -24,6 +31,7 @@ const UploadComic = () => {
       formData.append('description', description);
       formData.append('genre', genre);
       formData.append('language', language);
+      formData.append('author', user._id);
 
       Array.from(pages).forEach(file => {
         formData.append('pages', file);
@@ -40,7 +48,7 @@ const UploadComic = () => {
       );
 
       console.log('Upload success:', response.data);
-      navigate('/');
+      navigate('/comics');
     } catch (err) {
       console.error('Upload error:', err);
       setError(err.response?.data?.error || 'Failed to upload comic');
