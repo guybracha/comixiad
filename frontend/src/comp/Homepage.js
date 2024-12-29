@@ -3,6 +3,7 @@ import ComicList from './ComicList';
 import { Link } from 'react-router-dom';
 import '../Homepage.css';
 import SeriesList from './SeriesList';
+import About from './About';
 
 function Homepage() {
   return (
@@ -15,7 +16,9 @@ function Homepage() {
           העלו את הקומיקס שלכם
         </Link>
       </header>
-
+      <div>
+        <About />
+      </div>
       {/* Section 2: Categories */}
       <section className="homepage-categories">
         <h2>קטגוריות פופולריות</h2>

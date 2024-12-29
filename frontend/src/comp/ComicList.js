@@ -53,7 +53,6 @@ const ComicList = () => {
 
   return (
     <div className="container mt-5">
-      <h2>Comic List</h2>
       <div className="row">
         {comics.map((comic) => (
           <div className="col-md-4" key={comic._id}>
