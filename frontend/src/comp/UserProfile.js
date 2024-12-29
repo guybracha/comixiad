@@ -23,6 +23,14 @@ const UserProfile = () => {
         email: '',
         bio: '',
         avatar: '',
+        firstName: '',
+        lastName: '',
+        dateOfBirth: '',
+        location: '',
+        favoriteGenres: '',
+        twitter: '',
+        instagram: '',
+        deviantart: '',
         createdAt: ''
     });
 
@@ -39,11 +47,19 @@ const UserProfile = () => {
                 console.log('User profile data:', userResponse.data); // Debug log
                 setProfile(userResponse.data);
                 setFormData({
-                    username: userResponse.data.username,
-                    email: userResponse.data.email,
-                    bio: userResponse.data.bio,
-                    avatar: userResponse.data.avatar,
-                    createdAt: userResponse.data.createdAt
+                    username: userResponse.data.username || '',
+                    email: userResponse.data.email || '',
+                    bio: userResponse.data.bio || '',
+                    avatar: userResponse.data.avatar || '',
+                    firstName: userResponse.data.firstName || '',
+                    lastName: userResponse.data.lastName || '',
+                    dateOfBirth: userResponse.data.dateOfBirth || '',
+                    location: userResponse.data.location || '',
+                    favoriteGenres: userResponse.data.favoriteGenres ? userResponse.data.favoriteGenres.join(', ') : '',
+                    twitter: userResponse.data.socialLinks?.twitter || '',
+                    instagram: userResponse.data.socialLinks?.instagram || '',
+                    deviantart: userResponse.data.socialLinks?.deviantart || '',
+                    createdAt: userResponse.data.createdAt || ''
                 });
 
                 const comicsResponse = await axios.get(`http://localhost:5000/api/comics?author=${userId}`);
@@ -68,10 +84,23 @@ const UserProfile = () => {
         setFormData({ ...formData, [name]: value });
     };
 
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        setFormData({ ...formData, avatar: file });
+    };
+
     const handleFormSubmit = async (e) => {
         e.preventDefault();
+        const formDataToSend = new FormData();
+        for (const key in formData) {
+            formDataToSend.append(key, formData[key]);
+        }
         try {
-            const response = await axios.put(`http://localhost:5000/api/users/${userId}`, formData);
+            const response = await axios.put(`http://localhost:5000/api/users/${userId}`, formDataToSend, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
             setProfile(response.data);
             setShowModal(false);
         } catch (err) {
@@ -88,7 +117,7 @@ const UserProfile = () => {
         <div className="container mt-4">
             <h2>{profile.username}'s Profile</h2>
             <img
-                src={profile.avatar || defaultAvatar}
+                src={profile.avatar ? `http://localhost:5000/${profile.avatar}` : defaultAvatar}
                 alt={profile.username}
                 className="profile-avatar"
                 onError={(e) => {
@@ -98,6 +127,17 @@ const UserProfile = () => {
             />
             <p>Email: {profile.email}</p>
             <p>Bio: {profile.bio}</p>
+            <p>Location: {profile.location}</p>
+            <p>Favorite Genres: {profile.favoriteGenres?.join(', ')}</p>
+            {profile.socialLinks?.twitter && (
+                <p>Twitter: <a href={profile.socialLinks.twitter} target="_blank" rel="noopener noreferrer">{profile.socialLinks.twitter}</a></p>
+            )}
+            {profile.socialLinks?.instagram && (
+                <p>Instagram: <a href={profile.socialLinks.instagram} target="_blank" rel="noopener noreferrer">{profile.socialLinks.instagram}</a></p>
+            )}
+            {profile.socialLinks?.deviantart && (
+                <p>Deviantart: <a href={profile.socialLinks.deviantart} target="_blank" rel="noopener noreferrer">{profile.socialLinks.deviantart}</a></p>
+            )}
             <p>Joined: {new Date(profile.createdAt).toLocaleDateString()}</p>
             <Button variant="primary" onClick={() => setShowModal(true)}>Edit Profile</Button>
 
@@ -167,6 +207,78 @@ const UserProfile = () => {
                                 onChange={handleInputChange}
                             />
                         </Form.Group>
+                        <Form.Group controlId="formFirstName">
+                            <Form.Label>First Name</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="firstName"
+                                value={formData.firstName}
+                                onChange={handleInputChange}
+                            />
+                        </Form.Group>
+                        <Form.Group controlId="formLastName">
+                            <Form.Label>Last Name</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="lastName"
+                                value={formData.lastName}
+                                onChange={handleInputChange}
+                            />
+                        </Form.Group>
+                        <Form.Group controlId="formDateOfBirth">
+                            <Form.Label>Date of Birth</Form.Label>
+                            <Form.Control
+                                type="date"
+                                name="dateOfBirth"
+                                value={formData.dateOfBirth}
+                                onChange={handleInputChange}
+                            />
+                        </Form.Group>
+                        <Form.Group controlId="formLocation">
+                            <Form.Label>Location</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="location"
+                                value={formData.location}
+                                onChange={handleInputChange}
+                            />
+                        </Form.Group>
+                        <Form.Group controlId="formFavoriteGenres">
+                            <Form.Label>Favorite Genres</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="favoriteGenres"
+                                value={formData.favoriteGenres}
+                                onChange={handleInputChange}
+                            />
+                        </Form.Group>
+                        <Form.Group controlId="formTwitter">
+                            <Form.Label>Twitter</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="twitter"
+                                value={formData.twitter}
+                                onChange={handleInputChange}
+                            />
+                        </Form.Group>
+                        <Form.Group controlId="formInstagram">
+                            <Form.Label>Instagram</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="instagram"
+                                value={formData.instagram}
+                                onChange={handleInputChange}
+                            />
+                        </Form.Group>
+                        <Form.Group controlId="formDeviantart">
+                            <Form.Label>Deviantart</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="deviantart"
+                                value={formData.deviantart}
+                                onChange={handleInputChange}
+                            />
+                        </Form.Group>
                         <Form.Group controlId="formBio">
                             <Form.Label>Bio</Form.Label>
                             <Form.Control
@@ -177,12 +289,11 @@ const UserProfile = () => {
                             />
                         </Form.Group>
                         <Form.Group controlId="formAvatar">
-                            <Form.Label>Avatar URL</Form.Label>
+                            <Form.Label>Avatar</Form.Label>
                             <Form.Control
-                                type="text"
+                                type="file"
                                 name="avatar"
-                                value={formData.avatar}
-                                onChange={handleInputChange}
+                                onChange={handleFileChange}
                             />
                         </Form.Group>
                         <Button variant="primary" type="submit">

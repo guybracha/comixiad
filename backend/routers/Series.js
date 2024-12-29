@@ -41,14 +41,15 @@ router.post('/', upload.single('coverImage'), async (req, res) => {
 });
 
 router.get('/', async (req, res) => {
-  try {
-    const series = await Series.find();
-    res.json(series);
-  } catch (err) {
-    console.error('Error fetching series:', err);
-    res.status(500).json({ message: 'Server error', error: err.message });
-  }
+    try {
+        const series = await Series.find();
+        res.json(series);
+    } catch (error) {
+        console.error('Error fetching series:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
 });
+
 
 // Fetch single series by ID
 router.get('/:id', async (req, res) => {

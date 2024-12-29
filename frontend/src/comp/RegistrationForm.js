@@ -35,7 +35,7 @@ const RegistrationForm = () => {
   
       if (response.data.user) {
         setUser(response.data.user);
-        navigate('/comics');
+        navigate('/');
       }
     } catch (err) {
       console.error('Registration error details:', err.response?.data);

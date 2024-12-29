@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const path = require('path');
 
 // Import routes
-const userRouter = require('./routers/user');
+const userRouter = require('./routers/User');
 const comicRouter = require('./routers/comics');
 const searchRouter = require('./routers/Search');
 const registerRoute = require('./routers/register');
