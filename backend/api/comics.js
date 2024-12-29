@@ -52,6 +52,16 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+router.get('/series/:seriesId', async (req, res) => {
+  try {
+      const comics = await Comic.find({ series: req.params.seriesId });
+      res.json(comics);
+  } catch (err) {
+      console.error('Error fetching comics:', err);
+      res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
 router.post('/upload', upload.array('pages'), async (req, res) => {
   if (!req.files || req.files.length === 0) {
     return res.status(400).json({ error: 'No files uploaded' });

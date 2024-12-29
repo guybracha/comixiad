@@ -2,7 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useUser } from '../context/UserContext';
 import axios from "axios";
+import { Modal, Button, Form } from 'react-bootstrap';
 import defaultAvatar from '../images/placeholder.jpg';
+import '../UserProfile.css';
 
 const UserProfile = () => {
     const { userId } = useParams();
@@ -12,14 +14,16 @@ const UserProfile = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [profile, setProfile] = useState(null);
-    const [avatar, setAvatar] = useState(null);
-    const [avatarPreview, setAvatarPreview] = useState(null);
-    const [isEditing, setIsEditing] = useState(false);
     const [userComics, setUserComics] = useState([]);
+    const [userSeries, setUserSeries] = useState([]);
+    const [showModal, setShowModal] = useState(false);
     
     const [formData, setFormData] = useState({
         username: '',
-        email: ''
+        email: '',
+        bio: '',
+        avatar: '',
+        createdAt: ''
     });
 
     useEffect(() => {
@@ -31,13 +35,23 @@ const UserProfile = () => {
                     return;
                 }
 
-                const response = await axios.get(`http://localhost:5000/api/users/${userId}`);
-                console.log('User profile data:', response.data); // Debug log
-                setProfile(response.data);
+                const userResponse = await axios.get(`http://localhost:5000/api/users/${userId}`);
+                console.log('User profile data:', userResponse.data); // Debug log
+                setProfile(userResponse.data);
                 setFormData({
-                    username: response.data.username,
-                    email: response.data.email
+                    username: userResponse.data.username,
+                    email: userResponse.data.email,
+                    bio: userResponse.data.bio,
+                    avatar: userResponse.data.avatar,
+                    createdAt: userResponse.data.createdAt
                 });
+
+                const comicsResponse = await axios.get(`http://localhost:5000/api/comics?author=${userId}`);
+                setUserComics(comicsResponse.data);
+
+                const seriesResponse = await axios.get(`http://localhost:5000/api/series?author=${userId}`);
+                setUserSeries(seriesResponse.data);
+
                 setLoading(false);
             } catch (err) {
                 console.error('Error fetching user profile:', err);
@@ -49,6 +63,23 @@ const UserProfile = () => {
         fetchUserProfile();
     }, [userId]);
 
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
+    };
+
+    const handleFormSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await axios.put(`http://localhost:5000/api/users/${userId}`, formData);
+            setProfile(response.data);
+            setShowModal(false);
+        } catch (err) {
+            console.error('Error updating user profile:', err);
+            setError('Failed to update user profile');
+        }
+    };
+
     if (loading) return <div>Loading...</div>;
     if (error) return <div className="alert alert-danger">{error}</div>;
     if (!profile) return <div>User not found</div>;
@@ -56,8 +87,110 @@ const UserProfile = () => {
     return (
         <div className="container mt-4">
             <h2>{profile.username}'s Profile</h2>
+            <img
+                src={profile.avatar || defaultAvatar}
+                alt={profile.username}
+                className="profile-avatar"
+                onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = defaultAvatar;
+                }}
+            />
             <p>Email: {profile.email}</p>
+            <p>Bio: {profile.bio}</p>
             <p>Joined: {new Date(profile.createdAt).toLocaleDateString()}</p>
+            <Button variant="primary" onClick={() => setShowModal(true)}>Edit Profile</Button>
+
+            <h3>Comics Created</h3>
+            <div className="comics-grid">
+                {userComics.map((comic) => (
+                    <div key={comic._id} className="comic-card">
+                        <img
+                            src={`http://localhost:5000/uploads/${comic.pages[0]?.url}`}
+                            alt={comic.title}
+                            className="comic-image"
+                            onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = '/placeholder.jpg';
+                            }}
+                        />
+                        <div className="comic-info">
+                            <h5>{comic.title}</h5>
+                            <p>{comic.description}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            <h3>Series Created</h3>
+            <div className="series-grid">
+                {userSeries.map((series) => (
+                    <div key={series._id} className="series-card">
+                        <img
+                            src={`http://localhost:5000/uploads/${series.coverImage}`}
+                            alt={series.name}
+                            className="series-image"
+                            onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = '/placeholder.jpg';
+                            }}
+                        />
+                        <div className="series-info">
+                            <h5>{series.name}</h5>
+                            <p>{series.description}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            <Modal show={showModal} onHide={() => setShowModal(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Edit Profile</Modal.Title>
+                </Modal.Header>
+                <Modal.Body style={{ backgroundColor: '#f8f9fa' }}>
+                    <Form onSubmit={handleFormSubmit}>
+                        <Form.Group controlId="formUsername">
+                            <Form.Label>Username</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="username"
+                                value={formData.username}
+                                onChange={handleInputChange}
+                            />
+                        </Form.Group>
+                        <Form.Group controlId="formEmail">
+                            <Form.Label>Email</Form.Label>
+                            <Form.Control
+                                type="email"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleInputChange}
+                            />
+                        </Form.Group>
+                        <Form.Group controlId="formBio">
+                            <Form.Label>Bio</Form.Label>
+                            <Form.Control
+                                as="textarea"
+                                name="bio"
+                                value={formData.bio}
+                                onChange={handleInputChange}
+                            />
+                        </Form.Group>
+                        <Form.Group controlId="formAvatar">
+                            <Form.Label>Avatar URL</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="avatar"
+                                value={formData.avatar}
+                                onChange={handleInputChange}
+                            />
+                        </Form.Group>
+                        <Button variant="primary" type="submit">
+                            Save Changes
+                        </Button>
+                    </Form>
+                </Modal.Body>
+            </Modal>
         </div>
     );
 };

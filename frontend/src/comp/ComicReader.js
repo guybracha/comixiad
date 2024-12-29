@@ -47,6 +47,8 @@ const ComicReader = () => {
 
     return (
         <div className="comic-reader">
+            <h1>{comic.title}</h1>
+            <p>{comic.description}</p>
             <div className="pages-container">
                 {comic.pages && comic.pages.map((page, index) => (
                     <div key={index} className="page-wrapper">

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
-import { Container, Spinner, Alert, Card, Row, Col } from 'react-bootstrap';
+import '../SeriesDetail.css';
 
 const SeriesDetail = () => {
   const { id } = useParams();
@@ -25,7 +25,7 @@ const SeriesDetail = () => {
 
     const fetchComics = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/comics/series/${id}`);
+        const response = await axios.get(`http://localhost:5000/api/comics?series=${id}`);
         setComics(response.data);
         setError('');
       } catch (err) {
@@ -37,50 +37,46 @@ const SeriesDetail = () => {
     fetchComics();
   }, [id]);
 
-  if (loading) {
-    return (
-      <Container className="py-5">
-        <Spinner animation="border" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </Spinner>
-      </Container>
-    );
-  }
-
-  if (error) {
-    return (
-      <Container className="py-5">
-        <Alert variant="danger">{error}</Alert>
-      </Container>
-    );
-  }
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div className="alert alert-danger">{error}</div>;
 
   return (
-    <Container className="py-5">
+    <div className="container mt-4">
       {series && (
-        <Card className="mb-4">
-          <Card.Img variant="top" src={`http://localhost:5000/uploads/${series.coverImage}`} />
-          <Card.Body>
-            <Card.Title>{series.name}</Card.Title>
-            <Card.Text>{series.description}</Card.Text>
-          </Card.Body>
-        </Card>
+        <div className="series-detail">
+          <img
+            src={`http://localhost:5000/uploads/${series.coverImage}`}
+            alt={series.name}
+            className="series-cover-image"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = '/placeholder.jpg';
+            }}
+          />
+          <h2>{series.name}</h2>
+          <p>{series.description}</p>
+        </div>
       )}
-      <h3>Comics in this Series</h3>
-      <Row>
+      <div className="comics-grid">
         {comics.map((comic) => (
-          <Col key={comic._id} md={4} className="mb-4">
-            <Card>
-              <Card.Img variant="top" src={`http://localhost:5000/uploads/${comic.coverImage}`} />
-              <Card.Body>
-                <Card.Title>{comic.title}</Card.Title>
-                <Card.Text>{comic.description}</Card.Text>
-              </Card.Body>
-            </Card>
-          </Col>
+          <div key={comic._id} className="comic-card">
+            <img
+              src={`http://localhost:5000/uploads/${comic.pages[0]?.url}`}
+              alt={comic.title}
+              className="comic-image"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = '/placeholder.jpg';
+              }}
+            />
+            <div className="comic-info">
+              <h5>{comic.title}</h5>
+              <p>{comic.description}</p>
+            </div>
+          </div>
         ))}
-      </Row>
-    </Container>
+      </div>
+    </div>
   );
 };
 

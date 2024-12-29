@@ -8,8 +8,12 @@ const User = require('../models/User');
 router.get('/', async (req, res) => {
     try {
         const { query } = req.query;
+        if (!query) {
+            return res.status(400).json({ message: 'Search query is required' });
+        }
+
         const comics = await Comic.find({ title: { $regex: query, $options: 'i' } });
-        const series = await Series.find({ title: { $regex: query, $options: 'i' } });
+        const series = await Series.find({ name: { $regex: query, $options: 'i' } });
         const users = await User.find({ username: { $regex: query, $options: 'i' } });
 
         res.json({ comics, series, users });
