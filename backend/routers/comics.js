@@ -16,6 +16,47 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+router.put('/:id', async (req, res) => {
+  try {
+      const { id } = req.params;
+      const { userId, title, description } = req.body;
+
+      const comic = await Comic.findOneAndUpdate(
+          { _id: id, author: userId },
+          { title, description },
+          { new: true }
+      );
+
+      if (!comic) {
+          return res.status(404).json({ message: 'Comic not found or you are not the author' });
+      }
+
+      res.json(comic);
+  } catch (err) {
+      console.error('Error updating comic:', err);
+      res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// Delete comic
+router.delete('/:id', async (req, res) => {
+  try {
+      const { id } = req.params;
+      const { userId } = req.body;
+
+      const comic = await Comic.findOneAndDelete({ _id: id, author: userId });
+      
+      if (!comic) {
+          return res.status(404).json({ message: 'Comic not found or you are not the author' });
+      }
+
+      res.json({ message: 'Comic deleted successfully' });
+  } catch (err) {
+      console.error('Error deleting comic:', err);
+      res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
 router.get('/', async (req, res) => {
   try {
     const comics = await Comic.find();
@@ -37,6 +78,22 @@ router.get('/:id', async (req, res) => {
   } catch (error) {
     console.error('Error fetching comic:', error);
     res.status(500).json({ error: 'Failed to fetch comic' });
+  }
+});
+
+router.get('/user/:userId', async (req, res) => {
+  try {
+      const { userId } = req.params;
+      const comics = await Comic.find({ author: userId });
+
+      if (!comics) {
+          return res.status(404).json({ message: 'No comics found for this user' });
+      }
+
+      res.json(comics);
+  } catch (err) {
+      console.error('Error fetching comics:', err);
+      res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 

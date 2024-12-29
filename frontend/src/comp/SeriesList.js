@@ -44,7 +44,6 @@ const SeriesList = () => {
 
   return (
     <Container className="mt-5">
-      <h2>Series List</h2>
       <Row>
         {series.map((serie) => (
           <Col key={serie._id} sm={12} md={6} lg={4} className="mb-4">

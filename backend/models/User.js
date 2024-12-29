@@ -7,6 +7,12 @@ const userSchema = new mongoose.Schema({
     bio: { type: String },
     location: { type: String },
     favoriteGenres: [String],
+    socialLinks: {
+        twitter: { type: String },
+        instagram: { type: String },
+        deviantart: { type: String }
+    },
+    avatar: { type: String },
     joinDate: { type: Date, default: Date.now }
 });
 

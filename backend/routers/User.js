@@ -18,19 +18,19 @@ router.get('/:id', async (req, res) => {
 // Update user profile
 router.put('/:id', async (req, res) => {
   try {
-    const { bio, location, favoriteGenres } = req.body;
-    const user = await User.findByIdAndUpdate(
-      req.params.id,
-      { $set: { bio, location, favoriteGenres } },
-      { new: true }
-    ).select('-password');
+      const { id } = req.params;
+      const updates = req.body;
 
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    res.json(user);
+      const user = await User.findByIdAndUpdate(id, updates, { new: true }).select('-password');
+      
+      if (!user) {
+          return res.status(404).json({ message: 'User not found' });
+      }
+
+      res.json(user);
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+      console.error('Error updating user:', err);
+      res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 

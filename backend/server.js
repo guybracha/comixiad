@@ -13,22 +13,28 @@ const loginRoute = require('./routers/Login');
 const userRoutes = require('./routers/User'); // נתיב ל-API של משתמשים
 const authRouter = require('./routers/Auth');
 const seriesRoutes = require('./routers/Series');
+const searchRouter = require('./routers/Search');
 
 
 const app = express();
 const mongoURI = 'mongodb://localhost:27017/comixiad'; // Update your Mongo URI
 
-// Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017/comixiad')
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('MongoDB connection error:', err));
+mongoose.connect('mongodb://localhost:27017/comixiad', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+}).then(() => {
+  console.log('Connected to MongoDB');
+  app.listen(PORT, () => {
+      console.log(`Server is running on port ${port}`);
+  });
+}).catch(err => {
+  console.error('Failed to connect to MongoDB', err);
+});
 
-
-// Enable CORS
 app.use(cors({
-  origin: 'http://localhost:3000',
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+    origin: 'http://localhost:3000',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -52,6 +58,7 @@ app.use('/api/login', loginRoute);
 app.use('/api/user', userRoutes);
 app.use('/api/Auth', authRouter);
 app.use('/api/Series', seriesRoutes);
+app.use('/api/Search', searchRouter);
 
 // Serve uploaded files statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

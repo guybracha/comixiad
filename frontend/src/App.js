@@ -12,6 +12,8 @@ import Error from './comp/Error';
 import Footer from './comp/Footer';
 import UserProfile from './comp/UserProfile';
 import CreateSeries from './comp/CreateSeries';
+import EditComic from './comp/EditComic';
+import SearchResults from './comp/SearchResults';
 
 const App = () => {
     const { user, setUser } = useUser();
@@ -38,6 +40,8 @@ const App = () => {
                 <Route path="/login" element={<Login />} />
                 <Route path="/category/:category" element={<CategoryPage />} />
                 <Route path="/profile/:userId" element={<UserProfile />} />
+                <Route path="/comics/edit/:comicId" element={<EditComic />} />
+                <Route path="/search" element={<SearchResults />} />
                 <Route path="*" element={<Error />} />
             </Routes>
             <Footer />
