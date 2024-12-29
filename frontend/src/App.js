@@ -14,6 +14,7 @@ import UserProfile from './comp/UserProfile';
 import CreateSeries from './comp/CreateSeries';
 import EditComic from './comp/EditComic';
 import SearchResults from './comp/SearchResults';
+import SeriesDetail from './comp/SeriesDetail';
 
 const App = () => {
     const { user, setUser } = useUser();
@@ -41,6 +42,7 @@ const App = () => {
                 <Route path="/category/:category" element={<CategoryPage />} />
                 <Route path="/profile/:userId" element={<UserProfile />} />
                 <Route path="/comics/edit/:comicId" element={<EditComic />} />
+                <Route path="/series/:id" element={<SeriesDetail />} />
                 <Route path="/search" element={<SearchResults />} />
                 <Route path="*" element={<Error />} />
             </Routes>

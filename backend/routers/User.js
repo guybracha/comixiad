@@ -4,34 +4,27 @@ const User = require('../models/User');
 
 // Get user by ID
 router.get('/:id', async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id).select('-password');
-    if (!user) {
-      return res.status(404).json({ message: 'User not found.' });
+    try {
+        const { id } = req.params;
+        console.log('Fetching user with ID:', id);
+
+        if (!id) {
+            return res.status(400).json({ message: 'User ID is required' });
+        }
+
+        const user = await User.findById(id).select('-password');
+        
+        if (!user) {
+            console.log('User not found for ID:', id);
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        console.log('User found:', user);
+        res.json(user);
+    } catch (error) {
+        console.error('Error fetching user profile:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
-    res.json(user);
-  } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
-  }
-});
-
-// Update user profile
-router.put('/:id', async (req, res) => {
-  try {
-      const { id } = req.params;
-      const updates = req.body;
-
-      const user = await User.findByIdAndUpdate(id, updates, { new: true }).select('-password');
-      
-      if (!user) {
-          return res.status(404).json({ message: 'User not found' });
-      }
-
-      res.json(user);
-  } catch (err) {
-      console.error('Error updating user:', err);
-      res.status(500).json({ message: 'Server error', error: err.message });
-  }
 });
 
 module.exports = router;

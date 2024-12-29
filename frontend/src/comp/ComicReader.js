@@ -15,69 +15,64 @@ const ComicReader = () => {
     const getImageUrl = (page) => {
         if (!page) return '/placeholder.jpg';
         
-        // Check for different page URL formats
-        if (page.url) return `http://localhost:5000${page.url}`;
-        if (page.filename) return `http://localhost:5000/uploads/${page.filename}`;
+        // If page is an object with url property
+        if (typeof page === 'object' && page.url) {
+            return `http://localhost:5000/uploads/${page.url}`;
+        }
         
-        // If page is just a string (direct filename)
-        if (typeof page === 'string') return `http://localhost:5000/uploads/${page}`;
-        
-        console.error('Invalid page format:', page);
-        return '/placeholder.jpg';
+        // If page is a string (filename)
+        return `http://localhost:5000/uploads/${page}`;
     };
 
     useEffect(() => {
         const fetchComic = async () => {
             try {
                 const response = await axios.get(`http://localhost:5000/api/comics/${id}`);
-                console.log('Comic data:', response.data);
-                if (response.data.pages) {
-                    console.log('Pages:', response.data.pages);
-                }
+                console.log('Comic data:', response.data); // Debug log
                 setComic(response.data);
+                setLoading(false);
             } catch (err) {
                 console.error('Error fetching comic:', err);
-                setError(err.response?.data?.error || 'Failed to load comic');
-            } finally {
+                setError('Failed to load comic');
                 setLoading(false);
             }
         };
 
-        if (id) fetchComic();
+        fetchComic();
     }, [id]);
 
+    if (loading) return <div>Loading...</div>;
+    if (error) return <div className="alert alert-danger">{error}</div>;
+    if (!comic) return <div>Comic not found</div>;
+
     return (
-        <div className="comic-container container-fluid py-4">
-            <h1 className="text-center mb-4">{comic?.title}</h1>
-            
-            <div className="row g-4 justify-content-center">
-                {Array.isArray(comic?.pages) && comic.pages.map((page, index) => (
-                    <div key={index} className="col-12 col-sm-6 col-md-4 col-lg-3">
-                        <div 
-                            className="page-thumbnail"
+        <div className="comic-reader">
+            <div className="pages-container">
+                {comic.pages && comic.pages.map((page, index) => (
+                    <div key={index} className="page-wrapper">
+                        <img
+                            src={getImageUrl(page)}
+                            alt={`Page ${index + 1}`}
+                            className="comic-page"
                             onClick={() => {
-                                console.log('Clicked page:', page);
                                 setSelectedPage(page);
                                 setShowModal(true);
                             }}
-                            role="button"
-                        >
-                            <img 
-                                src={getImageUrl(page)}
-                                alt={`Page ${index + 1}`}
-                                className="img-fluid rounded shadow"
-                                onError={(e) => {
-                                    console.error('Failed to load image:', page);
-                                    e.target.src = '/placeholder.jpg';
-                                }}
-                            />
-                            <div className="page-number">{index + 1}</div>
-                        </div>
+                            onError={(e) => {
+                                console.error('Failed to load image:', page);
+                                e.target.src = '/placeholder.jpg';
+                            }}
+                        />
                     </div>
                 ))}
             </div>
 
-            <Modal show={showModal} onHide={() => setShowModal(false)} size="xl" centered>
+            <Modal 
+                show={showModal} 
+                onHide={() => setShowModal(false)}
+                size="xl"
+                centered
+            >
                 <Modal.Body className="p-0">
                     {selectedPage && (
                         <img

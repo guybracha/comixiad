@@ -2,9 +2,15 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const Comic = require('../models/Comic');
 
-// Setup multer storage
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, '../uploads');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, path.join(__dirname, '../uploads'));
@@ -16,112 +22,72 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-router.put('/:id', async (req, res) => {
-  try {
-      const { id } = req.params;
-      const { userId, title, description } = req.body;
+router.post('/', upload.array('pages'), async (req, res) => {
+    try {
+        console.log('Request body:', req.body); // Debug logging
+        console.log('Files:', req.files); // Debug logging
 
-      const comic = await Comic.findOneAndUpdate(
-          { _id: id, author: userId },
-          { title, description },
-          { new: true }
-      );
+        const { title, description, author, series, language, genre } = req.body;
+        
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({ message: 'No files uploaded' });
+        }
 
-      if (!comic) {
-          return res.status(404).json({ message: 'Comic not found or you are not the author' });
-      }
+        const pages = req.files.map(file => ({
+            url: file.filename
+        }));
 
-      res.json(comic);
-  } catch (err) {
-      console.error('Error updating comic:', err);
-      res.status(500).json({ message: 'Server error', error: err.message });
-  }
-});
+        const comicData = {
+            title,
+            description,
+            author,
+            language,
+            genre,
+            pages,
+            series: series || null
+        };
 
-// Delete comic
-router.delete('/:id', async (req, res) => {
-  try {
-      const { id } = req.params;
-      const { userId } = req.body;
+        console.log('Comic data:', comicData); // Debug logging
 
-      const comic = await Comic.findOneAndDelete({ _id: id, author: userId });
-      
-      if (!comic) {
-          return res.status(404).json({ message: 'Comic not found or you are not the author' });
-      }
-
-      res.json({ message: 'Comic deleted successfully' });
-  } catch (err) {
-      console.error('Error deleting comic:', err);
-      res.status(500).json({ message: 'Server error', error: err.message });
-  }
+        const comic = new Comic(comicData);
+        const savedComic = await comic.save();
+        
+        console.log('Saved comic:', savedComic); // Debug logging
+        
+        res.status(201).json(savedComic);
+    } catch (error) {
+        console.error('Upload error:', error); // Error logging
+        res.status(500).json({ 
+            message: 'Error uploading comic',
+            error: error.message 
+        });
+    }
 });
 
 router.get('/', async (req, res) => {
   try {
-    const comics = await Comic.find();
-    console.log('Found comics:', comics); // Debug log
+    console.log('Fetching all comics...');
+    const comics = await Comic.find().populate('author', 'username').sort({ createdAt: -1 });
+    console.log(`Found ${comics.length} comics`);
     res.json(comics);
   } catch (error) {
     console.error('Error fetching comics:', error);
-    res.status(500).send('Failed to fetch comics');
+    res.status(500).json({ message: 'Error fetching comics', error: error.message });
   }
 });
 
+// Get comic by ID
 router.get('/:id', async (req, res) => {
   try {
-    const comic = await Comic.findById(req.params.id);
+    const comic = await Comic.findById(req.params.id).populate('author', 'username');
     if (!comic) {
       return res.status(404).json({ error: 'Comic not found' });
     }
     res.json(comic);
   } catch (error) {
     console.error('Error fetching comic:', error);
-    res.status(500).json({ error: 'Failed to fetch comic' });
+    res.status(500).json({ error: 'Server error', message: error.message });
   }
 });
 
-router.get('/user/:userId', async (req, res) => {
-  try {
-      const { userId } = req.params;
-      const comics = await Comic.find({ author: userId });
-
-      if (!comics) {
-          return res.status(404).json({ message: 'No comics found for this user' });
-      }
-
-      res.json(comics);
-  } catch (err) {
-      console.error('Error fetching comics:', err);
-      res.status(500).json({ message: 'Server error', error: err.message });
-  }
-});
-
-router.post('/upload', upload.array('pages'), async (req, res) => {
-  try {
-    const { title, description, genre, language, author } = req.body;
-    const pages = req.files.map(file => ({
-      filename: file.filename,
-      mimetype: file.mimetype,
-      size: file.size,
-    }));
-
-    const newComic = new Comic({
-      title,
-      description,
-      genre,
-      language,
-      author,
-      pages,
-    });
-
-    await newComic.save();
-    res.status(201).send(newComic);
-  } catch (error) {
-    console.error('Error uploading comic:', error);
-    res.status(500).send('Failed to upload comic.');
-  }
-});
-
-// Don't serve static files here - move to server.js
 module.exports = router;

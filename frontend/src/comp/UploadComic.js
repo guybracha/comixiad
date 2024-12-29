@@ -1,83 +1,93 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import axios from 'axios';
 
 const UploadComic = () => {
-  const navigate = useNavigate();
   const { user } = useUser();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [genre, setGenre] = useState('');
   const [language, setLanguage] = useState('');
-  const [series, setSeries] = useState(''); // סדרה נבחרת
+  const [genre, setGenre] = useState('');
   const [pages, setPages] = useState([]);
-  const [userSeries, setUserSeries] = useState([]); // רשימת סדרות
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [series, setSeries] = useState('');
+  const [allSeries, setAllSeries] = useState([]);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchUserSeries = async () => {
-      if (!user?._id) return;
+    const fetchSeries = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/series?author=${user._id}`);
-        setUserSeries(response.data);
+        const response = await axios.get('http://localhost:5000/api/series');
+        setAllSeries(response.data);
       } catch (err) {
         console.error('Failed to fetch series:', err);
       }
     };
-    fetchUserSeries();
-  }, [user]);
+
+    fetchSeries();
+  }, []);
+
+  const handlePagesChange = (e) => {
+    setPages(Array.from(e.target.files));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!user?._id) {
-      setError('Please log in to upload comics');
+      setError('You must be logged in to upload a comic.');
       return;
     }
 
     try {
-      setLoading(true);
-      setError(null);
-
       const formData = new FormData();
       formData.append('title', title);
       formData.append('description', description);
-      formData.append('genre', genre);
       formData.append('language', language);
+      formData.append('genre', genre);
       formData.append('author', user._id);
-      formData.append('series', series || null);
-
-      Array.from(pages).forEach(file => {
-        formData.append('pages', file);
+      
+      // Only append series if selected
+      if (series) {
+        formData.append('series', series);
+      }
+      
+      // Append each page file directly
+      pages.forEach(page => {
+        formData.append('pages', page);
       });
 
-      const response = await axios.post(
-        'http://localhost:5000/api/comics/upload',
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
+      const response = await axios.post('http://localhost:5000/api/comics', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
         }
-      );
+      });
 
-      console.log('Upload success:', response.data);
-      navigate('/comics');
+      setMessage('Comic uploaded successfully!');
+      setError('');
+      
+      // Clear form after successful upload
+      setTitle('');
+      setDescription('');
+      setLanguage('');
+      setGenre('');
+      setPages([]);
+      setSeries('');
+      
     } catch (err) {
       console.error('Upload error:', err);
-      setError(err.response?.data?.error || 'Failed to upload comic');
-    } finally {
-      setLoading(false);
+      setError(err.response?.data?.message || 'Failed to upload comic. Please try again.');
+      setMessage('');
     }
   };
 
   return (
-    <div className="container mt-5">
+    <div className="container py-5">
       <h2>Upload Comic</h2>
+      {message && <div className="alert alert-success">{message}</div>}
+      {error && <div className="alert alert-danger">{error}</div>}
       <form onSubmit={handleSubmit}>
-      <div className="mb-3">
+        <div className="mb-3">
           <label htmlFor="title" className="form-label">Title</label>
           <input
             type="text"
@@ -93,19 +103,9 @@ const UploadComic = () => {
           <textarea
             className="form-control"
             id="description"
+            rows="3"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="genre" className="form-label">Genre</label>
-          <input
-            type="text"
-            className="form-control"
-            id="genre"
-            value={genre}
-            onChange={(e) => setGenre(e.target.value)}
             required
           />
         </div>
@@ -121,18 +121,28 @@ const UploadComic = () => {
           />
         </div>
         <div className="mb-3">
+          <label htmlFor="genre" className="form-label">Genre</label>
+          <input
+            type="text"
+            className="form-control"
+            id="genre"
+            value={genre}
+            onChange={(e) => setGenre(e.target.value)}
+            required
+          />
+        </div>
+        <div className="mb-3">
           <label htmlFor="pages" className="form-label">Pages</label>
           <input
             type="file"
             className="form-control"
             id="pages"
             multiple
-            onChange={(e) => setPages(Array.from(e.target.files))}
+            onChange={handlePagesChange}
             accept="image/*"
             required
           />
         </div>
-        {error && <div className="alert alert-danger">{error}</div>}
         <div className="mb-3">
           <label htmlFor="series" className="form-label">Series (optional)</label>
           <select
@@ -141,18 +151,15 @@ const UploadComic = () => {
             value={series}
             onChange={(e) => setSeries(e.target.value)}
           >
-            <option value="">No series</option>
-            {userSeries.map((s) => (
-              <option key={s._id} value={s._id}>
-                {s.name}
+            <option value="">Select Series</option>
+            {allSeries.map((seriesItem) => (
+              <option key={seriesItem._id} value={seriesItem._id}>
+                {seriesItem.name}
               </option>
             ))}
           </select>
         </div>
-        {error && <div className="alert alert-danger">{error}</div>}
-        <button type="submit" className="btn btn-primary" disabled={loading}>
-          {loading ? 'Uploading...' : 'Upload Comic'}
-        </button>
+        <button type="submit" className="btn btn-primary">Upload Comic</button>
       </form>
     </div>
   );

@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useUser } from '../context/UserContext';
 import axios from 'axios';
-import { Form, Button, Alert, Container } from 'react-bootstrap';
 
-const CreateSeries = ({ userId }) => {
+const CreateSeries = () => {
+  const { user } = useUser();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [coverImage, setCoverImage] = useState(null);
@@ -16,7 +17,7 @@ const CreateSeries = ({ userId }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!userId) {
+    if (!user?._id) {
       setError('You must be logged in to create a series.');
       return;
     }
@@ -25,72 +26,59 @@ const CreateSeries = ({ userId }) => {
       const formData = new FormData();
       formData.append('name', name);
       formData.append('description', description);
-      formData.append('author', userId); // Add userId as the author
-      if (coverImage) {
-        formData.append('coverImage', coverImage);
-      }
+      formData.append('coverImage', coverImage);
+      formData.append('author', user._id);
 
-      const response = await axios.post('http://localhost:5000/api/Series', formData, {
+      const response = await axios.post('http://localhost:5000/api/series', formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+          'Content-Type': 'multipart/form-data'
+        }
       });
 
       setMessage('Series created successfully!');
       setError('');
-      setName('');
-      setDescription('');
-      setCoverImage(null);
     } catch (err) {
-      setError(err.response?.data?.error || 'Something went wrong');
+      setError('Failed to create series. Please try again.');
       setMessage('');
     }
   };
 
   return (
-    <Container className="mt-5">
-      <h2>Create New Series</h2>
-      {message && <Alert variant="success">{message}</Alert>}
-      {error && <Alert variant="danger">{error}</Alert>}
-
-      <Form onSubmit={handleSubmit}>
-        <Form.Group controlId="seriesName" className="mb-3">
-          <Form.Label>Series Name</Form.Label>
-          <Form.Control
+    <div className="container py-5">
+      <h2>Create Series</h2>
+      {message && <div className="alert alert-success">{message}</div>}
+      {error && <div className="alert alert-danger">{error}</div>}
+      <form onSubmit={handleSubmit}>
+        <div className="mb-3">
+          <label className="form-label">Name</label>
+          <input
             type="text"
-            placeholder="Enter series name"
+            className="form-control"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            required
           />
-        </Form.Group>
-
-        <Form.Group controlId="seriesDescription" className="mb-3">
-          <Form.Label>Description</Form.Label>
-          <Form.Control
-            as="textarea"
-            rows={3}
-            placeholder="Enter series description"
+        </div>
+        <div className="mb-3">
+          <label className="form-label">Description</label>
+          <textarea
+            className="form-control"
+            rows="3"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            required
           />
-        </Form.Group>
-
-        <Form.Group controlId="seriesCoverImage" className="mb-3">
-          <Form.Label>Cover Image</Form.Label>
-          <Form.Control
+        </div>
+        <div className="mb-3">
+          <label className="form-label">Cover Image</label>
+          <input
             type="file"
+            className="form-control"
             accept="image/*"
             onChange={handleCoverImageChange}
           />
-        </Form.Group>
-
-        <Button variant="primary" type="submit">
-          Create Series
-        </Button>
-      </Form>
-    </Container>
+        </div>
+        <button type="submit" className="btn btn-primary">Create Series</button>
+      </form>
+    </div>
   );
 };
 
