@@ -66,14 +66,16 @@ router.get('/:id', async (req, res) => {
 });
 
 router.get('/series/:seriesId', async (req, res) => {
-  try {
-      const comics = await Comic.find({ series: req.params.seriesId });
-      res.json(comics);
-  } catch (err) {
-      console.error('Error fetching comics:', err);
-      res.status(500).json({ message: 'Server error', error: err.message });
-  }
+    try {
+        const comics = await Comic.find({ series: req.params.seriesId });
+        if (!comics.length) {
+            return res.status(404).json({ message: 'No comics found for this series' });
+        }
+        res.json(comics);
+    } catch (error) {
+        console.error('Error fetching comics:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
 });
-
 
 module.exports = router;

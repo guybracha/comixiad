@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from "react-router-dom";
 import { useUser } from '../context/UserContext';
 import axios from "axios";
@@ -8,7 +8,7 @@ import '../UserProfile.css';
 
 const UserProfile = () => {
     const { userId } = useParams();
-    const { user, setUser } = useUser();
+    const { user } = useUser();
     const navigate = useNavigate();
     
     const [loading, setLoading] = useState(true);
@@ -89,6 +89,12 @@ const UserProfile = () => {
         setFormData({ ...formData, avatar: file });
     };
 
+    const isProfileOwner = user && user._id === userId;
+
+    const handleEditComic = (comicId) => {
+        navigate(`/comics/edit/${comicId}`);
+    };
+
     const handleFormSubmit = async (e) => {
         e.preventDefault();
         const formDataToSend = new FormData();
@@ -157,13 +163,23 @@ const UserProfile = () => {
                         <div className="comic-info">
                             <h5>{comic.title}</h5>
                             <p>{comic.description}</p>
+                            {isProfileOwner && (
+                                <Button 
+                                    variant="outline-primary" 
+                                    size="sm"
+                                    onClick={() => handleEditComic(comic._id)}
+                                    className="mt-2"
+                                >
+                                    ערוך קומיקס
+                                </Button>
+                            )}
                         </div>
                     </div>
                 ))}
             </div>
 
             <h3>Series Created</h3>
-            <div className="series-grid">
+            <div className="comics-grid">
                 {userSeries.map((series) => (
                     <div key={series._id} className="series-card">
                         <img
@@ -178,6 +194,16 @@ const UserProfile = () => {
                         <div className="series-info">
                             <h5>{series.name}</h5>
                             <p>{series.description}</p>
+                            {isProfileOwner && (
+                                <Button 
+                                    variant="outline-primary" 
+                                    size="sm"
+                                    onClick={() => handleEditComic(series._id)}
+                                    className="mt-2"
+                                >
+                                    ערוך סדרה
+                                </Button>
+                            )}
                         </div>
                     </div>
                 ))}

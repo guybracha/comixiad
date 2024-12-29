@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useUser } from '../context/UserContext';
 import axios from 'axios';
+import languages from '../config/Languages';
+import genres from '../config/Genres';
 
 const UploadComic = () => {
   const { user } = useUser();

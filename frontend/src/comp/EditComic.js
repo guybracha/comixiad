@@ -13,7 +13,10 @@ const EditComic = () => {
     const [comic, setComic] = useState(null);
     const [formData, setFormData] = useState({
         title: '',
-        description: ''
+        description: '',
+        language: '',
+        genre: '',
+        pages: []
     });
 
     useEffect(() => {
@@ -26,24 +29,23 @@ const EditComic = () => {
 
             try {
                 const response = await axios.get(`http://localhost:5000/api/comics/${comicId}`);
-                
-                if (!response.data) {
-                    throw new Error('No comic data received');
-                }
-
                 if (response.data.author !== user._id) {
-                    throw new Error('You are not authorized to edit this comic');
+                    setError('You are not authorized to edit this comic');
+                    setLoading(false);
+                    return;
                 }
-
                 setComic(response.data);
                 setFormData({
-                    title: response.data.title || '',
-                    description: response.data.description || ''
+                    title: response.data.title,
+                    description: response.data.description,
+                    language: response.data.language,
+                    genre: response.data.genre,
+                    pages: response.data.pages
                 });
-                setError(null);
+                setLoading(false);
             } catch (err) {
-                setError(err.message || 'Failed to load comic data. Please try again.');
-            } finally {
+                console.error('Error fetching comic data:', err);
+                setError('Failed to load comic data');
                 setLoading(false);
             }
         };
@@ -51,60 +53,111 @@ const EditComic = () => {
         fetchComicData();
     }, [comicId, user._id]);
 
-    const handleSubmit = async (e) => {
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
+    };
+
+    const handleFileChange = (e) => {
+        const files = Array.from(e.target.files);
+        setFormData({ ...formData, pages: files });
+    };
+
+    const handleFormSubmit = async (e) => {
         e.preventDefault();
-        try {
-            const response = await axios.put(
-                `http://localhost:5000/api/comics/${comicId}`,
-                { ...formData, userId: user._id }
-            );
-
-            setComic(response.data);
-            navigate(`/comics/${comicId}`);
-        } catch (err) {
-            setError(err.response?.data?.message || 'Failed to update comic');
+        const formDataToSend = new FormData();
+        for (const key in formData) {
+            if (key === 'pages') {
+                formData[key].forEach((file, index) => {
+                    formDataToSend.append(`pages[${index}]`, file);
+                });
+            } else {
+                formDataToSend.append(key, formData[key]);
+            }
         }
-    };
 
-    const handleDelete = async () => {
         try {
-            await axios.delete(`http://localhost:5000/api/comics/${comicId}`, {
-                data: { userId: user._id }
+            await axios.put(`http://localhost:5000/api/comics/${comicId}`, formDataToSend, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'Authorization': `Bearer ${user.token}`
+                }
             });
-            navigate('/comics');
+            navigate(`/profile/${user._id}`);
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to delete comic');
+            console.error('Error updating comic:', err);
+            setError(`Failed to update comic: ${err.response?.data?.message || err.message}`);
         }
     };
 
-    if (loading) return <div className="text-center p-5">Loading...</div>;
-    if (error) return <div className="alert alert-danger m-4">{error}</div>;
-    if (!comic) return <div className="text-center p-5">Comic not found</div>;
+    if (loading) return <div>Loading...</div>;
+    if (error) return <div className="alert alert-danger">{error}</div>;
 
     return (
-        <div className="container py-5">
+        <div className="container mt-4">
             <h2>Edit Comic</h2>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleFormSubmit}>
                 <div className="mb-3">
-                    <label className="form-label">Title</label>
+                    <label htmlFor="title" className="form-label">Title</label>
                     <input
                         type="text"
                         className="form-control"
+                        id="title"
+                        name="title"
                         value={formData.title}
-                        onChange={(e) => setFormData({...formData, title: e.target.value})}
+                        onChange={handleInputChange}
+                        required
                     />
                 </div>
                 <div className="mb-3">
-                    <label className="form-label">Description</label>
+                    <label htmlFor="description" className="form-label">Description</label>
                     <textarea
                         className="form-control"
+                        id="description"
+                        name="description"
                         rows="3"
                         value={formData.description}
-                        onChange={(e) => setFormData({...formData, description: e.target.value})}
+                        onChange={handleInputChange}
+                        required
+                    />
+                </div>
+                <div className="mb-3">
+                    <label htmlFor="language" className="form-label">Language</label>
+                    <input
+                        type="text"
+                        className="form-control"
+                        id="language"
+                        name="language"
+                        value={formData.language}
+                        onChange={handleInputChange}
+                        required
+                    />
+                </div>
+                <div className="mb-3">
+                    <label htmlFor="genre" className="form-label">Genre</label>
+                    <input
+                        type="text"
+                        className="form-control"
+                        id="genre"
+                        name="genre"
+                        value={formData.genre}
+                        onChange={handleInputChange}
+                        required
+                    />
+                </div>
+                <div className="mb-3">
+                    <label htmlFor="pages" className="form-label">Pages</label>
+                    <input
+                        type="file"
+                        className="form-control"
+                        id="pages"
+                        name="pages"
+                        multiple
+                        onChange={handleFileChange}
+                        accept="image/*"
                     />
                 </div>
                 <button type="submit" className="btn btn-primary">Save Changes</button>
-                <button type="button" className="btn btn-danger ms-2" onClick={handleDelete}>Delete Comic</button>
             </form>
         </div>
     );

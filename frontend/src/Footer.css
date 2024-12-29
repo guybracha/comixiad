@@ -1,0 +1,35 @@
+.footer {
+    background-color: #f8f9fa;
+    direction: rtl;
+    border-top: 1px solid #dee2e6;
+}
+
+.footer-link {
+    color: #6c757d;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.footer-link:hover {
+    color: #0d6efd;
+}
+
+.social-icon {
+    color: #6c757d;
+    transition: all 0.2s ease;
+}
+
+.social-icon:hover {
+    color: #0d6efd;
+    transform: translateY(-2px);
+}
+
+.social-links {
+    text-align: center;
+}
+
+@media (min-width: 768px) {
+    .social-links {
+        text-align: right;
+    }
+}

@@ -4,6 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const Comic = require('../models/Comic');
+const verifyToken = require('../middleware/auth'); // Ensure verifyToken is imported correctly
 
 // Create uploads directory if it doesn't exist
 const uploadsDir = path.join(__dirname, '../uploads');
@@ -13,11 +14,11 @@ if (!fs.existsSync(uploadsDir)) {
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, '../uploads'));
+      cb(null, 'uploads/');
   },
   filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  },
+      cb(null, `${Date.now()}-${file.originalname}`);
+  }
 });
 
 const upload = multer({ storage });
@@ -79,14 +80,59 @@ router.get('/', async (req, res) => {
 // Get comic by ID
 router.get('/:id', async (req, res) => {
   try {
-    const comic = await Comic.findById(req.params.id).populate('author', 'username');
-    if (!comic) {
-      return res.status(404).json({ error: 'Comic not found' });
-    }
-    res.json(comic);
+      const comic = await Comic.findById(req.params.id);
+      if (!comic) {
+          return res.status(404).json({ message: 'Comic not found' });
+      }
+      res.json(comic);
   } catch (error) {
-    console.error('Error fetching comic:', error);
-    res.status(500).json({ error: 'Server error', message: error.message });
+      console.error('Error fetching comic:', error);
+      res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Update comic by ID
+router.put('/:id', verifyToken, upload.array('pages'), async (req, res) => {
+  try {
+      const { title, description, language, genre } = req.body;
+      const pages = req.files.map(file => file.path);
+
+      const comic = await Comic.findById(req.params.id);
+      if (!comic) {
+          return res.status(404).json({ message: 'Comic not found' });
+      }
+
+      if (comic.author.toString() !== req.user._id) {
+          return res.status(403).json({ message: 'Unauthorized' });
+      }
+
+      comic.title = title;
+      comic.description = description;
+      comic.language = language;
+      comic.genre = genre;
+      if (pages.length > 0) {
+          comic.pages = pages;
+      }
+
+      await comic.save();
+      res.json(comic);
+  } catch (error) {
+      console.error('Error updating comic:', error);
+      res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get comics by series ID
+router.get('/series/:seriesId', async (req, res) => {
+  try {
+      const comics = await Comic.find({ series: req.params.seriesId });
+      if (!comics.length) {
+          return res.status(404).json({ message: 'No comics found for this series' });
+      }
+      res.json(comics);
+  } catch (error) {
+      console.error('Error fetching comics:', error);
+      res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 

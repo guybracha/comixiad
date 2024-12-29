@@ -1,0 +1,54 @@
+.about-container {
+    direction: rtl;
+    padding: 2rem;
+}
+
+.feature-card {
+    transition: transform 0.3s ease;
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+.display-4 {
+    color: #2c3e50;
+    font-weight: bold;
+}
+
+.lead {
+    color: #34495e;
+    line-height: 1.8;
+}
+
+.card-title {
+    color: #2c3e50;
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+
+.card-text {
+    color: #7f8c8d;
+}
+
+.contact-info {
+    margin-top: 2rem;
+}
+
+.contact-info a {
+    color: #3498db;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.contact-info a:hover {
+    color: #2980b9;
+}
+
+@media (max-width: 768px) {
+    .about-container {
+        padding: 1rem;
+    }
+}

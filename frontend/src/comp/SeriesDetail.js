@@ -25,11 +25,11 @@ const SeriesDetail = () => {
 
     const fetchComics = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/comics?series=${id}`);
+        const response = await axios.get(`http://localhost:5000/api/comics/series/${id}`);
         setComics(response.data);
         setError('');
       } catch (err) {
-        setError('Failed to fetch comics. Please try again later.');
+        setError(`Failed to fetch comics: ${err.response?.data?.message || err.message}`);
       }
     };
 
