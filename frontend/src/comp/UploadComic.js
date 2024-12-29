@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import axios from 'axios';
@@ -10,9 +10,24 @@ const UploadComic = () => {
   const [description, setDescription] = useState('');
   const [genre, setGenre] = useState('');
   const [language, setLanguage] = useState('');
+  const [series, setSeries] = useState(''); // סדרה נבחרת
   const [pages, setPages] = useState([]);
+  const [userSeries, setUserSeries] = useState([]); // רשימת סדרות
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchUserSeries = async () => {
+      if (!user?._id) return;
+      try {
+        const response = await axios.get(`http://localhost:5000/api/series?author=${user._id}`);
+        setUserSeries(response.data);
+      } catch (err) {
+        console.error('Failed to fetch series:', err);
+      }
+    };
+    fetchUserSeries();
+  }, [user]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,6 +47,7 @@ const UploadComic = () => {
       formData.append('genre', genre);
       formData.append('language', language);
       formData.append('author', user._id);
+      formData.append('series', series || null);
 
       Array.from(pages).forEach(file => {
         formData.append('pages', file);
@@ -61,7 +77,7 @@ const UploadComic = () => {
     <div className="container mt-5">
       <h2>Upload Comic</h2>
       <form onSubmit={handleSubmit}>
-        <div className="mb-3">
+      <div className="mb-3">
           <label htmlFor="title" className="form-label">Title</label>
           <input
             type="text"
@@ -115,6 +131,23 @@ const UploadComic = () => {
             accept="image/*"
             required
           />
+        </div>
+        {error && <div className="alert alert-danger">{error}</div>}
+        <div className="mb-3">
+          <label htmlFor="series" className="form-label">Series (optional)</label>
+          <select
+            className="form-select"
+            id="series"
+            value={series}
+            onChange={(e) => setSeries(e.target.value)}
+          >
+            <option value="">No series</option>
+            {userSeries.map((s) => (
+              <option key={s._id} value={s._id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
         </div>
         {error && <div className="alert alert-danger">{error}</div>}
         <button type="submit" className="btn btn-primary" disabled={loading}>

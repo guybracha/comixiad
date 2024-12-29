@@ -2,6 +2,7 @@ import React from 'react';
 import ComicList from './ComicList';
 import { Link } from 'react-router-dom';
 import '../Homepage.css';
+import SeriesList from './SeriesList';
 
 function Homepage() {
   return (
@@ -30,6 +31,11 @@ function Homepage() {
       <section className="homepage-featured">
         <h2>קומיקסים מומלצים</h2>
         <ComicList />
+        </section>
+
+        <section className="homepage-featured">
+        <h2>סדרות הבית שלנו</h2>
+        <SeriesList />
         </section>
     </div>
   );

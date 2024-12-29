@@ -42,6 +42,9 @@ const Navbar = () => {
                                     <Link className="nav-link" to="/upload">Upload</Link>
                                 </li>
                                 <li className="nav-item">
+                                    <Link className="nav-link" to="/CreateSeries">Create Series</Link>
+                                </li>
+                                <li className="nav-item">
                                     <button className="btn btn-link nav-link" onClick={handleLogout}>
                                         התנתק
                                     </button>

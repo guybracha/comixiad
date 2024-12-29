@@ -11,6 +11,7 @@ import CategoryPage from './comp/CategoryPage';
 import Error from './comp/Error';
 import Footer from './comp/Footer';
 import UserProfile from './comp/UserProfile';
+import CreateSeries from './comp/CreateSeries';
 
 const App = () => {
     const { user, setUser } = useUser();
@@ -31,6 +32,7 @@ const App = () => {
                     path="/upload" 
                     element={user ? <UploadComic /> : <Navigate to="/login" replace />} 
                 />
+                <Route path="/CreateSeries" element={<CreateSeries />} />
                 <Route path="/comics/:id" element={<ComicReader />} />
                 <Route path="/register" element={<RegistrationForm />} />
                 <Route path="/login" element={<Login />} />

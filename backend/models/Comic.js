@@ -8,16 +8,18 @@ const comicSchema = new mongoose.Schema({
   author: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'User', 
-    required: true  // Changed to required: true
+    required: true 
+  },
+  series: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Series', 
+    default: null // קומיקס שלא שייך לסדרה
   },
   pages: [
     {
       filename: { 
         type: String, 
-        required: true,
-        default: function() {
-          return `page_${Date.now()}`
-        }
+        required: true 
       },
       url: { type: String },
       mimetype: { type: String },

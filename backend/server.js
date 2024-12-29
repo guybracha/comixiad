@@ -12,7 +12,7 @@ const registerRoute = require("./routers/Register");
 const loginRoute = require('./routers/Login');
 const userRoutes = require('./routers/User'); // נתיב ל-API של משתמשים
 const authRouter = require('./routers/Auth');
-
+const seriesRoutes = require('./routers/Series');
 
 
 const app = express();
@@ -51,6 +51,7 @@ app.use('/api/register', registerRoute);
 app.use('/api/login', loginRoute);
 app.use('/api/user', userRoutes);
 app.use('/api/Auth', authRouter);
+app.use('/api/Series', seriesRoutes);
 
 // Serve uploaded files statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
