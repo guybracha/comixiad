@@ -3,7 +3,9 @@ const jwt = require('jsonwebtoken');
 const verifyToken = (req, res, next) => {
     const token = req.headers['authorization']?.split(' ')[1];
     if (!token) {
-        return res.status(401).json({ message: 'No token provided' });
+        console.warn('No token provided');
+        req.user = null; // Allow requests without a token
+        return next();
     }
 
     try {
@@ -11,9 +13,10 @@ const verifyToken = (req, res, next) => {
         req.user = decoded;  // Add decoded user info to the request
         next();
     } catch (err) {
-        return res.status(403).json({ message: 'Invalid or expired token' });
+        console.warn('Invalid or expired token');
+        req.user = null; // Allow requests with an invalid token
+        next();
     }
 };
-
 
 module.exports = verifyToken;
