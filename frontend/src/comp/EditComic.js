@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useUser } from '../context/UserContext';
 import axios from "axios";
+import { Modal, Button } from 'react-bootstrap';
 
 const EditComic = () => {
     const { comicId } = useParams();
@@ -18,6 +19,8 @@ const EditComic = () => {
         genre: '',
         pages: []
     });
+    const [showModal, setShowModal] = useState(false);
+    const [pagesToDelete, setPagesToDelete] = useState([]);
 
     useEffect(() => {
         const fetchComicData = async () => {
@@ -28,7 +31,11 @@ const EditComic = () => {
             }
 
             try {
-                const response = await axios.get(`http://localhost:5000/api/comics/${comicId}`);
+                const response = await axios.get(`http://localhost:5000/api/comics/${comicId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${user.token}`
+                    }
+                });
                 if (response.data.author !== user._id) {
                     setError('You are not authorized to edit this comic');
                     setLoading(false);
@@ -63,8 +70,18 @@ const EditComic = () => {
         setFormData({ ...formData, pages: files });
     };
 
+    const handleDeletePage = (page) => {
+        setPagesToDelete([...pagesToDelete, page]);
+        setFormData({ ...formData, pages: formData.pages.filter(p => p !== page) });
+    };
+
     const handleFormSubmit = async (e) => {
         e.preventDefault();
+        setShowModal(true);
+    };
+
+    const handleConfirmUpdate = async () => {
+        setShowModal(false);
         const formDataToSend = new FormData();
         for (const key in formData) {
             if (key === 'pages') {
@@ -75,6 +92,7 @@ const EditComic = () => {
                 formDataToSend.append(key, formData[key]);
             }
         }
+        formDataToSend.append('pagesToDelete', JSON.stringify(pagesToDelete));
 
         try {
             await axios.put(`http://localhost:5000/api/comics/${comicId}`, formDataToSend, {
@@ -157,8 +175,30 @@ const EditComic = () => {
                         accept="image/*"
                     />
                 </div>
+                <div className="mb-3">
+                    <label>Existing Pages</label>
+                    <div className="existing-pages">
+                        {comic.pages.map((page, index) => (
+                            <div key={index} className="existing-page">
+                                <img src={`http://localhost:5000/${page.url}`} alt={`Page ${index + 1}`} className="img-thumbnail" />
+                                <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDeletePage(page)}>Delete</button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
                 <button type="submit" className="btn btn-primary">Save Changes</button>
             </form>
+
+            <Modal show={showModal} onHide={() => setShowModal(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Confirm Update</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>Are you sure you want to update this comic?</Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
+                    <Button variant="primary" onClick={handleConfirmUpdate}>Confirm</Button>
+                </Modal.Footer>
+            </Modal>
         </div>
     );
 };

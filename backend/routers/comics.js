@@ -12,16 +12,17 @@ if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-      cb(null, 'uploads/');
-  },
-  filename: (req, file, cb) => {
-      cb(null, `${Date.now()}-${file.originalname}`);
-  }
-});
 
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/');
+    },
+    filename: (req, file, cb) => {
+        cb(null, `${Date.now()}-${file.originalname}`);
+    }
+});
 const upload = multer({ storage });
+
 
 router.post('/', upload.array('pages'), async (req, res) => {
     try {
@@ -79,48 +80,83 @@ router.get('/', async (req, res) => {
 
 // Get comic by ID
 router.get('/:id', async (req, res) => {
-  try {
-      const comic = await Comic.findById(req.params.id);
-      if (!comic) {
-          return res.status(404).json({ message: 'Comic not found' });
-      }
-      res.json(comic);
-  } catch (error) {
-      console.error('Error fetching comic:', error);
-      res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
-
-// Update comic by ID
+    try {
+        const comic = await Comic.findById(req.params.id).populate('author', 'username');
+        if (!comic) {
+            return res.status(404).json({ message: 'Comic not found' });
+        }
+        res.json(comic);
+    } catch (error) {
+        console.error('Error fetching comic by ID:', error);
+        res.status(500).json({ message: 'Error fetching comic', error: error.message });
+    }
+  });
+  
+  // Update Comic
 router.put('/:id', verifyToken, upload.array('pages'), async (req, res) => {
-  try {
-      const { title, description, language, genre } = req.body;
-      const pages = req.files.map(file => file.path);
+    try {
+        const comic = await Comic.findById(req.params.id);
+        if (!comic) {
+            return res.status(404).json({ message: 'Comic not found' });
+        }
 
-      const comic = await Comic.findById(req.params.id);
-      if (!comic) {
-          return res.status(404).json({ message: 'Comic not found' });
-      }
+        // Ensure the author is the logged-in user
+        if (comic.author.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: 'You are not authorized to edit this comic' });
+        }
 
-      if (comic.author.toString() !== req.user._id) {
-          return res.status(403).json({ message: 'Unauthorized' });
-      }
+        // Handle form data
+        const { title, description, language, genre } = req.body;
+        comic.title = title || comic.title;
+        comic.description = description || comic.description;
+        comic.language = language || comic.language;
+        comic.genre = genre || comic.genre;
 
-      comic.title = title;
-      comic.description = description;
-      comic.language = language;
-      comic.genre = genre;
-      if (pages.length > 0) {
-          comic.pages = pages;
-      }
+        // Handle pages deletion
+        if (req.body.pagesToDelete) {
+            const pagesToDelete = JSON.parse(req.body.pagesToDelete);
+            pagesToDelete.forEach(pageUrl => {
+                fs.unlinkSync(path.join(__dirname, '../uploads', pageUrl));
+            });
+            comic.pages = comic.pages.filter(page => !pagesToDelete.includes(page.url));
+        }
 
-      await comic.save();
-      res.json(comic);
-  } catch (error) {
-      console.error('Error updating comic:', error);
-      res.status(500).json({ message: 'Server error', error: error.message });
-  }
+        // Save new pages
+        if (req.files) {
+            req.files.forEach(file => {
+                comic.pages.push({ url: file.filename });
+            });
+        }
+
+        await comic.save();
+        res.status(200).json(comic);
+    } catch (err) {
+        console.error('Error updating comic:', err);
+        res.status(500).json({ message: 'Failed to update comic' });
+    }
 });
+  
+  // Delete comic
+  // Delete comic by ID
+router.delete('/:id', verifyToken, async (req, res) => {
+    try {
+        const comic = await Comic.findById(req.params.id);
+        if (!comic) {
+            return res.status(404).json({ message: 'Comic not found' });
+        }
+
+        if (comic.author.toString() !== req.user._id) {
+            return res.status(403).json({ message: 'Unauthorized' });
+        }
+
+        await comic.remove();
+        res.json({ message: 'Comic deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting comic:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
 
 // Get comics by series ID
 router.get('/series/:seriesId', async (req, res) => {

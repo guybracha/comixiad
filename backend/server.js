@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const path = require('path');
+const jwt = require('jsonwebtoken'); // Import jsonwebtoken
 
 // Import routes
 const userRouter = require('./routers/User');
@@ -31,6 +32,14 @@ app.use('/api/login', loginRoute);
 app.use('/api/auth', authRouter);
 app.use('/api/series', seriesRouter);
 
+require('dotenv').config();
+
+// Define a test user object
+const user = { _id: 'testUserId' }; // Replace with actual user ID for testing
+const testToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+console.log('Test Token:', testToken);
+
+
 // Error handling
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -44,8 +53,6 @@ mongoose.connect('mongodb://localhost:27017/comixiad', {
 }).then(() => {
   console.log('Connected to MongoDB');
   app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
   });
-}).catch(err => {
-  console.error('MongoDB connection error:', err);
 });
