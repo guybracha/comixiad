@@ -8,8 +8,8 @@ const jwt = require('jsonwebtoken'); // Import jsonwebtoken
 const userRouter = require('./routers/User');
 const comicRouter = require('./routers/Comics');
 const searchRouter = require('./routers/Search');
-const registerRoute = require('./routers/register');
-const loginRoute = require('./routers/login');
+const registerRoute = require('./routers/Register');
+const loginRoute = require('./routers/Login');
 const authRouter = require('./routers/Auth');
 const seriesRouter = require('./routers/Series');
 
