@@ -15,6 +15,23 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
+const authenticateUser = (req, res, next) => {
+    const token = req.header('Authorization').replace('Bearer ', '');
+
+    if (!token) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    jwt.verify(token, 'your_secret_key', (err, decoded) => {
+        if (err) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+        req.user = decoded; // מידע המשתמש שמפוענח מה-token
+        next();
+    });
+};
+
+
 // Get user by ID
 router.get('/:id', async (req, res) => {
     try {
@@ -32,6 +49,11 @@ router.get('/:id', async (req, res) => {
 // Update user profile
 router.put('/:id', upload.single('avatar'), async (req, res) => {
     try {
+        // הוספת אימות
+        if (req.user.id !== req.params.id) {
+            return res.status(403).json({ message: 'Unauthorized' });
+        }
+
         const { id } = req.params;
         const updateData = req.body;
 
@@ -57,6 +79,7 @@ router.put('/:id', upload.single('avatar'), async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
+
 
 
 module.exports = router;

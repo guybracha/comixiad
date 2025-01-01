@@ -1,105 +1,70 @@
-import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { useUser } from '../context/UserContext';
-import axios from "axios";
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
 import { Modal, Button } from 'react-bootstrap';
 
 const EditComic = () => {
     const { comicId } = useParams();
-    const { user } = useUser();
     const navigate = useNavigate();
-    
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
     const [comic, setComic] = useState(null);
+    const [error, setError] = useState('');
     const [formData, setFormData] = useState({
         title: '',
         description: '',
         language: '',
         genre: '',
-        pages: []
     });
     const [showModal, setShowModal] = useState(false);
-    const [pagesToDelete, setPagesToDelete] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    const user = JSON.parse(localStorage.getItem('user')) || {};
 
     useEffect(() => {
-        const fetchComicData = async () => {
-            if (!comicId) {
-                setError('Missing comic ID');
-                setLoading(false);
-                return;
-            }
-
+        const fetchComic = async () => {
             try {
-                const response = await axios.get(`http://localhost:5000/api/comics/${comicId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${user.token}`
-                    }
-                });
-                if (response.data.author !== user._id) {
-                    setError('You are not authorized to edit this comic');
-                    setLoading(false);
-                    return;
+                const response = await axios.get('http://localhost:5000/api/comics/' + comicId);
+                const fetchedComic = response.data;
+
+                if (fetchedComic.author !== user.userId) {
+                    setError('You are not authorized to edit this comic.');
+                    return navigate('/');
                 }
-                setComic(response.data);
+
+                setComic(fetchedComic);
                 setFormData({
-                    title: response.data.title,
-                    description: response.data.description,
-                    language: response.data.language,
-                    genre: response.data.genre,
-                    pages: response.data.pages
+                    title: fetchedComic.title,
+                    description: fetchedComic.description,
+                    language: fetchedComic.language,
+                    genre: fetchedComic.genre,
                 });
-                setLoading(false);
             } catch (err) {
-                console.error('Error fetching comic data:', err);
-                setError('Failed to load comic data');
+                console.error('Error fetching comic:', err);
+                setError('Failed to fetch comic.');
+            } finally {
                 setLoading(false);
             }
         };
 
-        fetchComicData();
-    }, [comicId, user._id]);
+        fetchComic();
+    }, [comicId, user.userId, navigate]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
     };
 
-    const handleFileChange = (e) => {
-        const files = Array.from(e.target.files);
-        setFormData({ ...formData, pages: files });
-    };
-
-    const handleDeletePage = (page) => {
-        setPagesToDelete([...pagesToDelete, page]);
-        setFormData({ ...formData, pages: formData.pages.filter(p => p !== page) });
-    };
-
-    const handleFormSubmit = async (e) => {
+    const handleFormSubmit = (e) => {
         e.preventDefault();
         setShowModal(true);
     };
 
     const handleConfirmUpdate = async () => {
         setShowModal(false);
-        const formDataToSend = new FormData();
-        for (const key in formData) {
-            if (key === 'pages') {
-                formData[key].forEach((file, index) => {
-                    formDataToSend.append(`pages[${index}]`, file);
-                });
-            } else {
-                formDataToSend.append(key, formData[key]);
-            }
-        }
-        formDataToSend.append('pagesToDelete', JSON.stringify(pagesToDelete));
-
         try {
-            await axios.put(`http://localhost:5000/api/comics/${comicId}`, formDataToSend, {
+            await axios.put(`/api/comics/${comicId}`, formData, {
                 headers: {
-                    'Content-Type': 'multipart/form-data',
-                    'Authorization': `Bearer ${user.token}`
-                }
+                    'Authorization': `Bearer ${user.token}`,
+                },
             });
             navigate(`/profile/${user._id}`);
         } catch (err) {
@@ -162,29 +127,6 @@ const EditComic = () => {
                         onChange={handleInputChange}
                         required
                     />
-                </div>
-                <div className="mb-3">
-                    <label htmlFor="pages" className="form-label">Pages</label>
-                    <input
-                        type="file"
-                        className="form-control"
-                        id="pages"
-                        name="pages"
-                        multiple
-                        onChange={handleFileChange}
-                        accept="image/*"
-                    />
-                </div>
-                <div className="mb-3">
-                    <label>Existing Pages</label>
-                    <div className="existing-pages">
-                        {comic.pages.map((page, index) => (
-                            <div key={index} className="existing-page">
-                                <img src={`http://localhost:5000/${page.url}`} alt={`Page ${index + 1}`} className="img-thumbnail" />
-                                <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDeletePage(page)}>Delete</button>
-                            </div>
-                        ))}
-                    </div>
                 </div>
                 <button type="submit" className="btn btn-primary">Save Changes</button>
             </form>

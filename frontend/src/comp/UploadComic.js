@@ -48,34 +48,30 @@ const UploadComic = () => {
       formData.append('language', language);
       formData.append('genre', genre);
       formData.append('author', user._id);
-      
-      // Only append series if selected
+
       if (series) {
         formData.append('series', series);
       }
-      
-      // Append each page file directly
-      pages.forEach(page => {
+
+      pages.forEach((page) => {
         formData.append('pages', page);
       });
 
       const response = await axios.post('http://localhost:5000/api/comics', formData, {
         headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+          'Content-Type': 'multipart/form-data',
+        },
       });
 
       setMessage('Comic uploaded successfully!');
       setError('');
-      
-      // Clear form after successful upload
+
       setTitle('');
       setDescription('');
       setLanguage('');
       setGenre('');
       setPages([]);
       setSeries('');
-      
     } catch (err) {
       console.error('Upload error:', err);
       setError(err.response?.data?.message || 'Failed to upload comic. Please try again.');
@@ -113,25 +109,37 @@ const UploadComic = () => {
         </div>
         <div className="mb-3">
           <label htmlFor="language" className="form-label">Language</label>
-          <input
-            type="text"
-            className="form-control"
+          <select
+            className="form-select"
             id="language"
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
             required
-          />
+          >
+            <option value="">Select Language</option>
+            {languages.map((lang) => (
+              <option key={lang} value={lang}>
+                {lang}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="mb-3">
           <label htmlFor="genre" className="form-label">Genre</label>
-          <input
-            type="text"
-            className="form-control"
+          <select
+            className="form-select"
             id="genre"
             value={genre}
             onChange={(e) => setGenre(e.target.value)}
             required
-          />
+          >
+            <option value="">Select Genre</option>
+            {genres.map((gen) => (
+              <option key={gen} value={gen}>
+                {gen}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="mb-3">
           <label htmlFor="pages" className="form-label">Pages</label>

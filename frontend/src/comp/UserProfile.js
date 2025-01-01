@@ -157,10 +157,17 @@ const UserProfile = () => {
                         <div className="comic-info">
                             <h5>{comic.title}</h5>
                             <p>{comic.description}</p>
+                            <Button
+                                variant="link"
+                                onClick={() => navigate(`/comics/edit/${comic._id}`)}
+                            >
+                                Edit Comic
+                            </Button>
                         </div>
                     </div>
                 ))}
             </div>
+
 
             <h3>Series Created</h3>
             <div className="comics-grid">

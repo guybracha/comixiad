@@ -41,7 +41,10 @@ const App = () => {
                 <Route path="/login" element={<Login />} />
                 <Route path="/category/:category" element={<CategoryPage />} />
                 <Route path="/profile/:userId" element={<UserProfile />} />
-                <Route path="/comics/edit/:comicId" element={<EditComic />} />
+                <Route 
+                    path="/comics/edit/:comicId" 
+                    element={user ? <EditComic /> : <Navigate to="/login" replace />} 
+                />
                 <Route path="/series/:id" element={<SeriesDetail />} />
                 <Route path="/search" element={<SearchResults />} />
                 <Route path="*" element={<Error />} />

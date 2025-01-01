@@ -32,27 +32,36 @@ app.use('/api/login', loginRoute);
 app.use('/api/auth', authRouter);
 app.use('/api/series', seriesRouter);
 
-require('dotenv').config();
+require('dotenv').config(); // Make sure .env file is loaded properly
 
-// Define a test user object
+// Error handling for missing JWT_SECRET
+if (!process.env.JWT_SECRET) {
+  console.error('JWT_SECRET is not defined in the .env file');
+  process.exit(1); // Exit the application if JWT_SECRET is missing
+}
+
+// Define a test user object (remove or modify as needed)
 const user = { _id: 'testUserId' }; // Replace with actual user ID for testing
+// Generate a test token (remove this in production code)
 const testToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-console.log('Test Token:', testToken);
+console.log('Test Token:', testToken); // Remove or use for testing
 
-
-// Error handling
+// Error handling middleware for unhandled errors
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-// Start server
-mongoose.connect('mongodb://localhost:27017/comixiad', {
+// Start server after successful MongoDB connection
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/comixiad', {
   useNewUrlParser: true,
-  useUnifiedTopology: true
+  useUnifiedTopology: true,  // Add this option for better handling of MongoDB connections
 }).then(() => {
   console.log('Connected to MongoDB');
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });
+}).catch(error => {
+  console.error('MongoDB connection error:', error);
+  process.exit(1); // Exit the application if MongoDB connection fails
 });

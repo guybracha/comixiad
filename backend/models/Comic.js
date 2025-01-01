@@ -1,40 +1,15 @@
 const mongoose = require('mongoose');
 
-const pageSchema = new mongoose.Schema({
-    url: {
-        type: String,
-        required: true
-    }
-});
-
 const comicSchema = new mongoose.Schema({
-    title: {
-        type: String,
-        required: true
-    },
-    description: {
-        type: String,
-        required: true
-    },
-    author: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    series: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Series',
-        default: null
-    },
-    language: {
-        type: String,
-        required: true
-    },
-    genre: {
-        type: String,
-        required: true
-    },
-    pages: [pageSchema]
-});
+    title: { type: String, required: true },
+    description: { type: String, required: true },
+    author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    language: { type: String, required: true },
+    genre: { type: String, required: true },
+    pages: [{ url: { type: String, required: true } }],
+    series: { type: String, default: null }
+}, { timestamps: true });
 
-module.exports = mongoose.model('Comic', comicSchema);
+const Comic = mongoose.model('Comic', comicSchema);
+
+module.exports = Comic;

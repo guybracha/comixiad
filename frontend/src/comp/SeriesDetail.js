@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import '../SeriesDetail.css';
 
@@ -59,7 +59,7 @@ const SeriesDetail = () => {
       )}
       <div className="comics-grid">
         {comics.map((comic) => (
-          <div key={comic._id} className="comic-card">
+          <Link key={comic._id} to={`/comics/${comic._id}`} className="comic-card">
             <img
               src={`http://localhost:5000/uploads/${comic.pages[0]?.url}`}
               alt={comic.title}
@@ -73,7 +73,7 @@ const SeriesDetail = () => {
               <h5>{comic.title}</h5>
               <p>{comic.description}</p>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </div>
