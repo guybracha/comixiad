@@ -46,40 +46,35 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// Update user profile
 router.put('/:id', upload.single('avatar'), async (req, res) => {
     try {
-        // הוספת אימות
-        if (req.user.id !== req.params.id) {
-            return res.status(403).json({ message: 'Unauthorized' });
-        }
+        const { username, email, bio, firstName, lastName, dateOfBirth, location, favoriteGenres, twitter, instagram, deviantart } = req.body;
+        const avatar = req.file ? req.file.path : null;
 
-        const { id } = req.params;
-        const updateData = req.body;
-
-        if (req.file) {
-            updateData.avatar = req.file.path;
-        }
-
-        // Ensure socialLinks is an object
-        updateData.socialLinks = {
-            twitter: req.body.twitter,
-            instagram: req.body.instagram,
-            deviantart: req.body.deviantart
-        };
-
-        const user = await User.findByIdAndUpdate(id, updateData, { new: true });
+        const user = await User.findById(req.params.id);
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
 
+        user.username = username;
+        user.email = email;
+        user.bio = bio;
+        user.firstName = firstName;
+        user.lastName = lastName;
+        user.dateOfBirth = dateOfBirth;
+        user.location = location;
+        user.favoriteGenres = favoriteGenres ? favoriteGenres.split(',').map(genre => genre.trim()) : [];
+        user.socialLinks = { twitter, instagram, deviantart };
+        if (avatar) {
+            user.avatar = avatar;
+        }
+
+        await user.save();
         res.json(user);
     } catch (error) {
         console.error('Error updating user profile:', error);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
-
-
 
 module.exports = router;

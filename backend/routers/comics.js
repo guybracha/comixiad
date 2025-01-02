@@ -121,17 +121,19 @@ router.delete('/:id', verifyToken, async (req, res) => {
 });
 
 // Get comics by series ID
-router.get('/series/:seriesId', async (req, res) => {
+router.get('/:id', async (req, res) => {
     try {
-        const comics = await Comic.find({ series: req.params.seriesId });
-        if (!comics.length) {
-            return res.status(404).json({ message: 'No comics found for this series' });
+        const comic = await Comic.findById(req.params.id).populate('author', 'username');
+        if (!comic) {
+            return res.status(404).json({ message: 'Comic not found' });
         }
-        res.json(comics);
+        res.json(comic);
     } catch (error) {
-        console.error('Error fetching comics:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        console.error('Error fetching comic by ID:', error);
+        res.status(500).json({ message: 'Error fetching comic', error: error.message });
     }
 });
+
+
 
 module.exports = router;

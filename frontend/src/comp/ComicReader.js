@@ -1,34 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Modal } from 'react-bootstrap';
 import axios from 'axios';
+import { Modal } from 'react-bootstrap';
 import '../ComicReader.css';
 
 const ComicReader = () => {
-    const { id } = useParams();
+    const { id: comicId } = useParams(); // שינוי כאן
     const [comic, setComic] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [selectedPage, setSelectedPage] = useState(null);
-
-    const getImageUrl = (page) => {
-        if (!page) return '/placeholder.jpg';
-        
-        // If page is an object with url property
-        if (typeof page === 'object' && page.url) {
-            return `http://localhost:5000/uploads/${page.url}`;
-        }
-        
-        // If page is a string (filename)
-        return `http://localhost:5000/uploads/${page}`;
-    };
+    const [currentPageIndex, setCurrentPageIndex] = useState(0);
 
     useEffect(() => {
         const fetchComic = async () => {
             try {
-                const response = await axios.get(`http://localhost:5000/api/comics/${id}`);
-                console.log('Comic data:', response.data); // Debug log
+                console.log("Comic ID from useParams:", comicId);
+                if (!comicId) {
+                    setError('Comic ID is required');
+                    setLoading(false);
+                    return;
+                }
+
+                const response = await axios.get(`http://localhost:5000/api/comics/${comicId}`);
                 setComic(response.data);
                 setLoading(false);
             } catch (err) {
@@ -39,27 +34,43 @@ const ComicReader = () => {
         };
 
         fetchComic();
-    }, [id]);
+    }, [comicId]);
+
+    const getImageUrl = (page) => `http://localhost:5000/uploads/${page.url}`;
+
+    const handlePageClick = (page, index) => {
+        setSelectedPage(page);
+        setCurrentPageIndex(index);
+        setShowModal(true);
+    };
+
+    const handlePreviousPage = () => {
+        if (currentPageIndex > 0) {
+            setCurrentPageIndex(currentPageIndex - 1);
+            setSelectedPage(comic.pages[currentPageIndex - 1]);
+        }
+    };
+
+    const handleNextPage = () => {
+        if (currentPageIndex < comic.pages.length - 1) {
+            setCurrentPageIndex(currentPageIndex + 1);
+            setSelectedPage(comic.pages[currentPageIndex + 1]);
+        }
+    };
 
     if (loading) return <div>Loading...</div>;
     if (error) return <div className="alert alert-danger">{error}</div>;
-    if (!comic) return <div>Comic not found</div>;
 
     return (
-        <div className="comic-reader">
-            <h1>{comic.title}</h1>
+        <div className="container mt-4">
+            <h2>{comic.title}</h2>
             <p>{comic.description}</p>
-            <div className="pages-container">
-                {comic.pages && comic.pages.map((page, index) => (
-                    <div key={index} className="page-wrapper">
+            <div className="comic-pages">
+                {comic.pages.map((page, index) => (
+                    <div key={index} className="comic-page" onClick={() => handlePageClick(page, index)}>
                         <img
                             src={getImageUrl(page)}
                             alt={`Page ${index + 1}`}
-                            className="comic-page"
-                            onClick={() => {
-                                setSelectedPage(page);
-                                setShowModal(true);
-                            }}
                             onError={(e) => {
                                 console.error('Failed to load image:', page);
                                 e.target.src = '/placeholder.jpg';
@@ -77,12 +88,19 @@ const ComicReader = () => {
             >
                 <Modal.Body className="p-0">
                     {selectedPage && (
-                        <img
-                            src={getImageUrl(selectedPage)}
-                            alt="Full size page"
-                            className="img-fluid w-100"
-                            onError={(e) => e.target.src = '/placeholder.jpg'}
-                        />
+                        <div className="modal-content">
+                            <button className="arrow left-arrow" onClick={handlePreviousPage} disabled={currentPageIndex === 0}>
+                                &lt;
+                            </button>
+                            <img
+                                src={getImageUrl(selectedPage)}
+                                alt="Full size page"
+                                className="full-size-page"
+                            />
+                            <button className="arrow right-arrow" onClick={handleNextPage} disabled={currentPageIndex === comic.pages.length - 1}>
+                                &gt;
+                            </button>
+                        </div>
                     )}
                 </Modal.Body>
             </Modal>
