@@ -136,5 +136,31 @@ router.post('/:id/view', async (req, res) => {
   }
 });
 
+// הגדלת מספר הלייקים
+router.put('/:id/like', verifyToken, async (req, res) => {
+  const userId = req.user.id; // זיהוי המשתמש מה-Token
+  const comicId = req.params.id;
+
+  try {
+      const comic = await Comic.findById(comicId);
+      if (!comic) return res.status(404).json({ message: 'Comic not found' });
+
+      // בדיקה אם המשתמש כבר נתן לייק
+      if (comic.likedBy.includes(userId)) {
+          return res.status(400).json({ message: 'User has already liked this comic' });
+      }
+
+      // עדכון הלייקים ורשימת המשתמשים
+      comic.likes += 1;
+      comic.likedBy.push(userId);
+      await comic.save();
+
+      res.json({ likes: comic.likes });
+  } catch (err) {
+      console.error('Failed to update likes:', err);
+      res.status(500).json({ message: 'Failed to update likes' });
+  }
+});
+
 
 module.exports = router;

@@ -16,9 +16,6 @@ function Homepage() {
           העלו את הקומיקס שלכם
         </Link>
       </header>
-      <div>
-        <About />
-      </div>
       {/* Section 2: Categories */}
       <section className="homepage-categories">
         <h2>קטגוריות פופולריות</h2>
@@ -40,6 +37,9 @@ function Homepage() {
         <h2>סדרות הבית שלנו</h2>
         <SeriesList />
         </section>
+        <div>
+        <About />
+      </div>
     </div>
   );
 }

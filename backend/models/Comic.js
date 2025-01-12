@@ -7,7 +7,10 @@ const comicSchema = new mongoose.Schema({
     language: { type: String, required: true },
     genre: { type: String, required: true },
     pages: [{ url: { type: String, required: true } }],
-    series: { type: String, default: null }
+    series: { type: String, default: null },
+    views: { type: Number, default: 0 },
+    likes: { type: Number, default: 0 },
+    likedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }] // משתמשים שנתנו לייק
 }, { timestamps: true });
 
 const Comic = mongoose.model('Comic', comicSchema);

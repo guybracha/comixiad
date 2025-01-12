@@ -13,7 +13,8 @@ const userSchema = new mongoose.Schema({
         deviantart: { type: String }
     },
     avatar: { type: String },
-    joinDate: { type: Date, default: Date.now }
+    joinDate: { type: Date, default: Date.now },
+    followingSeries: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Series' }]
 });
 
 module.exports = mongoose.model('User', userSchema);

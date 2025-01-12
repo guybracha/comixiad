@@ -51,4 +51,63 @@ router.post('/', upload.single('coverImage'), async (req, res) => {
     }
 });
 
+// Follow a series
+router.post('/:id/follow', async (req, res) => {
+    try {
+        const { userId } = req.body;
+        const seriesId = req.params.id;
+
+        if (!userId) {
+            return res.status(400).json({ message: 'User ID is required' });
+        }
+
+        const series = await Series.findById(seriesId);
+        if (!series) {
+            return res.status(404).json({ message: 'Series not found' });
+        }
+
+        if (series.followers.includes(userId)) {
+            return res.status(400).json({ message: 'User already follows this series' });
+        }
+
+        series.followers.push(userId);
+        await series.save();
+
+        res.status(200).json({ message: 'Followed series successfully', series });
+    } catch (err) {
+        console.error('Error following series:', err);
+        res.status(500).json({ message: 'Server error', error: err.message });
+    }
+});
+
+// Unfollow a series
+router.post('/:id/unfollow', async (req, res) => {
+    try {
+        const { userId } = req.body;
+        const seriesId = req.params.id;
+
+        if (!userId) {
+            return res.status(400).json({ message: 'User ID is required' });
+        }
+
+        const series = await Series.findById(seriesId);
+        if (!series) {
+            return res.status(404).json({ message: 'Series not found' });
+        }
+
+        if (!series.followers.includes(userId)) {
+            return res.status(400).json({ message: 'User is not following this series' });
+        }
+
+        series.followers = series.followers.filter(id => id.toString() !== userId);
+        await series.save();
+
+        res.status(200).json({ message: 'Unfollowed series successfully', series });
+    } catch (err) {
+        console.error('Error unfollowing series:', err);
+        res.status(500).json({ message: 'Server error', error: err.message });
+    }
+});
+
+
 module.exports = router;

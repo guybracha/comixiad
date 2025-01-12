@@ -135,5 +135,27 @@ router.get('/:id', async (req, res) => {
 });
 
 
+// הגדלת מספר הצפיות
+router.put('/:id/view', async (req, res) => {
+    try {
+        const comic = await Comic.findByIdAndUpdate(req.params.id, { $inc: { views: 1 } }, { new: true });
+        if (!comic) return res.status(404).json({ message: 'Comic not found' });
+        res.json(comic);
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to update views' });
+    }
+});
+
+// הגדלת מספר הלייקים
+router.put('/:id/like', async (req, res) => {
+    try {
+        const comic = await Comic.findByIdAndUpdate(req.params.id, { $inc: { likes: 1 } }, { new: true });
+        if (!comic) return res.status(404).json({ message: 'Comic not found' });
+        res.json(comic);
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to update likes' });
+    }
+});
+
 
 module.exports = router;
