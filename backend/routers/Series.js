@@ -51,19 +51,20 @@ router.get('/', async (req, res) => {
 });
 
 
-// Fetch single series by ID
+// Get series by ID
 router.get('/:id', async (req, res) => {
-  try {
-      const series = await Series.findById(req.params.id);
-      if (!series) {
-          return res.status(404).json({ message: 'Series not found' });
-      }
-      res.json(series);
-  } catch (err) {
-      console.error('Error fetching series:', err);
-      res.status(500).json({ message: 'Server error', error: err.message });
-  }
+    try {
+        const series = await Series.findById(req.params.id);
+        if (!series) {
+            return res.status(404).json({ message: 'Series not found' });
+        }
+        res.json(series);
+    } catch (error) {
+        console.error('Error fetching series:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
 });
+
 
 router.get('/series/:seriesId', async (req, res) => {
     try {
