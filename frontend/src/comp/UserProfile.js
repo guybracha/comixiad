@@ -89,6 +89,30 @@ const UserProfile = () => {
         setFormData({ ...formData, avatar: file });
     };
 
+    const handleDeleteComic = async (comicId) => {
+        if (!window.confirm("Are you sure you want to delete this comic?")) return;
+    
+        try {
+            await axios.delete(`http://localhost:5000/api/comics/${comicId}`);
+            setUserComics(userComics.filter(comic => comic._id !== comicId)); // הסרת הקומיקס מהרשימה ב-React
+        } catch (err) {
+            console.error("Error deleting comic:", err);
+            setError("Failed to delete comic");
+        }
+    };
+    
+    const handleDeleteSeries = async (seriesId) => {
+        if (!window.confirm("Are you sure you want to delete this series?")) return;
+    
+        try {
+            await axios.delete(`http://localhost:5000/api/series/${seriesId}`);
+            setUserSeries(userSeries.filter(series => series._id !== seriesId)); // הסרת הסדרה מהרשימה ב-React
+        } catch (err) {
+            console.error("Error deleting series:", err);
+            setError("Failed to delete series");
+        }
+    };
+
     const handleFormSubmit = async (e) => {
         e.preventDefault();
         const formDataToSend = new FormData();
@@ -149,14 +173,16 @@ const UserProfile = () => {
                             src={`http://localhost:5000/uploads/${comic.pages[0]?.url}`}
                             alt={comic.title}
                             className="comic-image"
-                            onError={(e) => {
-                                e.target.onerror = null;
-                                e.target.src = '/placeholder.jpg';
-                            }}
+                            onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder.jpg'; }}
                         />
                         <div className="comic-info">
                             <h5>{comic.title}</h5>
                             <p>{comic.description}</p>
+                            {user && user._id === profile._id && ( // הצגת כפתור רק אם המשתמש הוא הבעלים
+                                <button className="btn btn-danger" onClick={() => handleDeleteComic(comic._id)}>
+                                    Delete
+                                </button>
+                            )}
                         </div>
                     </div>
                 ))}
@@ -170,18 +196,21 @@ const UserProfile = () => {
                             src={`http://localhost:5000/uploads/${series.coverImage}`}
                             alt={series.name}
                             className="series-image"
-                            onError={(e) => {
-                                e.target.onerror = null;
-                                e.target.src = '/placeholder.jpg';
-                            }}
+                            onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder.jpg'; }}
                         />
                         <div className="series-info">
                             <h5>{series.name}</h5>
                             <p>{series.description}</p>
+                            {user && user._id === profile._id && ( // הצגת כפתור רק אם המשתמש הוא הבעלים
+                                <button className="btn btn-danger" onClick={() => handleDeleteSeries(series._id)}>
+                                    Delete
+                                </button>
+                            )}
                         </div>
                     </div>
                 ))}
             </div>
+
 
             <Modal show={showModal} onHide={() => setShowModal(false)}>
                 <Modal.Header closeButton>

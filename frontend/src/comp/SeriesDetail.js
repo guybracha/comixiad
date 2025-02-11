@@ -16,28 +16,46 @@ const SeriesDetail = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
-        const [seriesResponse, comicsResponse, followingResponse] = await Promise.all([
-          axios.get(`${API_BASE_URL}/api/Series/${id}`),
-          axios.get(`${API_BASE_URL}/api/comics/series/${id}`),
-          user ? axios.get(`${API_BASE_URL}/api/users/${user._id}/following`) : Promise.resolve({ data: { followingSeries: [] } })
-        ]);
-
+        // מושך רק את פרטי הסדרה
+        const seriesResponse = await axios.get(`${API_BASE_URL}/api/series/${id}`);
         setSeries(seriesResponse.data);
-        setComics(comicsResponse.data);
-        setIsFollowing(followingResponse.data.followingSeries.includes(id));
+    
+        // מנסה למשוך קומיקסים רק אם הנתיב קיים
+        let comicsData = [];
+        try {
+          const comicsResponse = await axios.get(`${API_BASE_URL}/api/series/${id}/comics`);
+          comicsData = comicsResponse.data;
+        } catch (comicsErr) {
+          console.warn('Comics not found for this series:', comicsErr.response?.status);
+        }
+        setComics(comicsData);
+    
+        // אם המשתמש מחובר, מושך את ה-following
+        if (user) {
+          const followingResponse = await axios.get(`${API_BASE_URL}/api/users/${user._id}/following`);
+          setIsFollowing(followingResponse.data.followingSeries.includes(id));
+        }
+    
         setError('');
       } catch (err) {
-        setError('Failed to fetch data. Please try again later.');
+        console.error('Error fetching data:', err);
+        setError(`Failed to fetch data: ${err.response?.data?.message || err.message}`);
       } finally {
         setLoading(false);
       }
     };
-
+    
     fetchData();
-  }, [id, user]);
+  }, [id, user]);    
 
   const handleFollowSeries = async () => {
+    if (!user) {
+      setError('You must be logged in to follow a series.');
+      return;
+    }
+
     try {
       await axios.post(`${API_BASE_URL}/api/users/${user._id}/follow`, { seriesId: id });
       setIsFollowing(true);
@@ -47,35 +65,46 @@ const SeriesDetail = () => {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div className="loading">Loading...</div>;
   if (error) return <div className="alert alert-danger">{error}</div>;
 
   return (
     <div className="container mt-4">
       <h2>{series.name}</h2>
       <p>{series.description}</p>
-      <button className="btn btn-primary" onClick={handleFollowSeries} disabled={isFollowing}>
+      <img
+        src={series.coverImage ? `${API_BASE_URL}/uploads/${series.coverImage}` : '/placeholder.jpg'}
+        alt={series.name}
+        className="img-fluid"
+      />
+      <button className="btn btn-primary mt-2" onClick={handleFollowSeries} disabled={isFollowing}>
         {isFollowing ? 'Following' : 'Follow Series'}
       </button>
+
+      <h3 className="mt-4">Comics in this series</h3>
       <div className="comics-grid">
-        {comics.map((comic) => (
-          <div key={comic._id} className="comic-card">
-            <img
-              src={`${API_BASE_URL}/uploads/${comic.pages[0]?.url}`}
-              alt={comic.title}
-              className="comic-image"
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = '/placeholder.jpg';
-              }}
-            />
-            <div className="comic-info">
-              <h5>{comic.title}</h5>
-              <p>{comic.description}</p>
-              <Link to={`/comics/${comic._id}`} className="btn btn-primary">Read Comic</Link>
+        {comics.length > 0 ? (
+          comics.map((comic) => (
+            <div key={comic._id} className="comic-card">
+              <img
+                src={comic.pages[0]?.url ? `${API_BASE_URL}/uploads/${comic.pages[0]?.url}` : '/placeholder.jpg'}
+                alt={comic.title}
+                className="comic-image"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = '/placeholder.jpg';
+                }}
+              />
+              <div className="comic-info">
+                <h5>{comic.title}</h5>
+                <p>{comic.description}</p>
+                <Link to={`/comics/${comic._id}`} className="btn btn-primary">Read Comic</Link>
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        ) : (
+          <p>No comics available for this series.</p>
+        )}
       </div>
     </div>
   );

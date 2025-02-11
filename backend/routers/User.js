@@ -77,4 +77,18 @@ router.put('/:id', upload.single('avatar'), async (req, res) => {
     }
 });
 
+router.get('/:userId/following', async (req, res) => {
+    try {
+        const user = await User.findById(req.params.userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.json({ followingSeries: user.followingSeries });
+    } catch (error) {
+        console.error('Error fetching following series:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
 module.exports = router;

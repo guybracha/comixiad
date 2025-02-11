@@ -109,5 +109,4 @@ router.post('/:id/unfollow', async (req, res) => {
     }
 });
 
-
 module.exports = router;

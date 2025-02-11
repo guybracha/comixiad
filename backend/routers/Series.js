@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const Series = require('../models/Series');
+const Comic = require('../models/Comic');
 const multer = require('multer');
-const path = require('path');
 
 // Set up multer for file uploads
 const storage = multer.diskStorage({
@@ -40,6 +40,7 @@ router.post('/', upload.single('coverImage'), async (req, res) => {
     }
 });
 
+// Get all series
 router.get('/', async (req, res) => {
     try {
         const series = await Series.find();
@@ -49,7 +50,6 @@ router.get('/', async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
-
 
 // Get series by ID
 router.get('/:id', async (req, res) => {
@@ -65,8 +65,8 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-
-router.get('/series/:seriesId', async (req, res) => {
+// Get comics by series ID
+router.get('/:seriesId/comics', async (req, res) => {
     try {
         const comics = await Comic.find({ series: req.params.seriesId });
         if (!comics.length) {
@@ -78,5 +78,17 @@ router.get('/series/:seriesId', async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
+
+router.get('/series/:id/comics', async (req, res) => {
+    try {
+        const comics = await Comic.find({ seriesId: req.params.id });
+        res.json(comics);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+
 
 module.exports = router;
