@@ -36,7 +36,7 @@ const Login = () => {
 
     return (
         <div className="container mt-5">
-            <h2>Login</h2>
+            <h2>התחבר</h2>
             <form onSubmit={handleSubmit}>
                 <div className="mb-3">
                     <input
@@ -44,7 +44,7 @@ const Login = () => {
                         className="form-control"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Email"
+                        placeholder="כתובת מייל"
                         required
                     />
                 </div>
@@ -54,7 +54,7 @@ const Login = () => {
                         className="form-control"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Password"
+                        placeholder="סיסמא"
                         required
                     />
                 </div>

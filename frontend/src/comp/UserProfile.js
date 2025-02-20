@@ -93,8 +93,12 @@ const UserProfile = () => {
         if (!window.confirm("Are you sure you want to delete this comic?")) return;
     
         try {
-            await axios.delete(`http://localhost:5000/api/comics/${comicId}`);
-            setUserComics(userComics.filter(comic => comic._id !== comicId)); // הסרת הקומיקס מהרשימה ב-React
+            await axios.delete(`http://localhost:5000/api/comics/${comicId}`, {
+                headers: {
+                    Authorization: `Bearer ${user.token}`
+                }
+            });
+            setUserComics(userComics.filter(comic => comic._id !== comicId)); // Remove the comic from the list in React
         } catch (err) {
             console.error("Error deleting comic:", err);
             setError("Failed to delete comic");
@@ -105,8 +109,12 @@ const UserProfile = () => {
         if (!window.confirm("Are you sure you want to delete this series?")) return;
     
         try {
-            await axios.delete(`http://localhost:5000/api/series/${seriesId}`);
-            setUserSeries(userSeries.filter(series => series._id !== seriesId)); // הסרת הסדרה מהרשימה ב-React
+            await axios.delete(`http://localhost:5000/api/series/${seriesId}`, {
+                headers: {
+                    Authorization: `Bearer ${user.token}`
+                }
+            });
+            setUserSeries(userSeries.filter(series => series._id !== seriesId)); // Remove the series from the list in React
         } catch (err) {
             console.error("Error deleting series:", err);
             setError("Failed to delete series");
@@ -122,7 +130,8 @@ const UserProfile = () => {
         try {
             const response = await axios.put(`http://localhost:5000/api/users/${userId}`, formDataToSend, {
                 headers: {
-                    'Content-Type': 'multipart/form-data'
+                    'Content-Type': 'multipart/form-data',
+                    Authorization: `Bearer ${user.token}`
                 }
             });
             setProfile(response.data);
@@ -178,7 +187,7 @@ const UserProfile = () => {
                         <div className="comic-info">
                             <h5>{comic.title}</h5>
                             <p>{comic.description}</p>
-                            {user && user._id === profile._id && ( // הצגת כפתור רק אם המשתמש הוא הבעלים
+                            {user && user._id === profile._id && ( // Show delete button only if the user is the owner
                                 <button className="btn btn-danger" onClick={() => handleDeleteComic(comic._id)}>
                                     Delete
                                 </button>
@@ -201,7 +210,7 @@ const UserProfile = () => {
                         <div className="series-info">
                             <h5>{series.name}</h5>
                             <p>{series.description}</p>
-                            {user && user._id === profile._id && ( // הצגת כפתור רק אם המשתמש הוא הבעלים
+                            {user && user._id === profile._id && ( // Show delete button only if the user is the owner
                                 <button className="btn btn-danger" onClick={() => handleDeleteSeries(series._id)}>
                                     Delete
                                 </button>
@@ -210,7 +219,6 @@ const UserProfile = () => {
                     </div>
                 ))}
             </div>
-
 
             <Modal show={showModal} onHide={() => setShowModal(false)}>
                 <Modal.Header closeButton>

@@ -65,7 +65,7 @@ const SeriesDetail = () => {
     }
   };
 
-  if (loading) return <div className="loading">Loading...</div>;
+  if (loading) return <div className="loading">טוען...</div>;
   if (error) return <div className="alert alert-danger">{error}</div>;
 
   return (
@@ -78,10 +78,10 @@ const SeriesDetail = () => {
         className="img-fluid"
       />
       <button className="btn btn-primary mt-2" onClick={handleFollowSeries} disabled={isFollowing}>
-        {isFollowing ? 'Following' : 'Follow Series'}
+        {isFollowing ? 'עוקב' : 'עקוב אחרי הסדרה'}
       </button>
 
-      <h3 className="mt-4">Comics in this series</h3>
+      <h3 className="mt-4">קומיקסים בסדרה זו:</h3>
       <div className="comics-grid">
         {comics.length > 0 ? (
           comics.map((comic) => (
@@ -98,12 +98,12 @@ const SeriesDetail = () => {
               <div className="comic-info">
                 <h5>{comic.title}</h5>
                 <p>{comic.description}</p>
-                <Link to={`/comics/${comic._id}`} className="btn btn-primary">Read Comic</Link>
+                <Link to={`/comics/${comic._id}`} className="btn btn-primary">קרא קומיקס</Link>
               </div>
             </div>
           ))
         ) : (
-          <p>No comics available for this series.</p>
+          <p>מצטערים, אין כרגע קומיקסים בסדרה זו...</p>
         )}
       </div>
     </div>

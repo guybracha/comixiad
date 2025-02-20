@@ -3,6 +3,7 @@ const router = express.Router();
 const Series = require('../models/Series');
 const Comic = require('../models/Comic');
 const multer = require('multer');
+const verifyToken = require('../middleware/auth'); // Ensure verifyToken is imported correctly
 
 // Set up multer for file uploads
 const storage = multer.diskStorage({
@@ -89,6 +90,26 @@ router.get('/series/:id/comics', async (req, res) => {
     }
 });
 
+// Delete series by ID
+router.delete('/:id', verifyToken, async (req, res) => {
+    try {
+        const series = await Series.findById(req.params.id);
+        if (!series) {
+            return res.status(404).json({ message: 'Series not found' });
+        }
+
+        // Check ownership
+        if (series.author.toString() !== req.user.userId) {
+            return res.status(403).json({ message: 'Unauthorized' });
+        }
+
+        await series.remove();
+        res.json({ message: 'Series deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting series:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
 
 
 module.exports = router;

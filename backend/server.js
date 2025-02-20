@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken'); // Import jsonwebtoken
 
 // Import routes
 const userRouter = require('./routers/User');
-const comicRouter = require('./routers/Comics');
+const comicRouter = require('./routers/comics');
 const searchRouter = require('./routers/Search');
 const registerRoute = require('./routers/Register');
 const loginRoute = require('./routers/Login');

@@ -53,7 +53,7 @@ const SeriesList = () => {
               <Card.Body>
                 <Card.Title>{seriesItem.name}</Card.Title>
                 <Card.Text>{seriesItem.description}</Card.Text>
-                <Button variant="primary" onClick={() => navigate(`/series/${seriesItem._id}`)}>View Series</Button>
+                <Button variant="primary" onClick={() => navigate(`/series/${seriesItem._id}`)}>ראה סדרה</Button>
               </Card.Body>
             </Card>
           </Col>

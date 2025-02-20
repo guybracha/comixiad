@@ -108,11 +108,12 @@ router.delete('/:id', verifyToken, async (req, res) => {
             return res.status(404).json({ message: 'Comic not found' });
         }
 
-        if (req.user && comic.author.toString() !== req.user.userId) {
+        // Check ownership
+        if (comic.author.toString() !== req.user.userId) {
             return res.status(403).json({ message: 'Unauthorized' });
         }
 
-        await Comic.findByIdAndDelete(req.params.id);
+        await comic.remove();
         res.json({ message: 'Comic deleted successfully' });
     } catch (error) {
         console.error('Error deleting comic:', error);

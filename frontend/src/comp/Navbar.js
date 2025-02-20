@@ -27,17 +27,17 @@ const Navbar = () => {
                 <div className="collapse navbar-collapse" id="navbarNav">
                     <ul className="navbar-nav me-auto mb-2 mb-lg-0">
                         <li className="nav-item">
-                            <Link className="nav-link" to="/">Home</Link>
+                            <Link className="nav-link" to="/">בית</Link>
                         </li>
                         <li className="nav-item">
-                            <Link className="nav-link" to="/upload">Upload Comics</Link>
+                            <Link className="nav-link" to="/upload">העלה קומיקס</Link>
                         </li>
                         <li className="nav-item">
-                            <Link className="nav-link" to="/CreateSeries">Create Series</Link>
+                            <Link className="nav-link" to="/CreateSeries">צור סדרה</Link>
                         </li>
                         {user && (
                             <li className="nav-item">
-                                <Link className="nav-link" to={`/profile/${user._id}`}>Profile</Link>
+                                <Link className="nav-link" to={`/profile/${user._id}`}>פרופיל</Link>
                             </li>
                         )}
                     </ul>
@@ -50,17 +50,17 @@ const Navbar = () => {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
-                        <button className="btn btn-outline-success" type="submit">Search</button>
+                        <button className="btn btn-outline-success" type="submit">חפש</button>
                     </form>
                     {user ? (
-                        <button className="btn btn-outline-danger ms-2" onClick={handleLogoutClick}>Logout</button>
+                        <button className="btn btn-outline-danger ms-2" onClick={handleLogoutClick}>התנתק</button>
                     ) : (
                         <ul className="navbar-nav">
                             <li className="nav-item">
-                                <Link className="nav-link" to="/login">Login</Link>
+                                <Link className="nav-link" to="/login">התחבר</Link>
                             </li>
                             <li className="nav-item">
-                                <Link className="nav-link" to="/register">Register</Link>
+                                <Link className="nav-link" to="/register">הירשם</Link>
                             </li>
                         </ul>
                     )}
