@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useUser } from './context/UserContext';
+import { UserProvider, useUser } from './context/UserContext';
 import Navbar from './comp/Navbar';
 import Homepage from './comp/Homepage';
 import UploadComic from './comp/UploadComic';
@@ -16,7 +16,7 @@ import EditComic from './comp/EditComic';
 import SearchResults from './comp/SearchResults';
 import SeriesDetail from './comp/SeriesDetail';
 
-const App = () => {
+const AppContent = () => {
     const { user, setUser } = useUser();
 
     useEffect(() => {
@@ -51,6 +51,14 @@ const App = () => {
             </Routes>
             <Footer />
         </Router>
+    );
+};
+
+const App = () => {
+    return (
+        <UserProvider>
+            <AppContent />
+        </UserProvider>
     );
 };
 

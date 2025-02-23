@@ -1,47 +1,27 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { createContext, useContext, useState } from 'react';
 
 const UserContext = createContext();
 
-export const useUser = () => {
-    return useContext(UserContext);
-};
+export const useUser = () => useContext(UserContext);
 
 export const UserProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [user, setUser] = useState(() => {
+        const storedUser = localStorage.getItem('user');
+        return storedUser ? JSON.parse(storedUser) : null;
+    });
 
-    const fetchUserData = async (userId) => {
-        try {
-            const response = await axios.get(`http://localhost:5000/api/users/${userId}`);
-            setUser(response.data);
-        } catch (error) {
-            console.error('Error fetching user:', error);
-        } finally {
-            setLoading(false);
-        }
+    const login = (userData) => {
+        localStorage.setItem('user', JSON.stringify(userData));
+        setUser(userData);
     };
 
-    useEffect(() => {
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-            const parsedUser = JSON.parse(storedUser);
-            if (parsedUser._id) {
-                fetchUserData(parsedUser._id);
-            }
-        } else {
-            setLoading(false);
-        }
-    }, []);
-
-    const handleLogout = () => {
-        setUser(null);
+    const logout = () => {
         localStorage.removeItem('user');
-        // Clear any other user-related data here (e.g., tokens)
+        setUser(null);
     };
 
     return (
-        <UserContext.Provider value={{ user, setUser, handleLogout, loading }}>
+        <UserContext.Provider value={{ user, login, logout, setUser }}>
             {children}
         </UserContext.Provider>
     );

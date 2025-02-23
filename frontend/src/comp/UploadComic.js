@@ -5,174 +5,175 @@ import languages from '../config/Languages';
 import genres from '../config/Genres';
 
 const UploadComic = () => {
-  const { user } = useUser();
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [language, setLanguage] = useState('');
-  const [genre, setGenre] = useState('');
-  const [pages, setPages] = useState([]);
-  const [series, setSeries] = useState('');
-  const [allSeries, setAllSeries] = useState([]);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+    const { user } = useUser();
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const [language, setLanguage] = useState('');
+    const [genre, setGenre] = useState('');
+    const [pages, setPages] = useState([]);
+    const [series, setSeries] = useState('');
+    const [allSeries, setAllSeries] = useState([]);
+    const [message, setMessage] = useState('');
+    const [error, setError] = useState('');
 
-  useEffect(() => {
-    const fetchSeries = async () => {
-      try {
-        const response = await axios.get('http://localhost:5000/api/series');
-        setAllSeries(response.data);
-      } catch (err) {
-        console.error('Failed to fetch series:', err);
-      }
+    useEffect(() => {
+        const fetchSeries = async () => {
+            try {
+                const response = await axios.get('http://localhost:5000/api/series');
+                setAllSeries(response.data);
+            } catch (err) {
+                console.error('Failed to fetch series:', err);
+            }
+        };
+
+        fetchSeries();
+    }, []);
+
+    const handlePagesChange = (e) => {
+        setPages(Array.from(e.target.files));
     };
 
-    fetchSeries();
-  }, []);
+    const handleSubmit = async (e) => {
+        e.preventDefault();
 
-  const handlePagesChange = (e) => {
-    setPages(Array.from(e.target.files));
-  };
+        if (!user?._id) {
+            setError('You must be logged in to upload a comic.');
+            return;
+        }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+        try {
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('description', description);
+            formData.append('language', language);
+            formData.append('genre', genre);
+            formData.append('author', user._id);
 
-    if (!user?._id) {
-      setError('You must be logged in to upload a comic.');
-      return;
-    }
+            if (series) {
+                formData.append('series', series);
+            }
 
-    try {
-      const formData = new FormData();
-      formData.append('title', title);
-      formData.append('description', description);
-      formData.append('language', language);
-      formData.append('genre', genre);
-      formData.append('author', user._id);
+            pages.forEach((page) => {
+                formData.append('pages', page);
+            });
 
-      if (series) {
-        formData.append('series', series);
-      }
+            const response = await axios.post('http://localhost:5000/api/comics', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'Authorization': `Bearer ${user.token}`
+                },
+            });
 
-      pages.forEach((page) => {
-        formData.append('pages', page);
-      });
+            setMessage('Comic uploaded successfully!');
+            setError('');
 
-      const response = await axios.post('http://localhost:5000/api/comics', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+            setTitle('');
+            setDescription('');
+            setLanguage('');
+            setGenre('');
+            setPages([]);
+            setSeries('');
+        } catch (err) {
+            console.error('Upload error:', err);
+            setError(err.response?.data?.message || 'Failed to upload comic. Please try again.');
+            setMessage('');
+        }
+    };
 
-      setMessage('Comic uploaded successfully!');
-      setError('');
-
-      setTitle('');
-      setDescription('');
-      setLanguage('');
-      setGenre('');
-      setPages([]);
-      setSeries('');
-    } catch (err) {
-      console.error('Upload error:', err);
-      setError(err.response?.data?.message || 'Failed to upload comic. Please try again.');
-      setMessage('');
-    }
-  };
-
-  return (
-    <div className="container py-5">
-      <h2>Upload Comic</h2>
-      {message && <div className="alert alert-success">{message}</div>}
-      {error && <div className="alert alert-danger">{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <label htmlFor="title" className="form-label">Title</label>
-          <input
-            type="text"
-            className="form-control"
-            id="title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-          />
+    return (
+        <div className="container py-5">
+            <h2>Upload Comic</h2>
+            {message && <div className="alert alert-success">{message}</div>}
+            {error && <div className="alert alert-danger">{error}</div>}
+            <form onSubmit={handleSubmit}>
+                <div className="mb-3">
+                    <label htmlFor="title" className="form-label">Title</label>
+                    <input
+                        type="text"
+                        className="form-control"
+                        id="title"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        required
+                    />
+                </div>
+                <div className="mb-3">
+                    <label htmlFor="description" className="form-label">Description</label>
+                    <textarea
+                        className="form-control"
+                        id="description"
+                        rows="3"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        required
+                    />
+                </div>
+                <div className="mb-3">
+                    <label htmlFor="language" className="form-label">Language</label>
+                    <select
+                        className="form-select"
+                        id="language"
+                        value={language}
+                        onChange={(e) => setLanguage(e.target.value)}
+                        required
+                    >
+                        <option value="">Select Language</option>
+                        {languages.map((lang) => (
+                            <option key={lang} value={lang}>
+                                {lang}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div className="mb-3">
+                    <label htmlFor="genre" className="form-label">Genre</label>
+                    <select
+                        className="form-select"
+                        id="genre"
+                        value={genre}
+                        onChange={(e) => setGenre(e.target.value)}
+                        required
+                    >
+                        <option value="">Select Genre</option>
+                        {genres.map((gen) => (
+                            <option key={gen} value={gen}>
+                                {gen}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div className="mb-3">
+                    <label htmlFor="pages" className="form-label">Pages</label>
+                    <input
+                        type="file"
+                        className="form-control"
+                        id="pages"
+                        multiple
+                        onChange={handlePagesChange}
+                        accept="image/*"
+                        required
+                    />
+                </div>
+                <div className="mb-3">
+                    <label htmlFor="series" className="form-label">Series (optional)</label>
+                    <select
+                        className="form-select"
+                        id="series"
+                        value={series}
+                        onChange={(e) => setSeries(e.target.value)}
+                    >
+                        <option value="">Select Series</option>
+                        {allSeries.map((seriesItem) => (
+                            <option key={seriesItem._id} value={seriesItem._id}>
+                                {seriesItem.name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <button type="submit" className="btn btn-primary">Upload Comic</button>
+            </form>
         </div>
-        <div className="mb-3">
-          <label htmlFor="description" className="form-label">Description</label>
-          <textarea
-            className="form-control"
-            id="description"
-            rows="3"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="language" className="form-label">Language</label>
-          <select
-            className="form-select"
-            id="language"
-            value={language}
-            onChange={(e) => setLanguage(e.target.value)}
-            required
-          >
-            <option value="">Select Language</option>
-            {languages.map((lang) => (
-              <option key={lang} value={lang}>
-                {lang}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="mb-3">
-          <label htmlFor="genre" className="form-label">Genre</label>
-          <select
-            className="form-select"
-            id="genre"
-            value={genre}
-            onChange={(e) => setGenre(e.target.value)}
-            required
-          >
-            <option value="">Select Genre</option>
-            {genres.map((gen) => (
-              <option key={gen} value={gen}>
-                {gen}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="mb-3">
-          <label htmlFor="pages" className="form-label">Pages</label>
-          <input
-            type="file"
-            className="form-control"
-            id="pages"
-            multiple
-            onChange={handlePagesChange}
-            accept="image/*"
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="series" className="form-label">Series (optional)</label>
-          <select
-            className="form-select"
-            id="series"
-            value={series}
-            onChange={(e) => setSeries(e.target.value)}
-          >
-            <option value="">Select Series</option>
-            {allSeries.map((seriesItem) => (
-              <option key={seriesItem._id} value={seriesItem._id}>
-                {seriesItem.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <button type="submit" className="btn btn-primary">Upload Comic</button>
-      </form>
-    </div>
-  );
+    );
 };
 
 export default UploadComic;

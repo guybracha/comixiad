@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const Comic = require('../models/Comic');
 const verifyToken = require('../middleware/auth'); // Ensure verifyToken is imported correctly
+const multer = require('multer'); // Ensure multer is imported
 
 // Create uploads directory if it doesn't exist
 const uploadsDir = path.join(__dirname, '../uploads');
@@ -11,35 +12,38 @@ if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-router.post('/', async (req, res) => {
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, uploadsDir); // Store files in the 'uploads' directory
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + '-' + file.originalname); // Rename the file
+    }
+});
+
+const upload = multer({ storage: storage });
+
+router.post('/', verifyToken, upload.array('pages', 10), async (req, res) => { // 'pages' must match the field name in FormData
     try {
-        console.log('Request body:', req.body); // Debug logging
+        const { title, description, language, genre, author, series } = req.body;
+        const pages = req.files.map(file => ({ url: file.path }));
 
-        const { title, description, author, series, language, genre } = req.body;
-
-        const comicData = {
+        const newComic = new Comic({
             title,
             description,
-            author,
             language,
             genre,
-            series: series || null
-        };
-
-        console.log('Comic data:', comicData); // Debug logging
-
-        const comic = new Comic(comicData);
-        const savedComic = await comic.save();
-
-        console.log('Saved comic:', savedComic); // Debug logging
-
-        res.status(201).json(savedComic);
-    } catch (error) {
-        console.error('Upload error:', error); // Error logging
-        res.status(500).json({
-            message: 'Error uploading comic',
-            error: error.message
+            author,
+            series,
+            pages
         });
+
+        await newComic.save();
+
+        res.status(201).json({ message: 'Comic uploaded successfully', comic: newComic });
+    } catch (error) {
+        console.error('Error uploading comic:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
 
@@ -99,7 +103,6 @@ router.put('/:id', verifyToken, async (req, res) => {
     }
 });
 
-
 // Delete comic by ID
 router.delete('/:id', verifyToken, async (req, res) => {
     try {
@@ -135,8 +138,7 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-
-// הגדלת מספר הצפיות
+// Increase view count
 router.put('/:id/view', async (req, res) => {
     try {
         const comic = await Comic.findByIdAndUpdate(req.params.id, { $inc: { views: 1 } }, { new: true });
@@ -147,7 +149,7 @@ router.put('/:id/view', async (req, res) => {
     }
 });
 
-// הגדלת מספר הלייקים
+// Increase like count
 router.put('/:id/like', async (req, res) => {
     try {
         const comic = await Comic.findByIdAndUpdate(req.params.id, { $inc: { likes: 1 } }, { new: true });

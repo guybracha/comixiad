@@ -101,7 +101,7 @@ const UserProfile = () => {
             setUserComics(userComics.filter(comic => comic._id !== comicId)); // Remove the comic from the list in React
         } catch (err) {
             console.error("Error deleting comic:", err);
-            setError("Failed to delete comic");
+            setError(`Failed to delete comic: ${err.response?.data?.message || err.message}`);
         }
     };
     
@@ -117,7 +117,7 @@ const UserProfile = () => {
             setUserSeries(userSeries.filter(series => series._id !== seriesId)); // Remove the series from the list in React
         } catch (err) {
             console.error("Error deleting series:", err);
-            setError("Failed to delete series");
+            setError(`Failed to delete series: ${err.response?.data?.message || err.message}`);
         }
     };
 

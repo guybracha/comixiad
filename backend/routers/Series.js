@@ -90,7 +90,6 @@ router.get('/series/:id/comics', async (req, res) => {
     }
 });
 
-// Delete series by ID
 router.delete('/:id', verifyToken, async (req, res) => {
     try {
         const series = await Series.findById(req.params.id);
@@ -110,6 +109,5 @@ router.delete('/:id', verifyToken, async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
-
 
 module.exports = router;
