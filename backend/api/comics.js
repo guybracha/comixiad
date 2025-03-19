@@ -19,45 +19,27 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Upload a new comic
-router.post('/upload', verifyToken, upload.array('pages'), async (req, res) => {
-  if (!req.files || req.files.length === 0) {
-    return res.status(400).json({ error: 'No files uploaded' });
-  }
-
+router.post('/upload', upload.array('pages', 10), async (req, res) => {
   try {
-    const { title, description, genre, language } = req.body;
-    const author = req.user.id; // User ID from token
+      const { title, description, language, genre, author, series } = req.body;
+      const pages = req.files.map(file => ({ url: `uploads/${file.filename}` })); // ודא שהשדה url מוגדר כראוי
 
-    if (!title || !description || !genre || !language) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
-
-    const pages = req.files.map(file => ({
-      filename: file.filename,
-      mimetype: file.mimetype,
-      size: file.size,
-    }));
-
-    const newComic = new Comic({
-      title,
-      description,
-      genre,
-      language,
-      author,
-      pages,
-    });
-
-    await newComic.save();
-    res.status(201).json(newComic);
-  } catch (error) {
-    console.error('Error uploading comic:', error);
-    // Remove uploaded files if saving to DB fails
-    req.files.forEach(file => {
-      fs.unlink(path.join(__dirname, '../uploads', file.filename), err => {
-        if (err) console.error('Error deleting file:', err);
+      const newComic = new Comic({
+          title,
+          description,
+          language,
+          genre,
+          author,
+          series,
+          pages
       });
-    });
-    res.status(500).json({ error: 'Failed to upload comic' });
+
+      await newComic.save();
+
+      res.status(201).json({ message: 'Comic uploaded successfully', comic: newComic });
+  } catch (error) {
+      console.error('Error uploading comic:', error);
+      res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 

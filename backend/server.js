@@ -34,6 +34,13 @@ app.use('/api/series', seriesRouter);
 
 require('dotenv').config(); // Make sure .env file is loaded properly
 
+app._router.stack.forEach(layer => {
+  if (layer.route) {
+    console.log("✅ Active route:", layer.route.path);
+  }
+});
+
+
 // Error handling for missing JWT_SECRET
 if (!process.env.JWT_SECRET) {
   console.error('JWT_SECRET is not defined in the .env file');

@@ -35,18 +35,7 @@ const UploadComic = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-    
-        if (!user?._id) {
-            setError('You must be logged in to upload a comic.');
-            return;
-        }
-    
-        const token = localStorage.getItem("token"); // קבלת ה-Token מה-LocalStorage
-        if (!token) {
-            setError("Authentication error: Token not found.");
-            return;
-        }
-    
+
         try {
             const formData = new FormData();
             formData.append('title', title);
@@ -54,21 +43,18 @@ const UploadComic = () => {
             formData.append('language', language);
             formData.append('genre', genre);
             formData.append('author', user._id);
-            if (series) {
-                formData.append('series', series);
-            }
+            if (series) formData.append('series', series);
             pages.forEach((page) => formData.append('pages', page));
-    
-            const response = await axios.post('http://localhost:5000/api/comics', formData, {
+
+            const response = await axios.post('http://localhost:5000/api/comics/upload', formData, {
                 headers: {
-                    'Content-Type': 'multipart/form-data',
-                    'Authorization': `Bearer ${token}` // שימוש ב-Token מ-LocalStorage
+                  'Content-Type': 'multipart/form-data'
                 },
-            });
-    
+              });
+
             setMessage('Comic uploaded successfully!');
             setError('');
-    
+
             setTitle('');
             setDescription('');
             setLanguage('');
@@ -81,7 +67,6 @@ const UploadComic = () => {
             setMessage('');
         }
     };
-    
 
     return (
         <div className="container py-5">
@@ -122,7 +107,9 @@ const UploadComic = () => {
                     >
                         <option value="">Select Language</option>
                         {languages.map((lang) => (
-                            <option key={lang} value={lang}>{lang}</option>
+                            <option key={lang} value={lang}>
+                                {lang}
+                            </option>
                         ))}
                     </select>
                 </div>
@@ -137,7 +124,9 @@ const UploadComic = () => {
                     >
                         <option value="">Select Genre</option>
                         {genres.map((gen) => (
-                            <option key={gen} value={gen}>{gen}</option>
+                            <option key={gen} value={gen}>
+                                {gen}
+                            </option>
                         ))}
                     </select>
                 </div>
@@ -163,7 +152,9 @@ const UploadComic = () => {
                     >
                         <option value="">Select Series</option>
                         {allSeries.map((seriesItem) => (
-                            <option key={seriesItem._id} value={seriesItem._id}>{seriesItem.name}</option>
+                            <option key={seriesItem._id} value={seriesItem._id}>
+                                {seriesItem.name}
+                            </option>
                         ))}
                     </select>
                 </div>

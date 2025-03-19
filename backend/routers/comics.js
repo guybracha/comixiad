@@ -3,7 +3,6 @@ const router = express.Router();
 const path = require('path');
 const fs = require('fs');
 const Comic = require('../models/Comic');
-const verifyToken = require('../middleware/auth');
 const multer = require('multer');
 
 // יצירת תיקיית העלאה אם היא לא קיימת
@@ -24,22 +23,10 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-// *** העלאת קומיקס ***
-router.post('/', verifyToken, upload.array('pages', 10), async (req, res) => {
+router.post('/upload', upload.array('pages', 10), async (req, res) => { // הסר את verifyToken
     try {
-        console.log('Received upload request:', req.body);
-        console.log('Files uploaded:', req.files);
-
-        if (!req.files || req.files.length === 0) {
-            return res.status(400).json({ error: 'No files uploaded' });
-        }
-
         const { title, description, language, genre, author, series } = req.body;
-        if (!title || !description || !language || !genre || !author) {
-            return res.status(400).json({ error: 'Missing required fields' });
-        }
-
-        const pages = req.files.map(file => ({ url: `/uploads/${file.filename}` }));
+        const pages = req.files.map(file => ({ url: file.path }));
 
         const newComic = new Comic({
             title,
@@ -60,10 +47,11 @@ router.post('/', verifyToken, upload.array('pages', 10), async (req, res) => {
     }
 });
 
-// *** שליפת כל הקומיקסים ***
 router.get('/', async (req, res) => {
     try {
+        console.log('Fetching all comics...');
         const comics = await Comic.find().populate('author', 'username').sort({ createdAt: -1 });
+        console.log(`Found ${comics.length} comics`);
         res.json(comics);
     } catch (error) {
         console.error('Error fetching comics:', error);
@@ -71,7 +59,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-// *** שליפת קומיקס לפי ID ***
+// Get comic by ID
 router.get('/:id', async (req, res) => {
     try {
         const comic = await Comic.findById(req.params.id).populate('author', 'username');
@@ -85,20 +73,18 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// *** עדכון קומיקס ***
-router.put('/:id', verifyToken, async (req, res) => {
+// PUT request to update comic
+router.put('/:id', async (req, res) => {
     try {
         const { title, description, language, genre } = req.body;
 
+        // Fetch the comic by ID
         const comic = await Comic.findById(req.params.id);
         if (!comic) {
             return res.status(404).json({ message: 'Comic not found' });
         }
 
-        if (req.user && comic.author.toString() !== req.user.userId) {
-            return res.status(403).json({ message: 'Unauthorized' });
-        }
-
+        // Update the comic
         comic.title = title;
         comic.description = description;
         comic.language = language;
@@ -112,16 +98,12 @@ router.put('/:id', verifyToken, async (req, res) => {
     }
 });
 
-// *** מחיקת קומיקס ***
-router.delete('/:id', verifyToken, async (req, res) => {
+// Delete comic by ID
+router.delete('/:id', async (req, res) => {
     try {
         const comic = await Comic.findById(req.params.id);
         if (!comic) {
             return res.status(404).json({ message: 'Comic not found' });
-        }
-
-        if (comic.author.toString() !== req.user.userId) {
-            return res.status(403).json({ message: 'Unauthorized' });
         }
 
         await comic.remove();
@@ -132,7 +114,21 @@ router.delete('/:id', verifyToken, async (req, res) => {
     }
 });
 
-// *** הגדלת מספר הצפיות ***
+// Get comics by series ID
+router.get('/:id', async (req, res) => {
+    try {
+        const comic = await Comic.findById(req.params.id).populate('author', 'username');
+        if (!comic) {
+            return res.status(404).json({ message: 'Comic not found' });
+        }
+        res.json(comic);
+    } catch (error) {
+        console.error('Error fetching comic by ID:', error);
+        res.status(500).json({ message: 'Error fetching comic', error: error.message });
+    }
+});
+
+// Increase view count
 router.put('/:id/view', async (req, res) => {
     try {
         const comic = await Comic.findByIdAndUpdate(req.params.id, { $inc: { views: 1 } }, { new: true });
@@ -143,7 +139,7 @@ router.put('/:id/view', async (req, res) => {
     }
 });
 
-// *** הגדלת מספר הלייקים ***
+// Increase like count
 router.put('/:id/like', async (req, res) => {
     try {
         const comic = await Comic.findByIdAndUpdate(req.params.id, { $inc: { likes: 1 } }, { new: true });

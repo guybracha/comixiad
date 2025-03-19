@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 
 const Navbar = () => {
-    const { user, handleLogout } = useUser();
+    const { user, logout } = useUser();
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -12,8 +12,9 @@ const Navbar = () => {
         navigate(`/search?query=${searchQuery}`);
     };
 
+        
     const handleLogoutClick = () => {
-        handleLogout();
+        logout(); // קריאה לפונקציה הנכונה מה-UserContext
         navigate('/login');
     };
 

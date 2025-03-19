@@ -36,8 +36,8 @@ const ComicList = () => {
     if (!imagePath) return '/images/placeholder.jpg';
   
     // Handle both URL formats
-    if (imagePath.startsWith('/uploads/')) {
-      return `http://localhost:5000${imagePath}`;
+    if (imagePath.startsWith('uploads/')) {
+      return `http://localhost:5000/${imagePath}`;
     }
   
     if (imagePath.startsWith('/')) {
