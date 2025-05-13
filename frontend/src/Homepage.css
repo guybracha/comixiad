@@ -1,44 +1,89 @@
 .homepage {
-    font-family: Arial, sans-serif;
-  }
-  
-  .homepage-banner {
-    text-align: center;
-    background: linear-gradient(to right, #ff7e5f, #feb47b);
-    color: white;
-    padding: 50px 20px;
-  }
-  
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f9f9f9;
+  color: #333;
+}
+
+/* באנר עליון */
+.homepage-banner {
+  text-align: center;
+  background: linear-gradient(to right, #ff7e5f, #feb47b);
+  color: white;
+  padding: 80px 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.homepage-banner h1 {
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin-bottom: 15px;
+}
+
+.homepage-banner p {
+  font-size: 1.4rem;
+  margin-bottom: 30px;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+/* קטעים עיקריים */
+.homepage-categories,
+.homepage-featured,
+.homepage-latest {
+  margin: 60px auto;
+  max-width: 1200px;
+  padding: 0 20px;
+}
+
+.homepage-categories h2,
+.homepage-featured h2,
+.homepage-latest h2 {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 30px;
+  color: #222;
+}
+
+/* קטגוריות */
+.categories-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+}
+
+.category-card {
+  text-decoration: none;
+  padding: 14px 26px;
+  background-color: #007bff;
+  color: white;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.category-card:hover {
+  transform: scale(1.08) translateY(-3px);
+  background-color: #0056b3;
+  box-shadow: 0 6px 20px rgba(0, 86, 179, 0.25);
+}
+
+/* רספונסיביות */
+@media (max-width: 768px) {
   .homepage-banner h1 {
-    font-size: 3rem;
+    font-size: 2.2rem;
   }
-  
+
   .homepage-banner p {
-    font-size: 1.5rem;
-    margin: 20px 0;
+    font-size: 1.1rem;
   }
-  
-  .homepage-categories, .homepage-featured, .homepage-latest {
-    margin: 40px 20px;
-  }
-  
-  .categories-list {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-  }
-  
+
   .category-card {
-    text-decoration: none;
+    font-size: 1rem;
     padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
-    border-radius: 8px;
-    transition: transform 0.3s ease, background-color 0.3s ease;
   }
-  
-  .category-card:hover {
-    transform: scale(1.1);
-    background-color: #0056b3;
-  }
-  
+}

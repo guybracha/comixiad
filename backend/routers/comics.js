@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const Comic = require('../models/Comic');
 const multer = require('multer');
+const authenticateUser = require('../middleware/auth');
 
 // יצירת תיקיית העלאה אם לא קיימת
 const uploadDir = path.join(__dirname, '../uploads/comics'); // ✔️
@@ -105,23 +106,28 @@ router.get('/:id', async (req, res) => {
   
 
 // ✅ עדכון קומיקס
-router.put('/:id', async (req, res) => {
-    try {
-        const { title, description, language, genre } = req.body;
-        const comic = await Comic.findById(req.params.id);
-        if (!comic) return res.status(404).json({ message: 'Comic not found' });
+router.put('/:id', authenticateUser, async (req, res) => {
+  try {
+    const { title, description, language, genre } = req.body;
+    const comic = await Comic.findById(req.params.id);
+    if (!comic) return res.status(404).json({ message: 'Comic not found' });
 
-        comic.title = title;
-        comic.description = description;
-        comic.language = language;
-        comic.genre = genre;
-
-        await comic.save();
-        res.json(comic);
-    } catch (error) {
-        console.error('Error updating comic:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+    // ✅ בדוק אם המשתמש המחובר הוא גם היוצר של הקומיקס
+    if (comic.author.toString() !== req.user.userId) {
+      return res.status(403).json({ message: 'Not authorized to edit this comic.' });
     }
+
+    comic.title = title;
+    comic.description = description;
+    comic.language = language;
+    comic.genre = genre;
+
+    await comic.save();
+    res.json(comic);
+  } catch (error) {
+    console.error('Error updating comic:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
 });
 
 // ✅ מחיקת קומיקס
