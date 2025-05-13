@@ -5,7 +5,7 @@ import languages from '../config/Languages';
 import genres from '../config/Genres';
 
 const UploadComic = () => {
-    const { user } = useUser();
+    const { user, token } = useUser();
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [language, setLanguage] = useState('');
@@ -17,14 +17,23 @@ const UploadComic = () => {
     const [error, setError] = useState('');
 
     useEffect(() => {
-        const fetchSeries = async () => {
-            try {
-                const response = await axios.get('http://localhost:5000/api/series');
-                setAllSeries(response.data);
-            } catch (err) {
-                console.error('Failed to fetch series:', err);
-            }
-        };
+    const fetchSeries = async () => {
+        try {
+            const response = await axios.get(
+                'http://localhost:5000/api/series',
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+            setAllSeries(response.data);
+        } catch (err) {
+            console.error('Failed to fetch series:', err);
+        }
+    };
+
+
 
         fetchSeries();
     }, []);

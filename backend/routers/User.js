@@ -98,10 +98,11 @@ router.put('/:id', authenticateUser, upload.single('avatar'), async (req, res) =
             twitter,
             instagram,
             deviantart
-        };
-
-        if (avatar) user.avatar = avatar;
-
+        }
+        
+        if (avatar) {
+        user.avatar = avatar;
+        }
         await user.save();
         res.json(user);
     } catch (error) {
