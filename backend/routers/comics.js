@@ -93,7 +93,7 @@ router.get('/:id', async (req, res) => {
   
       comic.pages = comic.pages.map(page => ({
         ...page,
-        url: `${baseUrl}/uploads/${page.url}` // מקשר ישירות לתמונה
+        url: `${baseUrl}/${page.url}`
       }));
   
       res.json(comic);

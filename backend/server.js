@@ -24,7 +24,7 @@ const PORT = process.env.PORT || 5000;
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Middleware
-app.use(cors());
+app.use(cors({ origin: 'http://localhost:3000' })); // ✅ מאפשר גישה מה-frontend
 app.use(express.json());
 app.use(helmet());
 app.use(morgan('dev'));
@@ -36,7 +36,7 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // Routes
-app.use('/api/users', userRouter);
+app.use('/api/users', require('./routers/User'));
 app.use('/api/comics', comicRouter);
 app.use('/api/search', searchRouter);
 app.use('/api/register', registerRoute);

@@ -41,22 +41,29 @@ const UserProfile = () => {
   };
 
   const fetchCurrentUser = async () => {
-    try {
-      const { data } = await axios.get('/api/users/me');
-      setCurrentUser(data);
-    } catch (error) {
-      console.error('Error fetching current user:', error);
-    }
-  };
+  try {
+    const token = localStorage.getItem('token');
+    const { data } = await axios.get('/api/users/me', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    setCurrentUser(data);
+  } catch (error) {
+    console.error('Error fetching current user:', error);
+  }
+};
+
 
   const fetchUserComics = async (userId) => {
-    try {
-      const { data } = await axios.get(`/api/comics?author=${userId}`);
-      setUserComics(data);
-    } catch (error) {
-      console.error('Error fetching user comics:', error);
-    }
-  };
+  try {
+    const { data } = await axios.get(`/api/comics?author=${userId}`);
+    setUserComics(data);
+  } catch (error) {
+    console.error('Error fetching user comics:', error);
+  }
+};
+
 
   const fetchUserSeries = async (userId) => {
     try {

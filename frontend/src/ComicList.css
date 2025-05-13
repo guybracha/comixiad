@@ -3,24 +3,33 @@
     padding: 20px;
   }
   
-  .comic-card {
-    transition: transform 0.2s;
-  }
+.comic-card {
+  transition: transform 0.2s;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
   
-  .comic-card:hover {
-    transform: translateY(-5px);
-  }
+.comic-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.comic-image-container {
+  width: 100%;
+  height: 300px;
+  background-color: #f0f0f0; /* רקע זמני אם אין תמונה */
+}
+
   
-  .comic-image-container {
-    height: 300px;
-    overflow: hidden;
-  }
-  
-  .comic-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
+.comic-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  aspect-ratio: 2 / 3; /* פרופורציה מקובלת לעמוד קומיקס */
+}
+
   
   .no-comics {
     text-align: center;

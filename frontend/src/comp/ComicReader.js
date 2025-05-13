@@ -8,7 +8,7 @@ const ComicReader = () => {
     const [comic, setComic] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [imgErrors, setImgErrors] = useState({}); // 🔧 ניהול טעויות תמונה לפי אינדקס
+    const [imgErrors, setImgErrors] = useState({}); // ניהול שגיאות תמונה
 
     useEffect(() => {
         const fetchComic = async () => {
@@ -38,29 +38,27 @@ const ComicReader = () => {
             </div>
             <div className="comic-pages">
                 {comic?.pages?.length > 0 ? (
-                comic.pages.map((page, index) => {
-                    const imageUrl = page.url;
-
-                    return (
-                        <div key={index} className="comic-page mb-4">
-                            {!imgErrors[index] ? (
-                                <img
-                                src={page.url} // כי עכשיו זו כתובת מלאה מהשרת
-                                alt={`Page ${index + 1}`}
-                                onError={() =>
-                                    setImgErrors((prev) => ({ ...prev, [index]: true }))
-                                }
-                                className="img-fluid"
-                              />
-                              
-                            ) : (
-                                <div className="text-danger">
-                                    ⚠️ Failed to load page {index + 1}
-                                </div>
-                            )}
-                        </div>
-                    );
-                })
+                    comic.pages.map((page, index) => {
+                        const imageUrl = `http://localhost:5000/uploads/comics/${page.url}`;
+                        return (
+                            <div key={index} className="comic-page mb-4">
+                                {!imgErrors[index] ? (
+                                    <img
+                                        src={page.url}
+                                        alt={`Page ${index + 1}`}
+                                        onError={() =>
+                                            setImgErrors((prev) => ({ ...prev, [index]: true }))
+                                        }
+                                        className="img-fluid"
+                                    />
+                                ) : (
+                                    <div className="text-danger">
+                                        ⚠️ Failed to load page {index + 1}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })
                 ) : (
                     <p>No pages available</p>
                 )}

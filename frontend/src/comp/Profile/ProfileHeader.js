@@ -3,9 +3,14 @@ import { Button } from 'react-bootstrap';
 
 const ProfileHeader = ({ profile, onEdit }) => {
     // ✔️ תיקן נתיב תמונה
-    const avatarUrl = profile.avatar
-        ? `http://localhost:5000/${profile.avatar.replace(/\\/g, '/')}`
-        : '/default-avatar.jpg';
+    const avatarUrl = profile.avatar?.startsWith('http')
+  ? profile.avatar
+  : profile.avatar
+    ? `http://localhost:5000/${profile.avatar.replace(/\\/g, '/')}`
+    : '/default-avatar.jpg';
+
+
+
 
     // ✔️ תאריך הצטרפות (שדה: joinDate)
     const joinedDate = profile.joinDate
