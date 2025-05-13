@@ -7,10 +7,11 @@ const comicSchema = new mongoose.Schema({
     genre: { type: String, required: true },
     author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     series: { type: mongoose.Schema.Types.ObjectId, ref: 'Series' },
-    pages: [{ url: { type: String, required: true } }], // ודא שהשדה url קיים
+    pages: [{ url: { type: String, required: true } }],
     views: { type: Number, default: 0 },
     likes: { type: Number, default: 0 },
-    likedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
+    likedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' } // ✅ הוסף שדה זה
 }, { timestamps: true });
 
 module.exports = mongoose.model('Comic', comicSchema);

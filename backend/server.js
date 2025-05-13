@@ -2,9 +2,13 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const path = require('path');
-const jwt = require('jsonwebtoken'); // Import jsonwebtoken
+const jwt = require('jsonwebtoken');
+const helmet = require('helmet');
+const morgan = require('morgan');
+const rateLimit = require('express-rate-limit');
+require('dotenv').config(); // חשוב לייבא לפני השימוש
 
-// Import routes
+// Routers
 const userRouter = require('./routers/User');
 const comicRouter = require('./routers/comics');
 const searchRouter = require('./routers/Search');
@@ -16,12 +20,20 @@ const seriesRouter = require('./routers/Series');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Static files - חשובה במיוחד להצגת תמונות
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(helmet());
+app.use(morgan('dev'));
 
-// Static files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+});
+app.use(limiter);
 
 // Routes
 app.use('/api/users', userRouter);
@@ -32,43 +44,35 @@ app.use('/api/login', loginRoute);
 app.use('/api/auth', authRouter);
 app.use('/api/series', seriesRouter);
 
-require('dotenv').config(); // Make sure .env file is loaded properly
-
+// Debug: List active routes
 app._router.stack.forEach(layer => {
   if (layer.route) {
     console.log("✅ Active route:", layer.route.path);
   }
 });
 
-
-// Error handling for missing JWT_SECRET
+// Error handling for missing env vars
 if (!process.env.JWT_SECRET) {
   console.error('JWT_SECRET is not defined in the .env file');
-  process.exit(1); // Exit the application if JWT_SECRET is missing
+  process.exit(1);
 }
 
-// Define a test user object (remove or modify as needed)
-const user = { _id: 'testUserId' }; // Replace with actual user ID for testing
-// Generate a test token (remove this in production code)
-const testToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-console.log('Test Token:', testToken); // Remove or use for testing
-
-// Error handling middleware for unhandled errors
+// Global error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-// Start server after successful MongoDB connection
+// Connect to MongoDB and start the server
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/comixiad', {
   useNewUrlParser: true,
-  useUnifiedTopology: true,  // Add this option for better handling of MongoDB connections
+  useUnifiedTopology: true,
 }).then(() => {
-  console.log('Connected to MongoDB');
+  console.log('✅ Connected to MongoDB');
   app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`🚀 Server is running on http://localhost:${PORT}`);
   });
 }).catch(error => {
-  console.error('MongoDB connection error:', error);
-  process.exit(1); // Exit the application if MongoDB connection fails
+  console.error('❌ MongoDB connection error:', error);
+  process.exit(1);
 });

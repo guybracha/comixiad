@@ -5,28 +5,37 @@ const fs = require('fs');
 const Comic = require('../models/Comic');
 const multer = require('multer');
 
-// יצירת תיקיית העלאה אם היא לא קיימת
-const uploadsDir = path.join(__dirname, '../uploads');
-if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
+// יצירת תיקיית העלאה אם לא קיימת
+const uploadDir = path.join(__dirname, '../uploads/comics'); // ✔️
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// הגדרת Multer לאחסון קבצים
+// Multer הגדרת
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, uploadsDir);
+        cb(null, uploadDir); // ✔️ ודא שזה מופעל!
     },
     filename: (req, file, cb) => {
-        cb(null, Date.now() + '-' + file.originalname);
+        cb(null, `${Date.now()}-${file.originalname}`);
     }
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({ storage });
 
-router.post('/upload', upload.array('pages', 10), async (req, res) => { // הסר את verifyToken
+// 📌 יצירת קומיקס
+router.post('/upload', upload.array('pages', 50), async (req, res) => {
     try {
         const { title, description, language, genre, author, series } = req.body;
-        const pages = req.files.map(file => ({ url: file.path }));
+
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({ message: 'No comic pages uploaded' });
+        }
+
+        const pages = req.files.map(file => ({
+            url: `uploads/comics/${file.filename}`
+        }));
+        console.log('Files uploaded:', req.files);
 
         const newComic = new Comic({
             title,
@@ -34,24 +43,22 @@ router.post('/upload', upload.array('pages', 10), async (req, res) => { // הס�
             language,
             genre,
             author,
-            series,
+            series: series || null,
             pages
         });
 
         await newComic.save();
-
         res.status(201).json({ message: 'Comic uploaded successfully', comic: newComic });
     } catch (error) {
-        console.error('Error uploading comic:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        console.error('Upload error:', error);
+        res.status(500).json({ message: 'Error uploading comic', error: error.message });
     }
 });
 
+// 📥 שליפת כל הקומיקסים
 router.get('/', async (req, res) => {
     try {
-        console.log('Fetching all comics...');
         const comics = await Comic.find().populate('author', 'username').sort({ createdAt: -1 });
-        console.log(`Found ${comics.length} comics`);
         res.json(comics);
     } catch (error) {
         console.error('Error fetching comics:', error);
@@ -59,32 +66,51 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Get comic by ID
-router.get('/:id', async (req, res) => {
+// 📥 שליפת קומיקס לפי ID (שימו לב – מופיע **אחרי** /series)
+router.get('/series/:seriesId', async (req, res) => {
     try {
-        const comic = await Comic.findById(req.params.id).populate('author', 'username');
-        if (!comic) {
-            return res.status(404).json({ message: 'Comic not found' });
-        }
-        res.json(comic);
+        const comics = await Comic.find({ series: req.params.seriesId }).populate('author', 'username');
+        res.json(comics);
     } catch (error) {
-        console.error('Error fetching comic by ID:', error);
-        res.status(500).json({ message: 'Error fetching comic', error: error.message });
+        console.error('Error fetching comics by series:', error);
+        res.status(500).json({ message: 'Error fetching comics by series', error: error.message });
     }
 });
 
-// PUT request to update comic
+// ⚠️ חשוב: צריך להופיע **אחרי** /series כדי לא לבלוע אותו
+router.get('/:id', async (req, res) => {
+    try {
+      const comic = await Comic.findById(req.params.id)
+        .populate('author', 'username')
+        .lean(); // כדי לאפשר שינוי ישיר באובייקט
+  
+      if (!comic) {
+        return res.status(404).json({ message: 'Comic not found' });
+      }
+  
+      // עדכון ה־URL של כל עמוד – יצירת כתובת מלאה לטעינה בדפדפן
+      const baseUrl = `${req.protocol}://${req.get('host')}`; // למשל: http://localhost:5000
+  
+      comic.pages = comic.pages.map(page => ({
+        ...page,
+        url: `${baseUrl}/uploads/${page.url}` // מקשר ישירות לתמונה
+      }));
+  
+      res.json(comic);
+    } catch (error) {
+      console.error('Error fetching comic by ID:', error);
+      res.status(500).json({ message: 'Error fetching comic', error: error.message });
+    }
+  });
+  
+
+// ✅ עדכון קומיקס
 router.put('/:id', async (req, res) => {
     try {
         const { title, description, language, genre } = req.body;
-
-        // Fetch the comic by ID
         const comic = await Comic.findById(req.params.id);
-        if (!comic) {
-            return res.status(404).json({ message: 'Comic not found' });
-        }
+        if (!comic) return res.status(404).json({ message: 'Comic not found' });
 
-        // Update the comic
         comic.title = title;
         comic.description = description;
         comic.language = language;
@@ -98,15 +124,11 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// Delete comic by ID
+// ✅ מחיקת קומיקס
 router.delete('/:id', async (req, res) => {
     try {
-        const comic = await Comic.findById(req.params.id);
-        if (!comic) {
-            return res.status(404).json({ message: 'Comic not found' });
-        }
-
-        await comic.remove();
+        const comic = await Comic.findByIdAndDelete(req.params.id);
+        if (!comic) return res.status(404).json({ message: 'Comic not found' });
         res.json({ message: 'Comic deleted successfully' });
     } catch (error) {
         console.error('Error deleting comic:', error);
@@ -114,21 +136,7 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
-// Get comics by series ID
-router.get('/:id', async (req, res) => {
-    try {
-        const comic = await Comic.findById(req.params.id).populate('author', 'username');
-        if (!comic) {
-            return res.status(404).json({ message: 'Comic not found' });
-        }
-        res.json(comic);
-    } catch (error) {
-        console.error('Error fetching comic by ID:', error);
-        res.status(500).json({ message: 'Error fetching comic', error: error.message });
-    }
-});
-
-// Increase view count
+// ✅ צפיות
 router.put('/:id/view', async (req, res) => {
     try {
         const comic = await Comic.findByIdAndUpdate(req.params.id, { $inc: { views: 1 } }, { new: true });
@@ -139,11 +147,21 @@ router.put('/:id/view', async (req, res) => {
     }
 });
 
-// Increase like count
+// ✅ לייקים
 router.put('/:id/like', async (req, res) => {
     try {
-        const comic = await Comic.findByIdAndUpdate(req.params.id, { $inc: { likes: 1 } }, { new: true });
+        const { userId } = req.body;
+        const comic = await Comic.findById(req.params.id);
         if (!comic) return res.status(404).json({ message: 'Comic not found' });
+
+        if (comic.likedBy.includes(userId)) {
+            return res.status(400).json({ message: 'User already liked this comic' });
+        }
+
+        comic.likes += 1;
+        comic.likedBy.push(userId);
+        await comic.save();
+
         res.json(comic);
     } catch (err) {
         res.status(500).json({ message: 'Failed to update likes' });
