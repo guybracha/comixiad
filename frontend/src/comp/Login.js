@@ -5,7 +5,7 @@ import { useUser } from '../context/UserContext';
 
 const Login = () => {
     const navigate = useNavigate();
-    const { setUser } = useUser();
+    const { login } = useUser(); // במקום setUser
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -15,20 +15,20 @@ const Login = () => {
         e.preventDefault();
         setError('');
         setLoading(true);
-    
+
         try {
             const response = await axios.post('http://localhost:5000/api/auth/login', {
                 email,
                 password
             });
-    
-            if (response.data.user && response.data.token) { // ודא שה-Token מוחזר מהשרת
-                localStorage.setItem('user', JSON.stringify(response.data.user));
-                localStorage.setItem('token', response.data.token); // שמירת ה-Token
-                setUser(response.data.user);
+
+            const { user, token } = response.data;
+
+            if (user && token) {
+                login(user, token); // ⬅️ משתמש ב-context
                 navigate('/');
             } else {
-                throw new Error("Invalid response from server");
+                throw new Error('Invalid response from server');
             }
         } catch (err) {
             setError(err.response?.data?.message || 'Login failed');
@@ -36,7 +36,6 @@ const Login = () => {
             setLoading(false);
         }
     };
-    
 
     return (
         <div className="container mt-5">

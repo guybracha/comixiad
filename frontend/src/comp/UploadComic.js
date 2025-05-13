@@ -33,40 +33,50 @@ const UploadComic = () => {
         setPages(Array.from(e.target.files));
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        setMessage('');
+        setError('');
+    
         try {
             const formData = new FormData();
-            formData.append('title', title);
-            formData.append('description', description);
-            formData.append('language', language);
-            formData.append('genre', genre);
-            formData.append('author', user._id);
-            if (series) formData.append('series', series);
-            pages.forEach((page) => formData.append('pages', page));
-
-            const response = await axios.post('http://localhost:5000/api/comics/upload', formData, {
-                headers: {
-                  'Content-Type': 'multipart/form-data'
-                },
-              });
-
+            formData.append("title", title);
+            formData.append("description", description);
+            formData.append("language", language);
+            formData.append("genre", genre);
+            formData.append("author", user._id); // מועבר לפי המודל
+            if (series) {
+                formData.append("series", series);
+            }
+            pages.forEach(file => {
+                formData.append("pages", file);
+            });
+    
+            const response = await axios.post(
+                'http://localhost:5000/api/comics/upload',
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                        Authorization: `Bearer ${user.token}` // שליחת טוקן!
+                    }
+                }
+            );
+    
             setMessage('Comic uploaded successfully!');
-            setError('');
-
             setTitle('');
             setDescription('');
             setLanguage('');
             setGenre('');
-            setPages([]);
             setSeries('');
-        } catch (err) {
-            console.error('Upload error:', err);
-            setError(err.response?.data?.message || 'Failed to upload comic. Please try again.');
-            setMessage('');
+            setPages([]);
+        } catch (error) {
+            console.error("Upload error:", error);
+            setError('Upload failed. Please try again.');
         }
     };
+    
+    
 
     return (
         <div className="container py-5">

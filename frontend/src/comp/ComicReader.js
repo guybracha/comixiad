@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
-import { Modal } from 'react-bootstrap';
 import '../ComicReader.css';
 
 const ComicReader = () => {
@@ -9,6 +8,7 @@ const ComicReader = () => {
     const [comic, setComic] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [imgErrors, setImgErrors] = useState({}); // 🔧 ניהול טעויות תמונה לפי אינדקס
 
     useEffect(() => {
         const fetchComic = async () => {
@@ -31,23 +31,39 @@ const ComicReader = () => {
 
     return (
         <div className="container mt-4">
-            <h2>{comic.title}</h2>
-            <p>{comic.description}</p>
-            <div className="d-flex justify-content-between align-items-center">
-                <span>Views: {comic.views}</span>
+            <h2>{comic?.title || 'Untitled'}</h2>
+            <p>{comic?.description || 'No description available'}</p>
+            <div className="d-flex justify-content-between align-items-center mb-3">
+                <span>Views: {comic?.views || 0}</span>
             </div>
             <div className="comic-pages">
-                {comic.pages.map((page, index) => (
-                    <div key={index} className="comic-page">
-                        <img
-                            src={`http://localhost:5000/${page.url}`}
-                            alt={`Page ${index + 1}`}
-                            onError={(e) => {
-                                e.target.src = '/placeholder.jpg';
-                            }}
-                        />
-                    </div>
-                ))}
+                {comic?.pages?.length > 0 ? (
+                comic.pages.map((page, index) => {
+                    const imageUrl = page.url;
+
+                    return (
+                        <div key={index} className="comic-page mb-4">
+                            {!imgErrors[index] ? (
+                                <img
+                                src={page.url} // כי עכשיו זו כתובת מלאה מהשרת
+                                alt={`Page ${index + 1}`}
+                                onError={() =>
+                                    setImgErrors((prev) => ({ ...prev, [index]: true }))
+                                }
+                                className="img-fluid"
+                              />
+                              
+                            ) : (
+                                <div className="text-danger">
+                                    ⚠️ Failed to load page {index + 1}
+                                </div>
+                            )}
+                        </div>
+                    );
+                })
+                ) : (
+                    <p>No pages available</p>
+                )}
             </div>
         </div>
     );
