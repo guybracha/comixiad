@@ -16,10 +16,21 @@ const UserProfile = () => {
   const [avatarFile, setAvatarFile] = useState(null);
   const [currentUser, setCurrentUser] = useState({});
 
-  useEffect(() => {
-    fetchUserProfile();
+useEffect(() => {
+  if (!id) return;
+
+  fetchUserProfile();
+
+  const token = localStorage.getItem('token');
+  console.log('📦 Token from localStorage:', token);
+
+  if (token) {
     fetchCurrentUser();
-  }, [id]);
+  } else {
+    console.warn('⚠️ No token found in localStorage');
+  }
+}, [id]);
+
 
   const fetchUserProfile = async () => {
     try {
@@ -40,19 +51,23 @@ const UserProfile = () => {
     }
   };
 
-  const fetchCurrentUser = async () => {
+const fetchCurrentUser = async () => {
   try {
     const token = localStorage.getItem('token');
+    console.log('➡️ Sending token to server:', token);
+
     const { data } = await axios.get('/api/users/me', {
       headers: {
         Authorization: `Bearer ${token}`
       }
     });
+
     setCurrentUser(data);
   } catch (error) {
-    console.error('Error fetching current user:', error);
+    console.error('❌ Error fetching current user:', error.response?.data || error.message);
   }
 };
+
 
 
   const fetchUserComics = async (userId) => {
@@ -145,7 +160,11 @@ const UserProfile = () => {
 
   return (
     <div className="container mt-4">
-      <ProfileHeader profile={profile} onEdit={() => setShowModal(true)} />
+      {profile.username ? (
+        <ProfileHeader profile={profile} onEdit={() => setShowModal(true)} />
+      ) : (
+        <div className="text-center">Loading profile...</div>
+      )}
       <hr />
       <CreatedComicList comics={userComics} currentUserId={currentUser._id} onDelete={handleDeleteComic} />
       <hr />

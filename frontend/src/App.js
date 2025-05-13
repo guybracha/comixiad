@@ -40,7 +40,7 @@ const AppContent = () => {
                 <Route path="/register" element={<RegistrationForm />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/category/:category" element={<CategoryPage />} />
-                <Route path="/profile/:userId" element={<UserProfile />} />
+                <Route path="/profile/:id" element={<UserProfile />} />
                 <Route 
                     path="/comics/edit/:comicId" 
                     element={user ? <EditComic /> : <Navigate to="/login" replace />} 
