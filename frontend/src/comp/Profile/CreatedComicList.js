@@ -7,10 +7,10 @@ const CreatedComicList = ({ comics, currentUserId, onDelete }) => (
             {comics.map((comic) => (
                 <div key={comic._id} className="comic-card">
                     <img
-                        src={`http://localhost:5000/uploads/${comic.pages[0]?.url}`}
-                        alt={comic.title}
-                        className="comic-image"
-                        onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder.jpg'; }}
+                    src={`http://localhost:5000/${comic.pages[0]?.url.replace(/\\/g, '/')}`}
+                    alt={comic.title}
+                    className="comic-image"
+                    onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder.jpg'; }}
                     />
                     <div className="comic-info">
                         <h5>{comic.title}</h5>

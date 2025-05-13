@@ -9,7 +9,7 @@ const rateLimit = require('express-rate-limit');
 require('dotenv').config(); // חשוב לייבא לפני השימוש
 
 // Routers
-const userRouter = require('./routers/User');
+const userRouter = require('./routers/user');
 const comicRouter = require('./routers/comics');
 const searchRouter = require('./routers/Search');
 const registerRoute = require('./routers/Register');
@@ -21,7 +21,11 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Static files - חשובה במיוחד להצגת תמונות
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+  setHeaders: (res, path, stat) => {
+    res.set('Access-Control-Allow-Origin', '*');
+  }
+}));
 
 // Middleware
 app.use(cors({ origin: 'http://localhost:3000' })); // ✅ מאפשר גישה מה-frontend
@@ -31,7 +35,7 @@ app.use(morgan('dev'));
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 1000,
 });
 app.use(limiter);
 
@@ -42,7 +46,7 @@ app.use('/api/search', searchRouter);
 app.use('/api/register', registerRoute);
 app.use('/api/login', loginRoute);
 app.use('/api/auth', authRouter);
-app.use('/api/series', seriesRouter);
+app.use('/api/series', require('./routers/series')); // ✅
 
 // Debug: List active routes
 app._router.stack.forEach(layer => {

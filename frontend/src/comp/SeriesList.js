@@ -27,7 +27,7 @@ const SeriesList = () => {
 
   if (loading) {
     return (
-      <Container className="py-5">
+      <Container className="py-5 text-center">
         <Spinner animation="border" role="status">
           <span className="visually-hidden">Loading...</span>
         </Spinner>
@@ -49,11 +49,16 @@ const SeriesList = () => {
         {series.map((seriesItem) => (
           <Col key={seriesItem._id} md={4} className="mb-4">
             <Card>
-              <Card.Img variant="top" src={`http://localhost:5000/uploads/${seriesItem.coverImage}`} />
+              <Card.Img
+                variant="top"
+                src={`http://localhost:5000/uploads/${seriesItem.coverImage}`}
+              />
               <Card.Body>
                 <Card.Title>{seriesItem.name}</Card.Title>
                 <Card.Text>{seriesItem.description}</Card.Text>
-                <Button variant="primary" onClick={() => navigate(`/series/${seriesItem._id}`)}>ראה סדרה</Button>
+                <Button variant="primary" onClick={() => navigate(`/series/${seriesItem._id}`)}>
+                  ראה סדרה
+                </Button>
               </Card.Body>
             </Card>
           </Col>

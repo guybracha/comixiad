@@ -5,7 +5,7 @@ import { useUser } from '../context/UserContext';
 
 const Login = () => {
     const navigate = useNavigate();
-    const { login } = useUser(); // במקום setUser
+    const { login } = useUser(); // ⬅️ פונקציה מה-Context
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -25,7 +25,7 @@ const Login = () => {
             const { user, token } = response.data;
 
             if (user && token) {
-                login(user, token); // ⬅️ משתמש ב-context
+                login(user, token); // ✅ קורא לפונקציה מה-Context ששומרת גם token
                 navigate('/');
             } else {
                 throw new Error('Invalid response from server');
