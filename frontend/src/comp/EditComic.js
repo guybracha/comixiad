@@ -4,77 +4,82 @@ import axios from 'axios';
 import { Modal, Button } from 'react-bootstrap';
 
 const EditComic = () => {
-    const { comicId } = useParams();
-    const navigate = useNavigate();
-    const [comic, setComic] = useState(null);
-    const [error, setError] = useState('');
-    const [formData, setFormData] = useState({
-        title: '',
-        description: '',
-        language: '',
-        genre: '',
+const { comicId } = useParams();
+const navigate = useNavigate();
+const [comic, setComic] = useState(null);
+const [error, setError] = useState('');
+const [formData, setFormData] = useState({
+  title: '',
+  description: '',
+  language: '',
+  genre: '',
+});
+const [showModal, setShowModal] = useState(false);
+const [loading, setLoading] = useState(true);
+
+const user = JSON.parse(localStorage.getItem('user')) || {};
+const token = localStorage.getItem('token');
+
+useEffect(() => {
+  const fetchComic = async () => {
+    try {
+      const response = await axios.get(`http://localhost:5000/api/comics/${comicId}`);
+      const fetchedComic = response.data;
+
+      if (fetchedComic.author !== user._id) {
+        setError('You are not authorized to edit this comic.');
+        return navigate('/');
+      }
+
+      setComic(fetchedComic);
+      setFormData({
+        title: fetchedComic.title,
+        description: fetchedComic.description,
+        language: fetchedComic.language,
+        genre: fetchedComic.genre,
+      });
+    } catch (err) {
+      console.error('Error fetching comic:', err);
+      setError('Failed to fetch comic.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchComic();
+}, [comicId, user._id, navigate]);
+
+const handleConfirmUpdate = async () => {
+  setShowModal(false);
+  try {
+    await axios.put(`http://localhost:5000/api/comics/${comicId}`, formData, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
     });
-    const [showModal, setShowModal] = useState(false);
-    const [loading, setLoading] = useState(true);
+    navigate(`/profile/${user._id}`);
+  } catch (err) {
+    console.error('Error updating comic:', err);
+    setError(`Failed to update comic: ${err.response?.data?.message || err.message}`);
+  }
+};
 
-    const user = JSON.parse(localStorage.getItem('user')) || {};
-
-    useEffect(() => {
-        const fetchComic = async () => {
-            try {
-                const response = await axios.get('http://localhost:5000/api/comics/' + comicId);
-                const fetchedComic = response.data;
-
-                if (fetchedComic.author !== user.userId) {
-                    setError('You are not authorized to edit this comic.');
-                    return navigate('/');
-                }
-
-                setComic(fetchedComic);
-                setFormData({
-                    title: fetchedComic.title,
-                    description: fetchedComic.description,
-                    language: fetchedComic.language,
-                    genre: fetchedComic.genre,
-                });
-            } catch (err) {
-                console.error('Error fetching comic:', err);
-                setError('Failed to fetch comic.');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchComic();
-    }, [comicId, user.userId, navigate]);
-
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
-    };
-
-    const handleFormSubmit = (e) => {
-        e.preventDefault();
-        setShowModal(true);
-    };
-
-    const handleConfirmUpdate = async () => {
-        setShowModal(false);
-        try {
-            await axios.put(`/api/comics/${comicId}`, formData, {
-                headers: {
-                    'Authorization': `Bearer ${user.token}`,
-                },
-            });
-            navigate(`/profile/${user._id}`);
-        } catch (err) {
-            console.error('Error updating comic:', err);
-            setError(`Failed to update comic: ${err.response?.data?.message || err.message}`);
-        }
-    };
 
     if (loading) return <div>Loading...</div>;
     if (error) return <div className="alert alert-danger">{error}</div>;
+
+    const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+    }));
+    };
+
+    const handleFormSubmit = (e) => {
+    e.preventDefault();
+    setShowModal(true); // מציג את המודאל לאישור
+    };
 
     return (
         <div className="container mt-4">

@@ -9,39 +9,45 @@ const CreateSeries = () => {
   const [coverImage, setCoverImage] = useState(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const token = localStorage.getItem('token');
 
   const handleCoverImageChange = (e) => {
     setCoverImage(e.target.files[0]);
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!user?._id) {
-      setError('You must be logged in to create a series.');
-      return;
-    }
+  if (!user?._id) {
+    setError('You must be logged in to create a series.');
+    return;
+  }
 
-    try {
-      const formData = new FormData();
-      formData.append('name', name);
-      formData.append('description', description);
-      formData.append('coverImage', coverImage);
-      formData.append('author', user._id);
+  try {
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('description', description);
+    formData.append('coverImage', coverImage);
+    formData.append('author', user._id); // רק אם השרת מצפה לזה – אם לא, תסיר
 
-      const response = await axios.post('http://localhost:5000/api/series', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+    const token = localStorage.getItem('token');
 
-      setMessage('Series created successfully!');
-      setError('');
-    } catch (err) {
-      setError('Failed to create series. Please try again.');
-      setMessage('');
-    }
-  };
+    const response = await axios.post('http://localhost:5000/api/series', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    setMessage('Series created successfully!');
+    setError('');
+  } catch (err) {
+    console.error('❌ Failed to create series:', err);
+    setError('Failed to create series. Please try again.');
+    setMessage('');
+  }
+};
+
 
   return (
     <div className="container py-5">

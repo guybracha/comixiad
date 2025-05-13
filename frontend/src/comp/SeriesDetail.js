@@ -90,10 +90,6 @@ const SeriesDetail = () => {
                 src={comic.pages[0]?.url ? `${API_BASE_URL}/uploads/${comic.pages[0]?.url}` : '/placeholder.jpg'}
                 alt={comic.title}
                 className="comic-image"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = '/placeholder.jpg';
-                }}
               />
               <div className="comic-info">
                 <h5>{comic.title}</h5>

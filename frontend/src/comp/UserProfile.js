@@ -149,14 +149,20 @@ const fetchCurrentUser = async () => {
     }
   };
 
-  const handleDeleteSeries = async (seriesId) => {
-    try {
-      await axios.delete(`/api/series/${seriesId}`);
-      fetchUserSeries(profile._id);
-    } catch (error) {
-      console.error('Error deleting series:', error);
-    }
-  };
+const handleDeleteSeries = async (seriesId) => {
+  try {
+    const token = localStorage.getItem('token');
+    await axios.delete(`http://localhost:5000/api/series/${seriesId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    setUserSeries(prev => prev.filter(s => s._id !== seriesId));
+  } catch (error) {
+    console.error('Error deleting series:', error);
+  }
+};
+
 
   return (
     <div className="container mt-4">
