@@ -51,12 +51,12 @@ const CreateSeries = () => {
 
   return (
     <div className="container py-5">
-      <h2>Create Series</h2>
+      <h2>צור סדרה</h2>
       {message && <div className="alert alert-success">{message}</div>}
       {error && <div className="alert alert-danger">{error}</div>}
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
-          <label className="form-label">Name</label>
+          <label className="form-label">שם</label>
           <input
             type="text"
             className="form-control"
@@ -65,7 +65,7 @@ const CreateSeries = () => {
           />
         </div>
         <div className="mb-3">
-          <label className="form-label">Description</label>
+          <label className="form-label">תיאור</label>
           <textarea
             className="form-control"
             rows="3"
@@ -74,7 +74,7 @@ const CreateSeries = () => {
           />
         </div>
         <div className="mb-3">
-          <label className="form-label">Cover Image</label>
+          <label className="form-label">תמונת שער</label>
           <input
             type="file"
             className="form-control"
@@ -82,7 +82,7 @@ const CreateSeries = () => {
             onChange={handleCoverImageChange}
           />
         </div>
-        <button type="submit" className="btn btn-primary">Create Series</button>
+        <button type="submit" className="btn btn-primary">צור סדרה</button>
       </form>
     </div>
   );
