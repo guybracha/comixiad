@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import '../ComicReader.css';
+import { Helmet } from 'react-helmet';
+import { API_BASE_URL } from './Config'; // ✅ הוספה כאן
 
 const ComicReader = () => {
     const { id: comicId } = useParams();
@@ -31,6 +33,11 @@ const ComicReader = () => {
 
     return (
         <div className="container mt-4">
+            <Helmet>
+            <title>{comic.title} - קומיקס ב־Comixiad</title>
+            <meta name="description" content={comic.description} />
+            <meta property="og:image" content={`${API_BASE_URL}/uploads/${comic.pages[0]?.url}`} />
+            </Helmet>
             <h2>{comic?.title || 'Untitled'}</h2>
             <p>{comic?.description || 'No description available'}</p>
             <div className="d-flex justify-content-between align-items-center mb-3">

@@ -4,10 +4,16 @@ import { Link } from 'react-router-dom';
 import '../Homepage.css';
 import SeriesList from './SeriesList';
 import About from './About';
+import { Helmet } from 'react-helmet';
 
 function Homepage() {
   return (
     <div className="homepage">
+      <Helmet>
+        <title>Comixiad - קהילת הקומיקס שלכם</title>
+        <meta name="description" content="קראו, שתפו וצרו קומיקסים ייחודיים עם יוצרים מרחבי העולם." />
+        <meta name="keywords" content="קומיקס, קומיקס ישראלי, manga, comic book, artist, יצירה" />
+      </Helmet>
       {/* Section 1: Banner */}
       <header className="homepage-banner">
         <h1>ברוכים הבאים ל-Comixiad!</h1>
@@ -29,13 +35,17 @@ function Homepage() {
 
       {/* Section 3: Featured Comics */}
       <section className="homepage-featured">
+        <div className='container'>
         <h2>קומיקסים מומלצים</h2>
         <ComicList />
+        </div>
         </section>
 
         <section className="homepage-featured">
+        <div className='container'>
         <h2>סדרות הבית שלנו</h2>
         <SeriesList />
+        </div>
         </section>
         <div>
         <About />

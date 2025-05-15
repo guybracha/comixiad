@@ -34,14 +34,14 @@ const SearchResults = () => {
         fetchSearchResults();
     }, [query]);
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <div>טוען...</div>;
     if (error) return <div className="alert alert-danger">{error}</div>;
 
     return (
         <div className="container mt-4">
-            <h2>Search Results for "{query}"</h2>
+            <h2>תוצאות חיפוש עבור: "{query}"</h2>
 
-            <h3>Comics</h3>
+            <h3>קומיקסים</h3>
             <div className="results-grid">
                 {comics.map((comic) => (
                     <div key={comic._id} className="result-card">
@@ -57,14 +57,14 @@ const SearchResults = () => {
                                 className="btn btn-primary"
                                 onClick={() => navigate(`/comics/${comic._id}`)}
                             >
-                                View Comic
+                                ראה קומיקס
                             </button>
                         </div>
                     </div>
                 ))}
             </div>
 
-            <h3>Series</h3>
+            <h3>סדרות</h3>
             <div className="results-grid">
                 {series.map((seriesItem) => (
                     <div key={seriesItem._id} className="result-card">
@@ -80,14 +80,14 @@ const SearchResults = () => {
                                 className="btn btn-primary"
                                 onClick={() => navigate(`/series/${seriesItem._id}`)}
                             >
-                                View Series
+                                ראה סדרה
                             </button>
                         </div>
                     </div>
                 ))}
             </div>
 
-            <h3>Users</h3>
+            <h3>משתמשים</h3>
             <div className="results-grid">
                 {users.map((user) => (
                     <div key={user._id} className="result-card">
@@ -107,7 +107,7 @@ const SearchResults = () => {
                                 className="btn btn-primary"
                                 onClick={() => navigate(`/profile/${user._id}`)}
                             >
-                                View Profile
+                                ראה פרופיל
                             </button>
                         </div>
                     </div>

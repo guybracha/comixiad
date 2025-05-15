@@ -89,12 +89,12 @@ const UploadComic = () => {
 
     return (
         <div className="container py-5">
-            <h2>Upload Comic</h2>
+            <h2>העלה קומיקס</h2>
             {message && <div className="alert alert-success">{message}</div>}
             {error && <div className="alert alert-danger">{error}</div>}
             <form onSubmit={handleSubmit}>
                 <div className="mb-3">
-                    <label htmlFor="title" className="form-label">Title</label>
+                    <label htmlFor="title" className="form-label">שם קומיקס</label>
                     <input
                         type="text"
                         className="form-control"
@@ -105,7 +105,7 @@ const UploadComic = () => {
                     />
                 </div>
                 <div className="mb-3">
-                    <label htmlFor="description" className="form-label">Description</label>
+                    <label htmlFor="description" className="form-label">תיאור</label>
                     <textarea
                         className="form-control"
                         id="description"
@@ -116,7 +116,7 @@ const UploadComic = () => {
                     />
                 </div>
                 <div className="mb-3">
-                    <label htmlFor="language" className="form-label">Language</label>
+                    <label htmlFor="language" className="form-label">שפה</label>
                     <select
                         className="form-select"
                         id="language"
@@ -133,7 +133,7 @@ const UploadComic = () => {
                     </select>
                 </div>
                 <div className="mb-3">
-                    <label htmlFor="genre" className="form-label">Genre</label>
+                    <label htmlFor="genre" className="form-label">ז'אנר</label>
                     <select
                         className="form-select"
                         id="genre"
@@ -150,7 +150,7 @@ const UploadComic = () => {
                     </select>
                 </div>
                 <div className="mb-3">
-                    <label htmlFor="pages" className="form-label">Pages</label>
+                    <label htmlFor="pages" className="form-label">עמודים</label>
                     <input
                         type="file"
                         className="form-control"
@@ -162,7 +162,7 @@ const UploadComic = () => {
                     />
                 </div>
                 <div className="mb-3">
-                    <label htmlFor="series" className="form-label">Series (optional)</label>
+                    <label htmlFor="series" className="form-label">סדרה (אופציה)</label>
                     <select
                         className="form-select"
                         id="series"
@@ -177,7 +177,7 @@ const UploadComic = () => {
                         ))}
                     </select>
                 </div>
-                <button type="submit" className="btn btn-primary">Upload Comic</button>
+                <button type="submit" className="btn btn-primary">העלה קומיקס</button>
             </form>
         </div>
     );

@@ -4,6 +4,7 @@ import axios from 'axios';
 import { API_BASE_URL } from './Config';
 import '../SeriesDetail.css';
 import { useUser } from '../context/UserContext';
+import { Helmet } from 'react-helmet';
 
 const SeriesDetail = () => {
   const { id } = useParams();
@@ -70,6 +71,11 @@ const SeriesDetail = () => {
 
   return (
     <div className="container mt-4">
+    <Helmet>
+    <title>{series.name} - סדרת קומיקס ב־Comixiad</title>
+    <meta name="description" content={series.description} />
+    <meta property="og:image" content={`${API_BASE_URL}/uploads/${series.coverImage}`} />
+    </Helmet>
       <h2>{series.name}</h2>
       <p>{series.description}</p>
       <img

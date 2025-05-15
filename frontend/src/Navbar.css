@@ -1,0 +1,83 @@
+/* בסיס ה־Navbar */
+.custom-navbar {
+  background: linear-gradient(to right, #ffffff, #f1f1f1);
+  font-family: 'Segoe UI', sans-serif;
+  transition: all 0.3s ease-in-out;
+}
+
+.custom-navbar.dark {
+  background: linear-gradient(to right, #1c1c1c, #2c2c2c);
+}
+
+.navbar-brand {
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
+.brand-gradient {
+  background: linear-gradient(45deg, #ff416c, #ff4b2b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* קישורים */
+.nav-link {
+  font-size: 1.05rem;
+  padding: 8px 14px;
+  color: #333 !important;
+  transition: background-color 0.2s ease;
+  border-radius: 8px;
+}
+
+.custom-navbar.dark .nav-link {
+  color: #f1f1f1 !important;
+}
+
+.nav-link:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.custom-navbar.dark .nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* כפתורים */
+.btn {
+  transition: all 0.3s ease-in-out;
+}
+
+.btn:hover {
+  transform: scale(1.05);
+}
+
+/* מתג מצב כהה */
+.dark-toggle {
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  margin-right: 10px;
+  color: #333;
+}
+
+.custom-navbar.dark .dark-toggle {
+  color: #f1f1f1;
+}
+
+/* תמונת פרופיל */
+.avatar-thumbnail {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-left: 12px;
+  border: 2px solid #ccc;
+  transition: transform 0.3s ease;
+}
+
+.avatar-thumbnail:hover {
+  transform: scale(1.1);
+}
+
+.custom-navbar.dark .avatar-thumbnail {
+  border-color: #555;
+}
