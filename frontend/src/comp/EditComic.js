@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { Modal, Button } from 'react-bootstrap';
+import genres from '../config/Genres';
+import languages from '../config/Languages';
 
 const EditComic = () => {
 const { comicId } = useParams();
@@ -110,29 +112,43 @@ const handleConfirmUpdate = async () => {
                     />
                 </div>
                 <div className="mb-3">
-                    <label htmlFor="language" className="form-label">Language</label>
-                    <input
-                        type="text"
-                        className="form-control"
-                        id="language"
-                        name="language"
-                        value={formData.language}
-                        onChange={handleInputChange}
-                        required
-                    />
-                </div>
-                <div className="mb-3">
-                    <label htmlFor="genre" className="form-label">Genre</label>
-                    <input
-                        type="text"
-                        className="form-control"
-                        id="genre"
-                        name="genre"
-                        value={formData.genre}
-                        onChange={handleInputChange}
-                        required
-                    />
-                </div>
+                <label htmlFor="language" className="form-label">Language</label>
+                <select
+                  className="form-select"
+                  id="language"
+                  name="language"
+                  value={formData.language}
+                  onChange={handleInputChange}
+                  required
+                >
+                  <option value="">Select Language</option>
+                  {languages.map((lang) => (
+                    <option key={lang.id} value={lang.id}>
+                      {lang.emoji} {lang.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="mb-3">
+                <label htmlFor="genre" className="form-label">Genre</label>
+                <select
+                  className="form-select"
+                  id="genre"
+                  name="genre"
+                  value={formData.genre}
+                  onChange={handleInputChange}
+                  required
+                >
+                  <option value="">Select Genre</option>
+                  {genres.map((genre) => (
+                    <option key={genre.id} value={genre.id}>
+                      {genre.emoji} {genre.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
                 <button type="submit" className="btn btn-primary">Save Changes</button>
             </form>
 

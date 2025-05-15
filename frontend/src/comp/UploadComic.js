@@ -3,13 +3,14 @@ import { useUser } from '../context/UserContext';
 import axios from 'axios';
 import languages from '../config/Languages';
 import genres from '../config/Genres';
+import { Link } from 'react-router-dom';
 
 const UploadComic = () => {
     const { user, token } = useUser();
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [language, setLanguage] = useState('');
-    const [genre, setGenre] = useState('');
+    const [genre, setGenre] = useState();
     const [pages, setPages] = useState([]);
     const [series, setSeries] = useState('');
     const [allSeries, setAllSeries] = useState([]);
@@ -19,24 +20,23 @@ const UploadComic = () => {
     useEffect(() => {
     const fetchSeries = async () => {
         try {
-            const response = await axios.get(
-                'http://localhost:5000/api/series',
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }
-            );
-            setAllSeries(response.data);
+        const response = await axios.get('http://localhost:5000/api/series', {
+            headers: {
+            Authorization: `Bearer ${token}`,
+            },
+        });
+
+        // סינון לפי המשתמש המחובר
+        const userSeries = response.data.filter((s) => s.author === user._id);
+        setAllSeries(userSeries);
         } catch (err) {
-            console.error('Failed to fetch series:', err);
+        console.error('Failed to fetch series:', err);
         }
     };
 
-
-
-        fetchSeries();
+    fetchSeries();
     }, []);
+
 
     const handlePagesChange = (e) => {
         setPages(Array.from(e.target.files));
@@ -118,21 +118,21 @@ const UploadComic = () => {
                 <div className="mb-3">
                     <label htmlFor="language" className="form-label">שפה</label>
                     <select
-                        className="form-select"
-                        id="language"
-                        value={language}
-                        onChange={(e) => setLanguage(e.target.value)}
-                        required
+                    className="form-select"
+                    id="language"
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value)}
+                    required
                     >
-                        <option value="">Select Language</option>
-                        {languages.map((lang) => (
-                            <option key={lang} value={lang}>
-                                {lang}
-                            </option>
-                        ))}
+                    <option value="">בחר שפה</option>
+                    {languages.map((lang) => (
+                        <option key={lang.id} value={lang.id}>
+                        {lang.emoji} {lang.label}
+                        </option>
+                    ))}
                     </select>
                 </div>
-                <div className="mb-3">
+               <div className="mb-3">
                     <label htmlFor="genre" className="form-label">ז'אנר</label>
                     <select
                         className="form-select"
@@ -143,12 +143,12 @@ const UploadComic = () => {
                     >
                         <option value="">Select Genre</option>
                         {genres.map((gen) => (
-                            <option key={gen} value={gen}>
-                                {gen}
-                            </option>
+                        <option key={gen.id} value={gen.id}>
+                            {gen.emoji} {gen.label}
+                        </option>
                         ))}
                     </select>
-                </div>
+                    </div>
                 <div className="mb-3">
                     <label htmlFor="pages" className="form-label">עמודים</label>
                     <input
@@ -178,6 +178,7 @@ const UploadComic = () => {
                     </select>
                 </div>
                 <button type="submit" className="btn btn-primary">העלה קומיקס</button>
+                <Link to="/CreateSeries" className="btn btn-secondary ms-2">צור סדרה</Link>
             </form>
         </div>
     );

@@ -5,6 +5,7 @@ import '../Homepage.css';
 import SeriesList from './SeriesList';
 import About from './About';
 import { Helmet } from 'react-helmet';
+import genres from '../config/Genres';
 
 function Homepage() {
   return (
@@ -26,10 +27,12 @@ function Homepage() {
       <section className="homepage-categories">
         <h2>קטגוריות פופולריות</h2>
         <div className="categories-list">
-          <Link to="/category/action" className="category-card">🎭 פעולה</Link>
-          <Link to="/category/fantasy" className="category-card">🪄 פנטזיה</Link>
-          <Link to="/category/scifi" className="category-card">🚀 מדע בדיוני</Link>
-          <Link to="/category/comedy" className="category-card">😂 קומדיה</Link>
+          {genres.map((genre) => (
+            <Link key={genre.id} to={`/category/${genre.id}`} className="category-card">
+              <span>{genre.emoji}</span>
+              {genre.label}
+            </Link>
+          ))}
         </div>
       </section>
 

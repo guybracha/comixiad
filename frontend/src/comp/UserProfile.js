@@ -41,7 +41,6 @@ useEffect(() => {
         email: data.email || '',
         bio: data.bio || '',
         location: data.location || '',
-        favoriteGenres: data.favoriteGenres || [],
         favoriteGenres: (data.favoriteGenres || []).join(', '),
         socialLinks: {
           twitter: data.socialLinks?.twitter || '',
@@ -144,11 +143,12 @@ const handleFormSubmit = async (e) => {
     form.append(
       'socialLinks',
       JSON.stringify({
-        twitter: formData.twitter || '',
-        instagram: formData.instagram || '',
-        deviantart: formData.deviantart || '',
+        twitter: formData.socialLinks?.twitter || '',
+        instagram: formData.socialLinks?.instagram || '',
+        deviantart: formData.socialLinks?.deviantart || '',
       })
     );
+
 
     if (avatarFile) {
       form.append('avatar', avatarFile);
