@@ -37,45 +37,94 @@
   color: #333;
 }
 
-.comics-grid, .series-grid {
+.series-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 20px;
   margin-top: 20px;
 }
 
-.comic-card, .series-card {
+/* === קיימים אצלך כבר: container, profile, etc... === */
+
+.comics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.comic-card {
   background-color: #fff;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   transition: transform 0.2s;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
-.comic-card:hover, .series-card:hover {
+.comic-card:hover {
   transform: translateY(-5px);
 }
 
-.comic-image, .series-image {
+.comic-image {
   width: 100%;
-  height: 300px;
+  height: 250px;
   object-fit: cover;
+  cursor: pointer;
 }
 
-.comic-info, .series-info {
+.comic-info {
   padding: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex-grow: 1;
 }
 
-.comic-info h5, .series-info h5 {
+.comic-info h5 {
   margin: 0 0 10px;
   font-size: 18px;
   color: #333;
+  line-height: 1.2;
+  word-break: break-word;
 }
 
-.comic-info p, .series-info p {
-  margin: 0;
+.comic-info p {
   font-size: 14px;
   color: #777;
+  margin-bottom: 10px;
+  min-height: 40px;
+}
+
+/* כפתורי עריכה ומחיקה */
+.comic-info .btn {
+  font-size: 14px;
+  padding: 6px 12px;
+}
+
+.comic-info .btn-warning {
+  margin-inline-end: 8px;
+}
+
+@media (max-width: 600px) {
+  .comic-image {
+    height: 200px;
+  }
+
+  .comic-info h5 {
+    font-size: 16px;
+  }
+
+  .comic-info p {
+    font-size: 13px;
+  }
+
+  .comic-info .btn {
+    font-size: 13px;
+    padding: 5px 10px;
+  }
 }
 
 .btn-primary {

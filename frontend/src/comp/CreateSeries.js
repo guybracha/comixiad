@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useUser } from '../context/UserContext';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 const CreateSeries = () => {
   const { user } = useUser();
@@ -83,6 +84,7 @@ const CreateSeries = () => {
           />
         </div>
         <button type="submit" className="btn btn-primary">צור סדרה</button>
+        <Link to="/upload" className="btn btn-secondary ms-2">העלה קומיקס</Link>
       </form>
     </div>
   );
