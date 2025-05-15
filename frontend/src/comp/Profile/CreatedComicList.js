@@ -5,7 +5,7 @@ const CreatedComicList = ({ comics, currentUserId, onDelete }) => {
   const navigate = useNavigate();
 
   const handleEdit = (comicId) => {
-    navigate(`/edit-comic/${comicId}`);
+    navigate(`/comics/edit/${comicId}`);
   };
 
   const handleView = (comicId) => {

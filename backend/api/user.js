@@ -1,6 +1,21 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(__dirname, '../uploads');
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  }
+});
+const upload = multer({ storage });
 
 // Get user by ID
 router.get('/:id', async (req, res) => {
@@ -18,30 +33,37 @@ router.get('/:id', async (req, res) => {
 
 
 // Update user profile
-router.put('/:id', async (req, res) => {
-    try {
-        console.log('Updating user:', req.params.id);
-        console.log('Update data:', req.body);
+router.put('/:id', upload.single('avatar'), async (req, res) => {
+  try {
+    const updates = { ...req.body };
 
-        const updates = { ...req.body };
-        
-        const user = await User.findByIdAndUpdate(
-            req.params.id,
-            updates,
-            { new: true }
-        ).select('-password');
-
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        console.log('Updated user:', user);
-        res.json(user);
-    } catch (err) {
-        console.error('Update error:', err);
-        res.status(500).json({ message: 'Error updating user' });
+    // Parse JSON fields
+    if (updates.favoriteGenres && typeof updates.favoriteGenres === 'string') {
+      updates.favoriteGenres = JSON.parse(updates.favoriteGenres);
     }
+    if (updates.socialLinks && typeof updates.socialLinks === 'string') {
+      updates.socialLinks = JSON.parse(updates.socialLinks);
+    }
+
+    if (req.file) {
+      updates.avatar = req.file.path.replace(/\\/g, '/');
+    }
+
+    const user = await User.findByIdAndUpdate(req.params.id, updates, {
+      new: true
+    }).select('-password');
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json(user);
+  } catch (err) {
+    console.error('Update error:', err);
+    res.status(500).json({ message: 'Error updating user', error: err.message });
+  }
 });
+
 
 router.post('/follow', async (req, res) => {
     const { userId, seriesId } = req.body;

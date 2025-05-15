@@ -26,7 +26,7 @@ useEffect(() => {
       const response = await axios.get(`http://localhost:5000/api/comics/${comicId}`);
       const fetchedComic = response.data;
 
-      if (fetchedComic.author !== user._id) {
+if (fetchedComic.author !== user._id && fetchedComic.author?._id !== user._id) {
         setError('You are not authorized to edit this comic.');
         return navigate('/');
       }
