@@ -42,7 +42,12 @@ useEffect(() => {
         bio: data.bio || '',
         location: data.location || '',
         favoriteGenres: data.favoriteGenres || [],
-        socialLinks: data.socialLinks || {},
+        favoriteGenres: (data.favoriteGenres || []).join(', '),
+        socialLinks: {
+          twitter: data.socialLinks?.twitter || '',
+          instagram: data.socialLinks?.instagram || '',
+          deviantart: data.socialLinks?.deviantart || ''
+        }
       });
       fetchUserComics(data._id);
       fetchUserSeries(data._id);
@@ -116,29 +121,52 @@ const fetchCurrentUser = async () => {
     setAvatarFile(e.target.files[0]);
   };
 
-  const handleFormSubmit = async (e) => {
-    e.preventDefault();
+const handleFormSubmit = async (e) => {
+  e.preventDefault();
 
-    try {
-      const form = new FormData();
-      for (let key in formData) {
-        if (key === 'socialLinks' || key === 'favoriteGenres') {
-          form.append(key, JSON.stringify(formData[key]));
-        } else {
-          form.append(key, formData[key]);
-        }
-      }
-      if (avatarFile) {
-        form.append('avatar', avatarFile);
-      }
+  try {
+    const form = new FormData();
 
-      await axios.put(`/api/users/${id}`, form);
-      fetchUserProfile();
-      setShowModal(false);
-    } catch (error) {
-      console.error('Error updating profile:', error);
+    form.append('username', formData.username);
+    form.append('email', formData.email);
+    form.append('bio', formData.bio);
+    form.append('location', formData.location);
+
+    form.append(
+      'favoriteGenres',
+      JSON.stringify(
+        formData.favoriteGenres
+          ? formData.favoriteGenres.split(',').map((g) => g.trim())
+          : []
+      )
+    );
+
+    form.append(
+      'socialLinks',
+      JSON.stringify({
+        twitter: formData.twitter || '',
+        instagram: formData.instagram || '',
+        deviantart: formData.deviantart || '',
+      })
+    );
+
+    if (avatarFile) {
+      form.append('avatar', avatarFile);
     }
-  };
+
+    await axios.put(`/api/users/${id}`, form, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    fetchUserProfile(); // טען מחדש את הפרופיל
+    setShowModal(false); // סגור את המודל
+  } catch (error) {
+    console.error('Error updating profile:', error);
+  }
+};
+
 
   const handleDeleteComic = async (comicId) => {
     try {

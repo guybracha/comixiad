@@ -86,11 +86,11 @@ const SeriesDetail = () => {
         {comics.length > 0 ? (
           comics.map((comic) => (
             <div key={comic._id} className="comic-card">
-              <img
-                src={comic.pages[0]?.url ? `${API_BASE_URL}/uploads/${comic.pages[0]?.url}` : '/placeholder.jpg'}
-                alt={comic.title}
-                className="comic-image"
-              />
+            <img
+              src={`${API_BASE_URL}/${comic.pages[0]?.url.replace(/\\/g, '/')}`}
+              alt={comic.title}
+              className="comic-image"
+            />
               <div className="comic-info">
                 <h5>{comic.title}</h5>
                 <p>{comic.description}</p>
