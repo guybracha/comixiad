@@ -6,6 +6,7 @@ import SeriesList from './SeriesList';
 import About from './About';
 import { Helmet } from 'react-helmet';
 import genres from '../config/Genres';
+import RandomThree from './RandomThree';
 
 function Homepage() {
   return (
@@ -50,6 +51,7 @@ function Homepage() {
         <SeriesList />
         </div>
         </section>
+        <RandomThree />
         <div>
         <About />
       </div>

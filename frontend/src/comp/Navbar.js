@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import '../Navbar.css';
+import { API_BASE_URL } from '../Config';
 
 const Navbar = () => {
   const { user, logout } = useUser();
@@ -16,7 +17,8 @@ const Navbar = () => {
 
   const handleLogoutClick = () => {
     logout();
-    navigate('/login');
+    navigate('/');
+    window.location.reload(); // מרענן כדי לעדכן סטייט של המשתמש
   };
 
   const toggleDarkMode = () => {
@@ -59,15 +61,25 @@ const Navbar = () => {
 
           {user ? (
             <div className="d-flex align-items-center">
-              {user.avatar && (
-                <img
-                  src={`http://localhost:5000/${user.avatar.replace(/\\/g, '/')}`}
-                  alt="avatar"
-                  className="rounded-circle me-2"
-                  style={{ width: '40px', height: '40px', objectFit: 'cover' }}
-                />
-              )}
-              <button className="btn btn-outline-danger rounded-pill px-3" onClick={handleLogoutClick}>🚪 התנתק</button>
+              <img
+                src={
+                  user.avatar
+                    ? user.avatar.startsWith('http')
+                      ? user.avatar
+                      : `${API_BASE_URL}/${user.avatar.replace(/\\/g, '/')}`
+                    : 'https://www.gravatar.com/avatar/?d=mp'
+                }
+                alt="avatar"
+                className="rounded-circle me-2"
+                style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = 'https://www.gravatar.com/avatar/?d=mp';
+                }}
+              />
+              <button className="btn btn-outline-danger rounded-pill px-3" onClick={handleLogoutClick}>
+                🚪 התנתק
+              </button>
             </div>
           ) : (
             <ul className="navbar-nav">

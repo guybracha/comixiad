@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import '../ComicList.css';
+import { API_BASE_URL } from '../Config';
 
 const ComicList = () => {
   const [comics, setComics] = useState([]);
@@ -11,7 +12,7 @@ const ComicList = () => {
   const fetchComics = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:5000/api/comics');
+      const response = await axios.get(`${API_BASE_URL}/api/comics`);
       if (!response.data) throw new Error('No data received');
       setComics(response.data);
     } catch (error) {
@@ -26,26 +27,25 @@ const ComicList = () => {
     fetchComics();
   }, []);
 
-  const getImageUrl = (comic) => {
-    // Check if comic has pages
-    if (!comic?.pages?.[0]) return '/images/placeholder.jpg';
-  
-    const firstPage = comic.pages[0];
-    const imagePath = firstPage.url || firstPage.filename;
-  
-    if (!imagePath) return '/images/placeholder.jpg';
-  
-    // Handle both URL formats
-    if (imagePath.startsWith('uploads/')) {
-      return `http://localhost:5000/${imagePath}`;
-    }
-  
-    if (imagePath.startsWith('/')) {
-      return `http://localhost:5000/uploads${imagePath}`;
-    }
-  
-    return `http://localhost:5000/uploads/${imagePath}`;
-  };
+const getImageUrl = (comic) => {
+  if (!comic?.pages?.[0]) return '../images/placeholder.jpg';
+
+  const firstPage = comic.pages[0];
+  const imagePath = firstPage.url || firstPage.filename;
+
+  if (!imagePath) return '../images/placeholder.jpg';
+
+  if (imagePath.startsWith('uploads/')) {
+    return `${API_BASE_URL}/${imagePath}`;
+  }
+
+  if (imagePath.startsWith('/')) {
+    return `${API_BASE_URL}/uploads${imagePath}`;
+  }
+
+  return `${API_BASE_URL}/uploads/${imagePath}`;
+};
+
 
   if (loading) return <div className="loading-spinner">Loading...</div>;
   if (error) return <div className="alert alert-danger">{error}</div>;
@@ -67,7 +67,7 @@ const ComicList = () => {
                     className="card-img-top comic-image"
                     alt={comic.title}
                     onError={(e) => {
-                      e.target.src = '/images/placeholder.jpg';
+                      e.target.src = '../images/placeholder.jpg';
                     }}
                   />
                 </div>

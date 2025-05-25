@@ -1,93 +1,75 @@
-import React, { useState } from 'react';
-import { useUser } from '../context/UserContext';
-import axios from 'axios';
-import { Link } from 'react-router-dom';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../../Config';
 
-const CreateSeries = () => {
-  const { user } = useUser();
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [coverImage, setCoverImage] = useState(null);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
-  const token = localStorage.getItem('token');
+const CreatedSeriesList = ({ series, currentUserId, loggedInUserId, onDelete }) => {
+  const navigate = useNavigate();
+  const isOwnProfile = currentUserId === loggedInUserId;
 
-  const handleCoverImageChange = (e) => {
-    setCoverImage(e.target.files[0]);
+  const userSeries = series.filter(s => {
+    const authorId = typeof s.author === 'string' ? s.author : s.author?._id;
+    return authorId === currentUserId;
+  });
+
+  const handleEdit = (seriesId) => {
+    navigate(`/series/edit/${seriesId}`);
   };
 
-  const handleSubmit = async (e) => {
-  e.preventDefault();
-
-  if (!user?._id) {
-    setError('You must be logged in to create a series.');
-    return;
-  }
-
-  try {
-    const formData = new FormData();
-    formData.append('name', name);
-    formData.append('description', description);
-    formData.append('coverImage', coverImage);
-    formData.append('author', user._id); // רק אם השרת מצפה לזה – אם לא, תסיר
-
-    const token = localStorage.getItem('token');
-
-    const response = await axios.post('http://localhost:5000/api/series', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        Authorization: `Bearer ${token}`
-      }
-    });
-
-    setMessage('Series created successfully!');
-    setError('');
-  } catch (err) {
-    console.error('❌ Failed to create series:', err);
-    setError('Failed to create series. Please try again.');
-    setMessage('');
-  }
-};
-
+  const handleView = (seriesId) => {
+    navigate(`/series/${seriesId}`);
+  };
 
   return (
-    <div className="container py-5">
-      <h2>צור סדרה</h2>
-      {message && <div className="alert alert-success">{message}</div>}
-      {error && <div className="alert alert-danger">{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <label className="form-label">שם</label>
-          <input
-            type="text"
-            className="form-control"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </div>
-        <div className="mb-3">
-          <label className="form-label">תיאור</label>
-          <textarea
-            className="form-control"
-            rows="3"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-        </div>
-        <div className="mb-3">
-          <label className="form-label">תמונת שער</label>
-          <input
-            type="file"
-            className="form-control"
-            accept="image/*"
-            onChange={handleCoverImageChange}
-          />
-        </div>
-        <button type="submit" className="btn btn-primary">צור סדרה</button>
-        <Link to="/upload" className="btn btn-secondary ms-2">העלה קומיקס</Link>
-      </form>
+    <div>
+      <h3>Series Created</h3>
+      {userSeries.length === 0 && (
+        <p>לא נמצאו סדרות שיצרת.</p>
+      )}
+
+      <div className="row g-4">
+        {userSeries.map((s) => {
+          const imageUrl = s.coverImage
+            ? `${API_BASE_URL}/uploads/${s.coverImage.replace(/\\/g, '/')}`
+            : '/images/placeholder.jpg';
+
+          return (
+            <div key={s._id} className="col-sm-6 col-md-4 col-lg-3">
+              <div className="card h-100">
+                <img
+                  src={imageUrl}
+                  className="card-img-top"
+                  alt={s.name}
+                  style={{ height: '200px', objectFit: 'cover', cursor: 'pointer' }}
+                  onClick={() => handleView(s._id)}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = '/images/placeholder.jpg';
+                  }}
+                />
+                <div className="card-body">
+                  <h5 className="card-title">{s.name}</h5>
+                  <p className="card-text">{s.description}</p>
+
+                  {isOwnProfile && (
+                    <div className="d-flex justify-content-between">
+                      <button className="btn btn-warning btn-sm" onClick={() => handleEdit(s._id)}>
+                        ערוך
+                      </button>
+                      {onDelete && (
+                        <button className="btn btn-danger btn-sm" onClick={() => onDelete(s._id)}>
+                          מחק
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };
 
-export default CreateSeries;
+export default CreatedSeriesList;

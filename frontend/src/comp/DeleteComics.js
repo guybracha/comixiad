@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { useUser } from '../context/UserContext';
+import { API_BASE_URL } from '../Config';
 
 const DeleteComic = ({ comicId }) => {
     const { user } = useUser();
@@ -8,7 +9,7 @@ const DeleteComic = ({ comicId }) => {
         if (!window.confirm("Are you sure you want to delete this comic?")) return;
 
         try {
-            await axios.delete(`http://localhost:5000/api/comics/${comicId}`, {
+                await axios.delete(`${API_BASE_URL}/api/comics/${comicId}`, {
                 headers: {
                     'Authorization': `Bearer ${user.token}`
                 }

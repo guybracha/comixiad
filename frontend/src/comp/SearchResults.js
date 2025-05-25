@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../SearchResults.css';
+import { API_BASE_URL } from '../Config'
 
 const SearchResults = () => {
     const location = useLocation();
@@ -16,7 +17,7 @@ const SearchResults = () => {
     useEffect(() => {
         const fetchSearchResults = async () => {
             try {
-                const response = await axios.get(`http://localhost:5000/api/search?query=${query}`);
+                const response = await axios.get(`${API_BASE_URL}/api/search?query=${encodeURIComponent(query)}`);
                 const { comics, series, users } = response.data;
 
                 setComics(comics);
@@ -46,7 +47,11 @@ const SearchResults = () => {
                 {comics.map((comic) => (
                     <div key={comic._id} className="result-card">
                         <img
-                            src={`http://localhost:5000/${comic.pages[0]?.url?.replace(/\\/g, '/')}`}
+                            src={
+                            comic.pages[0]?.url
+                                ? `${API_BASE_URL}/${comic.pages[0].url.replace(/\\/g, '/')}`
+                                : 'https://www.gravatar.com/avatar/?d=mp'
+                            }
                             alt={comic.title}
                             className="result-image"
                             />
@@ -69,7 +74,11 @@ const SearchResults = () => {
                 {series.map((seriesItem) => (
                     <div key={seriesItem._id} className="result-card">
                         <img
-                        src={`http://localhost:5000/uploads/${seriesItem.coverImage}`}
+                            src={
+                            seriesItem.coverImage
+                                ? `${API_BASE_URL}/uploads/${seriesItem.coverImage}`
+                                : 'https://www.gravatar.com/avatar/?d=mp'
+                            }
                         alt={seriesItem.name}
                         className="result-image"
                         />
@@ -92,13 +101,19 @@ const SearchResults = () => {
                 {users.map((user) => (
                     <div key={user._id} className="result-card">
                         <img
-                            src={user.avatar || '/placeholder.jpg'}
+                            src={
+                            user.avatar
+                                ? user.avatar.startsWith('http')
+                                ? user.avatar
+                                : `${API_BASE_URL}/${user.avatar.replace(/\\/g, '/')}`
+                                : 'https://www.gravatar.com/avatar/?d=mp'
+                            }
                             alt={user.username}
                             className="result-image"
-                            onError={(e) => {
+                                onError={(e) => {
                                 e.target.onerror = null;
-                                e.target.src = '/placeholder.jpg';
-                            }}
+                                e.target.src = 'https://www.gravatar.com/avatar/?d=mp';
+                                }}
                         />
                         <div className="card-body">
                             <h5>{user.username}</h5>

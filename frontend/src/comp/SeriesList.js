@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Card, Button, Container, Row, Col, Spinner, Alert } from 'react-bootstrap';
+import { API_BASE_URL } from '../Config';
 
 const SeriesList = () => {
   const [series, setSeries] = useState([]);
@@ -12,7 +13,7 @@ const SeriesList = () => {
   useEffect(() => {
     const fetchSeries = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/series');
+        const response = await axios.get(`${API_BASE_URL}/api/series`);
         setSeries(response.data);
         setError('');
       } catch (err) {
@@ -51,7 +52,7 @@ const SeriesList = () => {
             <Card>
               <Card.Img
                 variant="top"
-                src={`http://localhost:5000/uploads/${seriesItem.coverImage}`}
+                src={`${API_BASE_URL}/uploads/${seriesItem.coverImage}`}
               />
               <Card.Body>
                 <Card.Title>{seriesItem.name}</Card.Title>

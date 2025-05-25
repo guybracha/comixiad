@@ -5,6 +5,7 @@ import ProfileHeader from './Profile/ProfileHeader';
 import CreatedComicList from './Profile/CreatedComicList';
 import CreatedSeriesList from './Profile/CreatedSeriesList';
 import EditProfileModal from './Profile/EditProfileModal';
+import { API_BASE_URL } from '../Config';
 
 const UserProfile = () => {
   const { id } = useParams();
@@ -16,103 +17,110 @@ const UserProfile = () => {
   const [avatarFile, setAvatarFile] = useState(null);
   const [currentUser, setCurrentUser] = useState({});
 
-useEffect(() => {
-  if (!id) return;
+  const isCurrentUser = currentUser?._id === id;
 
-  fetchUserProfile();
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const { data } = await axios.get(`${API_BASE_URL}/api/users/${id}`);
+        setProfile(data);
+        setFormData({
+          username: data.username || '',
+          email: data.email || '',
+          bio: data.bio || '',
+          location: data.location || '',
+          favoriteGenres: (data.favoriteGenres || []).join(', '),
+          socialLinks: {
+            twitter: data.socialLinks?.twitter || '',
+            instagram: data.socialLinks?.instagram || '',
+            deviantart: data.socialLinks?.deviantart || ''
+          }
+        });
+      } catch (error) {
+        console.error('Error loading profile:', error);
+      }
+    };
 
-  const token = localStorage.getItem('token');
-  console.log('📦 Token from localStorage:', token);
+    const loadCurrentUser = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) return;
 
-  if (token) {
-    fetchCurrentUser();
-  } else {
-    console.warn('⚠️ No token found in localStorage');
-  }
-}, [id]);
+      try {
+        const { data } = await axios.get(`${API_BASE_URL}/api/users/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        setCurrentUser(data);
+      } catch (error) {
+        console.error('Error loading current user:', error);
+      }
+    };
 
+    loadProfile();
+    loadCurrentUser();
+  }, [id]);
 
-  const fetchUserProfile = async () => {
+  useEffect(() => {
+    if (profile._id) {
+      fetchUserComics(profile._id);
+      fetchUserSeries(profile._id);
+    }
+  }, [profile._id]);
+
+  const fetchUserComics = async (userId) => {
     try {
-      const { data } = await axios.get(`/api/users/${id}`);
-      setProfile(data);
-      setFormData({
-        username: data.username || '',
-        email: data.email || '',
-        bio: data.bio || '',
-        location: data.location || '',
-        favoriteGenres: (data.favoriteGenres || []).join(', '),
-        socialLinks: {
-          twitter: data.socialLinks?.twitter || '',
-          instagram: data.socialLinks?.instagram || '',
-          deviantart: data.socialLinks?.deviantart || ''
-        }
-      });
-      fetchUserComics(data._id);
-      fetchUserSeries(data._id);
+      const { data } = await axios.get(`${API_BASE_URL}/api/comics?author=${userId}`);
+      setUserComics(data);
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error('Error fetching comics:', error);
     }
   };
 
-const fetchCurrentUser = async () => {
-  try {
-    const token = localStorage.getItem('token');
-    console.log('➡️ Sending token to server:', token);
-
-    const { data } = await axios.get('/api/users/me', {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-
-    setCurrentUser(data);
-  } catch (error) {
-    console.error('❌ Error fetching current user:', error.response?.data || error.message);
-  }
-};
-
-
-
-  const fetchUserComics = async (userId) => {
-  try {
-    const { data } = await axios.get(`/api/comics?author=${userId}`);
-    setUserComics(data);
-  } catch (error) {
-    console.error('Error fetching user comics:', error);
-  }
-};
-
-
   const fetchUserSeries = async (userId) => {
     try {
-      const { data } = await axios.get(`/api/series?author=${userId}`);
-      setUserSeries(data);
-    } catch (error) {
-      console.error('Error fetching user series:', error);
-    }
+        const { data } = await axios.get(`${API_BASE_URL}/api/comics`);
+        const filtered = data.filter(comic => comic.author?._id === userId);
+        setUserComics(filtered);
+      } catch (error) {
+        console.error('Error fetching comics:', error);
+      }
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-    // עבור שדות מקוננים (כמו socialLinks.twitter)
     if (name.startsWith('socialLinks.')) {
       const socialKey = name.split('.')[1];
       setFormData((prev) => ({
         ...prev,
         socialLinks: {
           ...prev.socialLinks,
-          [socialKey]: value,
-        },
+          [socialKey]: value
+        }
       }));
     } else if (name === 'favoriteGenres') {
       setFormData((prev) => ({
         ...prev,
-        favoriteGenres: value.split(',').map((g) => g.trim()),
+        favoriteGenres: value.split(',').map((g) => g.trim())
       }));
     } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+  };
+
+   const handleDeleteComic = async (comicId) => {
+    if (!window.confirm('האם אתה בטוח שברצונך למחוק קומיקס זה?')) return;
+
+    try {
+      await axios.delete(`${API_BASE_URL}/api/comics/${comicId}`);
+      setUserComics((prev) => prev.filter((comic) => comic._id !== comicId));
+    } catch (err) {
+      console.error('שגיאה במחיקת קומיקס:', err);
+      alert('אירעה שגיאה במחיקה');
     }
   };
 
@@ -120,97 +128,71 @@ const fetchCurrentUser = async () => {
     setAvatarFile(e.target.files[0]);
   };
 
-const handleFormSubmit = async (e) => {
-  e.preventDefault();
-
-  try {
-    const form = new FormData();
-
-    form.append('username', formData.username);
-    form.append('email', formData.email);
-    form.append('bio', formData.bio);
-    form.append('location', formData.location);
-
-    form.append(
-      'favoriteGenres',
-      JSON.stringify(
-        formData.favoriteGenres
-          ? formData.favoriteGenres.split(',').map((g) => g.trim())
-          : []
-      )
-    );
-
-    form.append(
-      'socialLinks',
-      JSON.stringify({
-        twitter: formData.socialLinks?.twitter || '',
-        instagram: formData.socialLinks?.instagram || '',
-        deviantart: formData.socialLinks?.deviantart || '',
-      })
-    );
-
-
-    if (avatarFile) {
-      form.append('avatar', avatarFile);
-    }
-
-    await axios.put(`/api/users/${id}`, form, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'multipart/form-data'
-      }
-    });
-    fetchUserProfile(); // טען מחדש את הפרופיל
-    setShowModal(false); // סגור את המודל
-  } catch (error) {
-    console.error('Error updating profile:', error);
-  }
-};
-
-
-  const handleDeleteComic = async (comicId) => {
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
     try {
-      await axios.delete(`/api/comics/${comicId}`);
-      fetchUserComics(profile._id);
+      const form = new FormData();
+      form.append('username', formData.username);
+      form.append('email', formData.email);
+      form.append('bio', formData.bio);
+      form.append('location', formData.location);
+      form.append('favoriteGenres', JSON.stringify(formData.favoriteGenres));
+      form.append('socialLinks', JSON.stringify(formData.socialLinks));
+      if (avatarFile) {
+        form.append('avatar', avatarFile);
+      }
+
+      await axios.put(`${API_BASE_URL}/api/users/${profile._id}`, form, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      setShowModal(false);
+      const updated = await axios.get(`${API_BASE_URL}/api/users/${profile._id}`);
+      setProfile(updated.data);
     } catch (error) {
-      console.error('Error deleting comic:', error);
+      console.error('Error updating profile:', error);
     }
   };
 
-const handleDeleteSeries = async (seriesId) => {
-  try {
-    const token = localStorage.getItem('token');
-    await axios.delete(`http://localhost:5000/api/series/${seriesId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-    setUserSeries(prev => prev.filter(s => s._id !== seriesId));
-  } catch (error) {
-    console.error('Error deleting series:', error);
-  }
-};
-
-
   return (
     <div className="container mt-4">
-      {profile.username ? (
-        <ProfileHeader profile={profile} onEdit={() => setShowModal(true)} />
+      {!profile.username ? (
+        <div className="text-center">...Loading profile</div>
       ) : (
-        <div className="text-center">Loading profile...</div>
+        <>
+          <ProfileHeader
+            profile={profile}
+            onEdit={isCurrentUser ? () => setShowModal(true) : null}
+          />
+          <hr />
+          <CreatedComicList
+            comics={userComics}
+            currentUserId={profile._id}           // של מי הפרופיל שמוצג
+            loggedInUserId={currentUser._id}      // מי המשתמש שמחובר
+            onDelete={handleDeleteComic}          // פונקציית מחיקה אם רלוונטי
+          />
+          <hr />
+          <CreatedSeriesList
+            series={userSeries}
+            currentUserId={profile._id}
+            loggedInUserId={currentUser._id}
+          // onDelete={handleDeleteSeries} // אם תרצה גם למחוק סדרה
+          />
+          {isCurrentUser && (
+            <EditProfileModal
+              show={showModal}
+              onHide={() => setShowModal(false)}
+              onSubmit={handleFormSubmit}
+              formData={formData}
+              onChange={handleInputChange}
+              onFileChange={handleFileChange}
+            />
+          )}
+        </>
       )}
-      <hr />
-      <CreatedComicList comics={userComics} currentUserId={currentUser._id} onDelete={handleDeleteComic} />
-      <hr />
-      <CreatedSeriesList series={userSeries} currentUserId={currentUser._id} onDelete={handleDeleteSeries} />
-      <EditProfileModal
-        show={showModal}
-        onHide={() => setShowModal(false)}
-        onSubmit={handleFormSubmit}
-        formData={formData}
-        onChange={handleInputChange}
-        onFileChange={handleFileChange}
-      />
     </div>
   );
 };

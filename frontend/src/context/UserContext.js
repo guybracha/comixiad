@@ -17,11 +17,11 @@ export const UserProvider = ({ children }) => {
     setUser(userData);
   };
 
-  const logout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    setUser(null);
-  };
+const logout = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user'); // ✅ זה היה חסר
+  setUser(null);
+};
 
   useEffect(() => {
     const token = localStorage.getItem('token');
