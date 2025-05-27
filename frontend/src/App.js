@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { UserProvider, useUser } from './context/UserContext';
+import ReactGA from 'react-ga4';
 import Navbar from './comp/Navbar';
 import Homepage from './comp/Homepage';
 import UploadComic from './comp/UploadComic';
@@ -15,9 +16,22 @@ import CreateSeries from './comp/CreateSeries';
 import EditComic from './comp/EditComic';
 import SearchResults from './comp/SearchResults';
 import SeriesDetail from './comp/SeriesDetail';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+
+
+const TRACKING_ID = 'G-5R595Q7CLJ';
+ReactGA.initialize(TRACKING_ID);
+function usePageTracking() {
+  const location = useLocation();
+
+  useEffect(() => {
+    ReactGA.send({ hitType: "pageview", page: location.pathname });
+  }, [location]);
+}
 
 const AppContent = () => {
     const { user, setUser } = useUser();
+    usePageTracking(); // ✅ עכשיו בתוך Router
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
@@ -27,7 +41,7 @@ const AppContent = () => {
     }, [setUser]);
 
     return (
-        <Router>
+        <>
             <Navbar user={user} />
             <Routes>
                 <Route path="/" element={<Homepage />} />
@@ -45,19 +59,25 @@ const AppContent = () => {
                     path="/comics/edit/:comicId" 
                     element={user ? <EditComic /> : <Navigate to="/login" replace />} 
                 />
+                <Route 
+                    path="/series/edit/:seriesId" 
+                    element={user ? <EditComic /> : <Navigate to="/login" replace />}
+                />
                 <Route path="/series/:id" element={<SeriesDetail />} />
                 <Route path="/search" element={<SearchResults />} />
                 <Route path="*" element={<Error />} />
             </Routes>
             <Footer />
-        </Router>
+        </>
     );
 };
 
 const App = () => {
     return (
         <UserProvider>
-            <AppContent />
+            <Router> {/* ✅ העברה לכאן */}
+                <AppContent />
+            </Router>
         </UserProvider>
     );
 };

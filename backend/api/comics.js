@@ -25,6 +25,60 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+// ✅ Get comics (with optional filtering by author)
+router.get('/', async (req, res) => {
+  try {
+    const filter = {};
+
+    if (req.query.author) {
+      filter.author = req.query.author;
+    }
+
+    const comics = await Comic.find(filter).populate('author', 'username');
+    res.json(comics);
+  } catch (error) {
+    console.error('Error fetching comics:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
+// ✅ Get a specific comic by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const comic = await Comic.findById(req.params.id).populate('author', 'username avatar');
+
+    if (!comic) {
+      return res.status(404).json({ message: 'Comic not found' });
+    }
+
+    // צור כתובת מלאה לכל עמוד בקומיקס
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    comic.pages = comic.pages.map(page => ({
+      ...page,
+      url: `${baseUrl}/uploads/${page.url}` // שים לב לנתיב נכון
+    }));
+
+    res.json(comic);
+  } catch (error) {
+    console.error('Error fetching comic by ID:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+router.get('/by-author/:userId', async (req, res) => {
+  try {
+    const comics = await Comic.find({ author: req.params.userId })
+      .populate('author', 'username');
+    res.json(comics);
+  } catch (error) {
+    console.error('Error fetching comics by author:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+
+
 // ✅ Upload a new comic (protected route)
 router.post('/upload', verifyToken, upload.array('pages', 10), async (req, res) => {
   try {
@@ -39,7 +93,7 @@ router.post('/upload', verifyToken, upload.array('pages', 10), async (req, res) 
     const pages = req.files.map(file => ({
       url: `comics/${file.filename}` // שמור רק נתיב יחסי מתוך /uploads
     }));
-    
+
 
     const newComic = new Comic({
       title,
@@ -66,5 +120,26 @@ router.post('/upload', verifyToken, upload.array('pages', 10), async (req, res) 
     });
   }
 });
+
+// ✅ Increase views by 1 for a specific comic
+router.patch('/:id/view', async (req, res) => {
+  try {
+    const comic = await Comic.findByIdAndUpdate(
+      req.params.id,
+      { $inc: { views: 1 } },
+      { new: true }
+    );
+
+    if (!comic) {
+      return res.status(404).json({ message: 'Comic not found' });
+    }
+
+    res.json({ message: 'View count updated', views: comic.views });
+  } catch (error) {
+    console.error('Error updating views:', error);
+    res.status(500).json({ message: 'Server error while updating views' });
+  }
+});
+
 
 module.exports = router;

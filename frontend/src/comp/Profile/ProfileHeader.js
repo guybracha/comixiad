@@ -1,29 +1,19 @@
 import React from 'react';
 import { Button } from 'react-bootstrap';
+import { API_BASE_URL } from '../../Config';
 
 const ProfileHeader = ({ profile, onEdit }) => {
-  // ✅ עיבוד כתובת תמונה
-  const avatarUrl = profile.avatar?.startsWith('http')
-    ? profile.avatar
-    : profile.avatar
-    ? `http://localhost:5000/${profile.avatar.replace(/\\/g, '/')}`
-    : '/default-avatar.jpg';
+const avatarUrl = profile.avatar?.startsWith('http')
+  ? profile.avatar
+  : profile.avatar
+    ? `${API_BASE_URL}/${profile.avatar.replace(/\\/g, '/')}`
+    : 'https://www.gravatar.com/avatar/?d=mp';
 
-  // ✅ תאריך הצטרפות
   const joinedDate = profile.joinDate
     ? new Date(profile.joinDate).toLocaleDateString()
     : 'Unknown';
 
-  // ✅ חילוץ קישורים חברתיים
   const { twitter, instagram, deviantart } = profile.socialLinks || {};
-
-  // ✅ פונקציה לוודא שיש https
-  const formatLink = (url) => {
-    if (!url) return '';
-    return url.startsWith('http://') || url.startsWith('https://')
-      ? url
-      : `https://${url}`;
-  };
 
   return (
     <div className="text-center">
@@ -31,49 +21,21 @@ const ProfileHeader = ({ profile, onEdit }) => {
 
       <img
         src={avatarUrl}
-        alt={`${profile.username || 'User'} avatar`}
+        alt="avatar"
         className="rounded-circle mb-3"
         style={{ width: '150px', height: '150px', objectFit: 'cover' }}
+        onError={(e) => { e.target.src = 'https://www.gravatar.com/avatar/?d=mp'; }}
       />
 
       <p><strong>Email:</strong> {profile.email || 'N/A'}</p>
-      <p><strong>Bio:</strong> {profile.bio?.trim() || 'Not provided'}</p>
-      <p><strong>Location:</strong> {profile.location || 'Unknown'}</p>
-      <p><strong>Favorite Genres:</strong> {profile.favoriteGenres?.join(', ') || 'None'}</p>
-
-      {/* ✅ קישורים חברתיים */}
-      {twitter?.trim() && (
-        <p>
-          <strong>Twitter:</strong>{' '}
-          <a href={formatLink(twitter)} target="_blank" rel="noopener noreferrer">
-            {twitter}
-          </a>
-        </p>
-      )}
-
-      {instagram?.trim() && (
-        <p>
-          <strong>Instagram:</strong>{' '}
-          <a href={formatLink(instagram)} target="_blank" rel="noopener noreferrer">
-            {instagram}
-          </a>
-        </p>
-      )}
-
-      {deviantart?.trim() && (
-        <p>
-          <strong>DeviantArt:</strong>{' '}
-          <a href={formatLink(deviantart)} target="_blank" rel="noopener noreferrer">
-            {deviantart}
-          </a>
-        </p>
-      )}
-
+      <p><strong>Bio:</strong> {profile.bio || 'N/A'}</p>
+      <p><strong>Location:</strong> {profile.location || 'N/A'}</p>
+      <p><strong>Favorite Genres:</strong> {Array.isArray(profile.favoriteGenres) ? profile.favoriteGenres.join(', ') : 'N/A'}</p>
       <p><strong>Joined:</strong> {joinedDate}</p>
 
-      <Button variant="primary" onClick={onEdit}>
-        Edit Profile
-      </Button>
+      {onEdit && (
+        <Button variant="primary" onClick={onEdit}>Edit Profile</Button>
+      )}
     </div>
   );
 };

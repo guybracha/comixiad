@@ -82,7 +82,7 @@ router.get('/series/:seriesId', async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
       const comic = await Comic.findById(req.params.id)
-        .populate('author', 'username')
+        .populate('author', 'username avatar')
         .lean(); // כדי לאפשר שינוי ישיר באובייקט
   
       if (!comic) {

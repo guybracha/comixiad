@@ -62,14 +62,20 @@ const EditProfileModal = ({
         </Form.Group>
 
         <Form.Group controlId="formGenres" className="mb-3">
-          <Form.Label>Favorite Genres (comma-separated)</Form.Label>
-          <Form.Control
-            type="text"
-            name="favoriteGenres"
-            value={Array.isArray(formData.favoriteGenres) ? formData.favoriteGenres.join(', ') : formData.favoriteGenres || ''}
-            onChange={onChange}
-          />
-        </Form.Group>
+        <Form.Label>Favorite Genres (comma-separated)</Form.Label>
+        <Form.Control
+          type="text"
+          name="favoriteGenres"
+          value={
+            Array.isArray(formData.favoriteGenres)
+              ? formData.favoriteGenres.join(', ')
+              : formData.favoriteGenres || ''
+          }
+          onChange={onChange}
+          placeholder="e.g., action, drama, sci-fi"
+        />
+      </Form.Group>
+
 
         <hr />
 

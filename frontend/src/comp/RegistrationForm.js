@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useUser } from '../context/UserContext';
+import { API_BASE_URL } from '../Config';
 
 const RegistrationForm = () => {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ const RegistrationForm = () => {
     console.log('Submitting registration form:', formData);
   
     try {
-      const response = await axios.post('http://localhost:5000/api/register', {
+        const response = await axios.post(`${API_BASE_URL}/api/register`, {
         username: formData.username,
         email: formData.email,
         password: formData.password,

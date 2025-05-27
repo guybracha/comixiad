@@ -1,65 +1,69 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
-import { API_BASE_URL } from './Config';
 import '../SeriesDetail.css';
 import { useUser } from '../context/UserContext';
 import { Helmet } from 'react-helmet';
+import { API_BASE_URL } from '../Config';
 
 const SeriesDetail = () => {
   const { id } = useParams();
   const { user } = useUser();
+
   const [series, setSeries] = useState(null);
   const [comics, setComics] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isFollowing, setIsFollowing] = useState(false);
 
+  // ✅ טוען את פרטי הסדרה והקומיקסים
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchSeriesAndComics = async () => {
       setLoading(true);
       try {
-        // מושך רק את פרטי הסדרה
         const seriesResponse = await axios.get(`${API_BASE_URL}/api/series/${id}`);
         setSeries(seriesResponse.data);
-    
-        // מנסה למשוך קומיקסים רק אם הנתיב קיים
-        let comicsData = [];
-        try {
-          const comicsResponse = await axios.get(`${API_BASE_URL}/api/series/${id}/comics`);
-          comicsData = comicsResponse.data;
-        } catch (comicsErr) {
-          console.warn('Comics not found for this series:', comicsErr.response?.status);
-        }
-        setComics(comicsData);
-    
-        // אם המשתמש מחובר, מושך את ה-following
-        if (user) {
-          const followingResponse = await axios.get(`${API_BASE_URL}/api/users/${user._id}/following`);
-          setIsFollowing(followingResponse.data.followingSeries.includes(id));
-        }
-    
+
+        const comicsResponse = await axios.get(`${API_BASE_URL}/api/series/${id}/comics`);
+        setComics(comicsResponse.data || []);
         setError('');
       } catch (err) {
-        console.error('Error fetching data:', err);
-        setError(`Failed to fetch data: ${err.response?.data?.message || err.message}`);
+        console.error('Error fetching series/comics:', err);
+        setError(`Failed to fetch series or comics: ${err.response?.data?.message || err.message}`);
       } finally {
         setLoading(false);
       }
     };
-    
-    fetchData();
-  }, [id, user]);    
+
+    fetchSeriesAndComics();
+  }, [id]);
+
+  // ✅ טוען את רשימת הסדרות שהמשתמש עוקב אחריהן
+  useEffect(() => {
+    const fetchFollowingStatus = async () => {
+      if (!user || !user._id) return;
+
+      try {
+        const response = await axios.get(`${API_BASE_URL}/api/users/${user._id}/following`);
+        setIsFollowing(response.data.followingSeries.includes(id));
+      } catch (err) {
+        console.error('Error fetching following status:', err);
+      }
+    };
+
+    fetchFollowingStatus();
+  }, [user, id]);
 
   const handleFollowSeries = async () => {
-    if (!user) {
+    if (!user || !user._id) {
       setError('You must be logged in to follow a series.');
       return;
     }
 
     try {
-      await axios.post(`${API_BASE_URL}/api/users/${user._id}/follow`, { seriesId: id });
+      await axios.post(`${API_BASE_URL}/api/series/${id}/follow`, { userId: user._id });
       setIsFollowing(true);
+      setError('');
     } catch (err) {
       console.error('Error following series:', err);
       setError(`Failed to follow series: ${err.response?.data?.message || err.message}`);
@@ -71,18 +75,21 @@ const SeriesDetail = () => {
 
   return (
     <div className="container mt-4">
-    <Helmet>
-    <title>{series.name} - סדרת קומיקס ב־Comixiad</title>
-    <meta name="description" content={series.description} />
-    <meta property="og:image" content={`${API_BASE_URL}/uploads/${series.coverImage}`} />
-    </Helmet>
+      <Helmet>
+        <title>{series.name} - סדרת קומיקס ב־Comixiad</title>
+        <meta name="description" content={series.description} />
+        <meta property="og:image" content={`${API_BASE_URL}/uploads/${series.coverImage}`} />
+      </Helmet>
+
       <h2>{series.name}</h2>
       <p>{series.description}</p>
+
       <img
-        src={series.coverImage ? `${API_BASE_URL}/uploads/${series.coverImage}` : '/placeholder.jpg'}
+        src={series.coverImage ? `${API_BASE_URL}/uploads/${series.coverImage}` : '../images/placeholder.jpg'}
         alt={series.name}
         className="img-fluid"
       />
+
       <button className="btn btn-primary mt-2" onClick={handleFollowSeries} disabled={isFollowing}>
         {isFollowing ? 'עוקב' : 'עקוב אחרי הסדרה'}
       </button>
@@ -92,11 +99,15 @@ const SeriesDetail = () => {
         {comics.length > 0 ? (
           comics.map((comic) => (
             <div key={comic._id} className="comic-card">
-            <img
-              src={`${API_BASE_URL}/${comic.pages[0]?.url.replace(/\\/g, '/')}`}
-              alt={comic.title}
-              className="comic-image"
-            />
+              <img
+                src={
+                  comic.pages[0]?.url
+                    ? `${API_BASE_URL}/${comic.pages[0].url.replace(/\\/g, '/')}`
+                    : '/images/placeholder.jpg'
+                }
+                alt={comic.title}
+                className="comic-image"
+              />
               <div className="comic-info">
                 <h5>{comic.title}</h5>
                 <p>{comic.description}</p>
