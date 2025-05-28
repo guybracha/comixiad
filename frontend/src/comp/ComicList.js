@@ -61,21 +61,21 @@ const getImageUrl = (comic) => {
               className="text-decoration-none"
             >
               <div className="card mb-4 comic-card">
-                <div className="comic-image-container">
-                  <img
-                    src={getImageUrl(comic)}
-                    className="card-img-top comic-image"
-                    alt={comic.title}
-                    onError={(e) => {
-                      e.target.src = '../images/placeholder.jpg';
-                    }}
-                  />
-                </div>
-                <div className="card-body">
-                  <h5 className="card-title">{comic.title}</h5>
-                  <p className="card-text">{comic.description}</p>
-                </div>
+              <div className="comic-image-container">
+                <img
+                  src={getImageUrl(comic)}
+                  className="card-img-top comic-image"
+                  alt={comic.title}
+                  onError={(e) => {
+                    e.target.src = '../images/placeholder.jpg';
+                  }}
+                />
               </div>
+              <div className="comic-info-box p-3">
+                <h5 className="comic-title text-center">{comic.title}</h5>
+                <p className="comic-description">{comic.description}</p>
+              </div>
+            </div>
             </Link>
           </div>
         ))}

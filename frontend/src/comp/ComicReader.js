@@ -4,7 +4,6 @@ import axios from 'axios';
 import '../ComicReader.css';
 import { Helmet } from 'react-helmet';
 import { API_BASE_URL } from '../Config';
-import { Modal } from 'react-bootstrap';
 import RandomThree from './RandomThree';
 
 const ComicReader = () => {
@@ -13,18 +12,16 @@ const ComicReader = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [imgErrors, setImgErrors] = useState({});
-  const [selectedImage, setSelectedImage] = useState(null);
 
   useEffect(() => {
     const fetchComic = async () => {
       try {
         const response = await axios.get(`${API_BASE_URL}/api/comics/${comicId}`);
         setComic(response.data);
-
         await axios.put(`${API_BASE_URL}/api/comics/${comicId}/view`);
       } catch (err) {
         console.error('Error fetching comic:', err);
-        setError('Failed to load comic');
+        setError('לא ניתן לטעון את הקומיקס');
       } finally {
         setLoading(false);
       }
@@ -33,64 +30,59 @@ const ComicReader = () => {
     fetchComic();
   }, [comicId]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div className="text-center py-5">📚 טוען קומיקס...</div>;
   if (error) return <div className="alert alert-danger">{error}</div>;
 
   return (
     <div className="container mt-4">
       <Helmet>
-      <title>{comic.title} - קומיקס ב־Comixiad</title>
-      <meta name="description" content={comic.description || 'קרא קומיקס ב־Comixiad'} />
+        <title>{comic.title} - קומיקס ב־Comixiad</title>
+        <meta name="description" content={comic.description || 'קרא קומיקס ב־Comixiad'} />
+        <meta property="og:title" content={`${comic.title} - קומיקס ב־Comixiad`} />
+        <meta property="og:description" content={comic.description || 'קרא קומיקס מקורי'} />
+        <meta
+          property="og:image"
+          content={
+            comic.pages[0]?.url
+              ? `${API_BASE_URL}/${comic.pages[0].url.replace(/\\/g, '/')}`
+              : 'https://comixiad.com/default-cover.jpg'
+          }
+        />
+        <meta property="og:url" content={`https://comixiad.com/series/${comic.series}`} />
+        <meta property="og:type" content="article" />
+      </Helmet>
 
-      {/* תגיות Open Graph */}
-      <meta property="og:title" content={`${comic.title} - קומיקס ב־Comixiad`} />
-      <meta property="og:description" content={comic.description || 'קרא קומיקס מקורי'} />
-      <meta
-        property="og:image"
-        content={
-          comic.pages[0]?.url
-            ? `${API_BASE_URL}/${comic.pages[0].url.replace(/\\/g, '/')}`
-            : 'https://comixiad.com/default-cover.jpg'
-        }
-      />
-      <meta property="og:url" content={`https://comixiad.com/series/${comic.series}`} />
-      <meta property="og:type" content="article" />
-    </Helmet>
+      {/* כותרת ותיאור */}
+      <h2>{comic?.title || 'ללא שם'}</h2>
+      <p>{comic?.description || 'אין תיאור זמין'}</p>
 
+      {/* צפיות + כפתורי שיתוף */}
+      <div className="d-flex justify-content-between align-items-center mb-3 share-buttons">
+        <span>📊 צפיות: {comic?.views || 0}</span>
 
-      <h2>{comic?.title || 'Untitled'}</h2>
-      <p>{comic?.description || 'No description available'}</p>
-      <div className="d-flex justify-content-between align-items-center mb-3">
-  <span>Views: {comic?.views || 0}</span>
+        <div className="d-flex gap-2">
+          <a
+            href={`https://www.facebook.com/sharer/sharer.php?u=https://comixiad.com/preview/comic/${comicId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-outline-primary btn-sm"
+          >
+            <i className="bi bi-facebook me-1"></i> שתף בפייסבוק
+          </a>
+          <a
+            href={`https://wa.me/?text=${encodeURIComponent(`📖 ${comic.title} ב־Comixiad: https://comixiad.com/preview/comic/${comicId}`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-outline-success btn-sm"
+          >
+            <i className="bi bi-whatsapp me-1"></i> שתף בוואטסאפ
+          </a>
+        </div>
+      </div>
 
-  <div className="d-flex gap-2">
-    {/* שיתוף לפייסבוק */}
-  <a
-    href={`https://www.facebook.com/sharer/sharer.php?u=https://comixiad.com/preview/comic/${comicId}`}
-    target="_blank"
-    rel="noopener noreferrer"
-    className="btn btn-outline-primary btn-sm"
-  >
-    <i className="bi bi-facebook me-1"></i> שתף בפייסבוק
-  </a>
-
-
-
-    {/* שיתוף לוואטסאפ */}
-    <a
-      href={`https://wa.me/?text=${encodeURIComponent(`📖 ${comic.title} ב־Comixiad: https://comixiad.com/preview/comic/${comicId}`)}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="btn btn-outline-success btn-sm"
-    >
-      <i className="bi bi-whatsapp me-1"></i> שתף בוואטסאפ
-    </a>
-  </div>
-</div>
-
-
+      {/* פרטי היוצר */}
       {comic.author && (
-        <div className="d-flex align-items-center my-3">
+        <div className="author-box">
           <img
             src={
               comic.author.avatar
@@ -100,19 +92,16 @@ const ComicReader = () => {
                 : 'https://www.gravatar.com/avatar/?d=mp'
             }
             alt={comic.author.username}
-            className="rounded-circle me-2"
-            style={{ width: '40px', height: '40px', objectFit: 'cover' }}
             onError={(e) => {
               e.target.onerror = null;
               e.target.src = 'https://www.gravatar.com/avatar/?d=mp';
             }}
           />
-          <a href={`/profile/${comic.author._id}`} className="fw-bold text-decoration-none">
-            {comic.author.username}
-          </a>
+          <a href={`/profile/${comic.author._id}`}>{comic.author.username}</a>
         </div>
       )}
 
+      {/* עמודי הקומיקס */}
       <div className="comic-pages">
         {comic?.pages?.length > 0 ? (
           comic.pages.map((page, index) => {
@@ -131,17 +120,17 @@ const ComicReader = () => {
                     className="img-fluid"
                   />
                 ) : (
-                  <div className="text-danger">
-                    ⚠️ Failed to load page {index + 1}
-                  </div>
+                  <div className="text-danger">⚠️ לא ניתן לטעון עמוד {index + 1}</div>
                 )}
               </div>
             );
           })
         ) : (
-          <p>No pages available</p>
+          <p>אין עמודים להצגה</p>
         )}
       </div>
+
+      {/* קומיקס נוספים אקראיים */}
       <RandomThree />
     </div>
   );
