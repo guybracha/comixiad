@@ -5,6 +5,7 @@ import '../ComicReader.css';
 import { Helmet } from 'react-helmet';
 import { API_BASE_URL } from '../Config';
 import { Modal } from 'react-bootstrap';
+import RandomThree from './RandomThree';
 
 const ComicReader = () => {
   const { id: comicId } = useParams();
@@ -38,10 +39,24 @@ const ComicReader = () => {
   return (
     <div className="container mt-4">
       <Helmet>
-        <title>{comic.title} - קומיקס ב־Comixiad</title>
-        <meta name="description" content={comic.description} />
-        <meta property="og:image" content={`${API_BASE_URL}/${comic.pages[0]?.url}`} />
-      </Helmet>
+      <title>{comic.title} - קומיקס ב־Comixiad</title>
+      <meta name="description" content={comic.description || 'קרא קומיקס ב־Comixiad'} />
+
+      {/* תגיות Open Graph */}
+      <meta property="og:title" content={`${comic.title} - קומיקס ב־Comixiad`} />
+      <meta property="og:description" content={comic.description || 'קרא קומיקס מקורי'} />
+      <meta
+        property="og:image"
+        content={
+          comic.pages[0]?.url
+            ? `${API_BASE_URL}/${comic.pages[0].url.replace(/\\/g, '/')}`
+            : 'https://comixiad.com/default-cover.jpg'
+        }
+      />
+      <meta property="og:url" content={`https://comixiad.com/series/${comic.series}`} />
+      <meta property="og:type" content="article" />
+    </Helmet>
+
 
       <h2>{comic?.title || 'Untitled'}</h2>
       <p>{comic?.description || 'No description available'}</p>
@@ -50,18 +65,20 @@ const ComicReader = () => {
 
   <div className="d-flex gap-2">
     {/* שיתוף לפייסבוק */}
-    <a
-      href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://comixiad.com/comics/${comicId}`)}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="btn btn-outline-primary btn-sm"
-    >
-      <i className="bi bi-facebook me-1"></i> שתף בפייסבוק
-    </a>
+  <a
+    href={`https://www.facebook.com/sharer/sharer.php?u=https://comixiad.com/preview/comic/${comicId}`}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="btn btn-outline-primary btn-sm"
+  >
+    <i className="bi bi-facebook me-1"></i> שתף בפייסבוק
+  </a>
+
+
 
     {/* שיתוף לוואטסאפ */}
     <a
-      href={`https://wa.me/?text=${encodeURIComponent(`📖 ${comic.title} ב־Comixiad: https://comixiad.com/comics/${comicId}`)}`}
+      href={`https://wa.me/?text=${encodeURIComponent(`📖 ${comic.title} ב־Comixiad: https://comixiad.com/preview/comic/${comicId}`)}`}
       target="_blank"
       rel="noopener noreferrer"
       className="btn btn-outline-success btn-sm"
@@ -125,6 +142,7 @@ const ComicReader = () => {
           <p>No pages available</p>
         )}
       </div>
+      <RandomThree />
     </div>
   );
 };

@@ -10,6 +10,7 @@ const EditComic = () => {
   const { comicId } = useParams();
   const navigate = useNavigate();
   const [comic, setComic] = useState(null);
+  const [userSeries, setUserSeries] = useState([]);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [formData, setFormData] = useState({
@@ -17,6 +18,7 @@ const EditComic = () => {
     description: '',
     language: '',
     genre: '',
+    series: '' // ← חדש: שיוך לסדרה
   });
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -45,6 +47,7 @@ const EditComic = () => {
           description: fetchedComic.description,
           language: fetchedComic.language,
           genre: fetchedComic.genre,
+          series: fetchedComic.series || ''
         });
       } catch (err) {
         console.error('Error fetching comic:', err);
@@ -56,6 +59,22 @@ const EditComic = () => {
 
     fetchComic();
   }, [comicId, user._id, navigate]);
+
+  useEffect(() => {
+    const fetchUserSeries = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/api/series?author=${user._id}`);
+        setUserSeries(response.data);
+      } catch (err) {
+        console.error('Error fetching user series:', err);
+      }
+    };
+
+    if (user._id) {
+      fetchUserSeries();
+    }
+  }, [user._id]);
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -157,6 +176,24 @@ const EditComic = () => {
             {genres.map((genre) => (
               <option key={genre.id} value={genre.id}>
                 {genre.emoji} {genre.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="mb-3">
+          <label htmlFor="series" className="form-label">Series (Optional)</label>
+          <select
+            className="form-select"
+            id="series"
+            name="series"
+            value={formData.series}
+            onChange={handleInputChange}
+          >
+            <option value="">Standalone Comic</option>
+            {userSeries.map((s) => (
+              <option key={s._id} value={s._id}>
+                {s.name}
               </option>
             ))}
           </select>

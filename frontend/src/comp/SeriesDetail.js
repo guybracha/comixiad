@@ -5,6 +5,7 @@ import '../SeriesDetail.css';
 import { useUser } from '../context/UserContext';
 import { Helmet } from 'react-helmet';
 import { API_BASE_URL } from '../Config';
+import RandomThree from './RandomThree';
 
 const SeriesDetail = () => {
   const { id } = useParams();
@@ -76,10 +77,20 @@ const SeriesDetail = () => {
   return (
     <div className="container mt-4">
       <Helmet>
-        <title>{series.name} - סדרת קומיקס ב־Comixiad</title>
-        <meta name="description" content={series.description} />
-        <meta property="og:image" content={`${API_BASE_URL}/uploads/${series.coverImage}`} />
-      </Helmet>
+      <meta property="og:title" content={series?.name || 'Comixiad'} />
+      <meta property="og:description" content={series?.description || 'Your platform for reading comics'} />
+      <meta
+        property="og:image"
+        content={
+          series?.coverImage
+            ? `${API_BASE_URL}/uploads/${series.coverImage.replace(/\\/g, '/')}`
+            : 'https://comixiad.com/default-cover.jpg'
+        }
+      />
+      <meta property="og:url" content={`https://comixiad.com/series/${series?._id}`} />
+      <meta property="og:type" content="website" />
+    </Helmet>
+
 
       <h2>{series.name}</h2>
       <p>{series.description}</p>
@@ -119,6 +130,7 @@ const SeriesDetail = () => {
           <p>מצטערים, אין כרגע קומיקסים בסדרה זו...</p>
         )}
       </div>
+      <RandomThree />
     </div>
   );
 };
