@@ -1,23 +1,34 @@
-/* בסיס ה־Navbar */
+/* בסיס ה־Navbar משופר */
 .custom-navbar {
-  background: linear-gradient(to right, #ffffff, #f1f1f1);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid #e0e0e0;
   font-family: 'Segoe UI', sans-serif;
   transition: all 0.3s ease-in-out;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  padding: 0.5rem 1rem;
+  border-radius: 0 0 16px 16px;
 }
 
 .custom-navbar.dark {
-  background: linear-gradient(to right, #1c1c1c, #2c2c2c);
+  background: rgba(28, 28, 28, 0.9);
+  border-bottom: 1px solid #444;
 }
 
+/* לוגו/טקסט */
 .navbar-brand {
   font-weight: 700;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
 }
 
 .brand-gradient {
-  background: linear-gradient(45deg, #ff416c, #ff4b2b);
+  background: linear-gradient(90deg, #ff416c, #ff4b2b, #ff6a00);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  display: inline-block;
 }
 
 /* קישורים */
@@ -25,16 +36,33 @@
   font-size: 1.05rem;
   padding: 8px 14px;
   color: #333 !important;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease-in-out;
   border-radius: 8px;
+  position: relative;
 }
 
-.custom-navbar.dark .nav-link {
-  color: #f1f1f1 !important;
+.nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: 4px;
+  left: 10%;
+  width: 80%;
+  height: 2px;
+  background: linear-gradient(to right, #ff416c, #ff4b2b);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.nav-link:hover::after {
+  opacity: 1;
 }
 
 .nav-link:hover {
   background-color: rgba(0, 0, 0, 0.05);
+}
+
+.custom-navbar.dark .nav-link {
+  color: #f1f1f1 !important;
 }
 
 .custom-navbar.dark .nav-link:hover {
@@ -44,19 +72,26 @@
 /* כפתורים */
 .btn {
   transition: all 0.3s ease-in-out;
+  border-radius: 10px;
 }
 
 .btn:hover {
-  transform: scale(1.05);
+  transform: translateY(-2px) scale(1.05);
 }
 
 /* מתג מצב כהה */
 .dark-toggle {
   background: transparent;
   border: none;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   margin-right: 10px;
   color: #333;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.dark-toggle:hover {
+  transform: rotate(20deg);
 }
 
 .custom-navbar.dark .dark-toggle {
@@ -65,17 +100,18 @@
 
 /* תמונת פרופיל */
 .avatar-thumbnail {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   object-fit: cover;
   margin-left: 12px;
   border: 2px solid #ccc;
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, border-color 0.3s ease;
 }
 
 .avatar-thumbnail:hover {
-  transform: scale(1.1);
+  transform: scale(1.15);
+  border-color: #ff4b2b;
 }
 
 .custom-navbar.dark .avatar-thumbnail {
