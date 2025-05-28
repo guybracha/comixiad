@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import '../Navbar.css';
 import { API_BASE_URL } from '../Config';
+import logo from '../img/logo.jpg'; // נניח שיש לך לוגו בתיקייה assets
 
 const Navbar = () => {
   const { user, logout } = useUser();
@@ -29,7 +30,13 @@ const Navbar = () => {
   return (
     <nav className={`navbar navbar-expand-lg ${darkMode ? 'navbar-dark bg-dark' : 'navbar-light bg-light'} shadow-sm`}>
       <div className="container-fluid">
-        <Link className="navbar-brand brand-gradient" to="/">Comixiad</Link>
+      <Link className="navbar-brand d-flex align-items-center" to="/">
+        <img
+          src={logo}
+          alt="Comixiad Logo"
+          style={{ height: '40px', marginRight: '10px' }}
+        />
+      </Link>
         <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
           <span className="navbar-toggler-icon"></span>
         </button>

@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../SearchResults.css';
 import { API_BASE_URL } from '../Config'
+import RandomThree from './RandomThree';
 
 const SearchResults = () => {
     const location = useLocation();
@@ -128,6 +129,7 @@ const SearchResults = () => {
                     </div>
                 ))}
             </div>
+            <RandomThree/>
         </div>
     );
 };

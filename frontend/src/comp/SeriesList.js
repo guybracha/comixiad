@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Card, Button, Container, Row, Col, Spinner, Alert } from 'react-bootstrap';
 import { API_BASE_URL } from '../Config';
+import '../SeriesList.css';
 
 const SeriesList = () => {
   const [series, setSeries] = useState([]);
@@ -49,7 +50,7 @@ const SeriesList = () => {
       <Row>
         {series.map((seriesItem) => (
           <Col key={seriesItem._id} md={4} className="mb-4">
-            <Card>
+            <Card className='series-card'>
               <Card.Img
                 variant="top"
                 src={`${API_BASE_URL}/uploads/${seriesItem.coverImage}`}

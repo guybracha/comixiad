@@ -6,6 +6,7 @@ import CreatedComicList from './Profile/CreatedComicList';
 import CreatedSeriesList from './Profile/CreatedSeriesList';
 import EditProfileModal from './Profile/EditProfileModal';
 import { API_BASE_URL } from '../Config';
+import '../UserProfile.css'; // Make sure to create this CSS file for styling
 
 const UserProfile = () => {
   const { id } = useParams();
@@ -176,42 +177,44 @@ const UserProfile = () => {
   };
 
   return (
-    <div className="container mt-4">
-      {!profile.username ? (
-        <div className="text-center">...Loading profile</div>
-      ) : (
-        <>
-          <ProfileHeader
-            profile={profile}
-            onEdit={isCurrentUser ? () => setShowModal(true) : null}
+  <div className="user-profile-container">
+    {!profile.username ? (
+      <div className="profile-loading">🔄 טוען פרופיל...</div>
+    ) : (
+      <>
+        <ProfileHeader
+          profile={profile}
+          onEdit={isCurrentUser ? () => setShowModal(true) : null}
+        />
+        <hr />
+        <h3 className="section-title">📚 קומיקסים שפורסמו</h3>
+        <CreatedComicList
+          comics={userComics}
+          currentUserId={profile._id}
+          loggedInUserId={currentUser._id}
+          onDelete={handleDeleteComic}
+        />
+        <hr />
+        <h3 className="section-title">🎞️ סדרות שיצר</h3>
+        <CreatedSeriesList
+          series={userSeries}
+          currentUserId={profile._id}
+          loggedInUserId={currentUser._id}
+          onDelete={isCurrentUser ? handleDeleteSeries : null}
+        />
+        {isCurrentUser && (
+          <EditProfileModal
+            show={showModal}
+            onHide={() => setShowModal(false)}
+            onSubmit={handleFormSubmit}
+            formData={formData}
+            onChange={handleInputChange}
+            onFileChange={handleFileChange}
           />
-          <hr />
-          <CreatedComicList
-            comics={userComics}
-            currentUserId={profile._id}           // של מי הפרופיל שמוצג
-            loggedInUserId={currentUser._id}      // מי המשתמש שמחובר
-            onDelete={handleDeleteComic}          // פונקציית מחיקה אם רלוונטי
-          />
-          <hr />
-          <CreatedSeriesList
-            series={userSeries}
-            currentUserId={profile._id}
-            loggedInUserId={currentUser._id}
-            onDelete={isCurrentUser ? handleDeleteSeries : null}
-          />
-          {isCurrentUser && (
-            <EditProfileModal
-              show={showModal}
-              onHide={() => setShowModal(false)}
-              onSubmit={handleFormSubmit}
-              formData={formData}
-              onChange={handleInputChange}
-              onFileChange={handleFileChange}
-            />
-          )}
-        </>
-      )}
-    </div>
+        )}
+      </>
+    )}
+  </div>
   );
 };
 

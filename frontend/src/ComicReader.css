@@ -1,80 +1,110 @@
-/* קונטיינר התמונות */
+@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;700&display=swap');
+
+/* 🧩 קונטיינר תמונות */
 .comic-pages {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-    justify-content: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  justify-content: center;
+  margin-top: 2rem;
 }
 
-/* תמונת עמוד */
+/* 🖼️ תמונת עמוד קומיקס */
 .comic-page img {
-    max-width: 100%;
-    height: auto;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    cursor: pointer;
+  max-width: 100%;
+  height: auto;
+  border: 5px solid #000;
+  border-radius: 10px;
+  box-shadow: 6px 6px 0 #f72585;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: zoom-in;
 }
 
 .comic-page img:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transform: scale(1.03);
+  box-shadow: 10px 10px 0 #d62828;
 }
 
-/* תצוגת מסך מלא */
+/* 🖥️ מסך מלא */
 .full-size-page {
-    max-width: 100%;
-    height: auto;
-    display: block;
-    margin: 0 auto;
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  border: 5px solid #000;
+  box-shadow: 8px 8px 0 #333;
 }
 
-/* כפתורי הניווט */
+/* ⬅️➡️ כפתורי ניווט */
 .arrow {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background-color: rgba(0, 0, 0, 0.5);
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    cursor: pointer;
-    z-index: 1000;
-    font-size: 1.5rem;
-    transition: background-color 0.3s ease;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: #000;
+  color: #fff;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  padding: 10px 16px;
+  cursor: pointer;
+  z-index: 1000;
+  font-size: 1.8rem;
+  box-shadow: 3px 3px 0 #f72585;
+  transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
 .arrow:hover {
-    background-color: rgba(0, 0, 0, 0.8);
+  background-color: #f72585;
+  color: #000;
+  transform: translateY(-50%) scale(1.1);
 }
 
 .left-arrow {
-    left: 10px;
+  left: 20px;
 }
 
 .right-arrow {
-    right: 10px;
+  right: 20px;
 }
 
-/* תצוגה רספונסיבית */
-@media (max-width: 768px) {
-    .comic-pages {
-        gap: 8px;
-    }
+/* 🧠 טקסט שגיאה */
+.text-danger {
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #d62828;
+  text-align: center;
+  padding: 1rem;
+  background-color: #ffe6e6;
+  border: 2px dashed #000;
+  border-radius: 8px;
+}
 
-    .arrow {
-        padding: 6px 12px;
-        font-size: 1.2rem;
-    }
+/* 📱 רספונסיביות */
+@media (max-width: 768px) {
+  .comic-pages {
+    gap: 16px;
+  }
+
+  .arrow {
+    padding: 8px 12px;
+    font-size: 1.4rem;
+  }
 }
 
 @media (max-width: 480px) {
-    .comic-page img {
-        max-width: 90%;
-    }
+  .comic-page img {
+    max-width: 92%;
+  }
 
-    .arrow {
-        padding: 4px 8px;
-        font-size: 1rem;
-    }
+  .arrow {
+    padding: 6px 10px;
+    font-size: 1.2rem;
+  }
+
+  .left-arrow {
+    left: 10px;
+  }
+
+  .right-arrow {
+    right: 10px;
+  }
 }
