@@ -79,13 +79,13 @@ const UserProfile = () => {
 
   const fetchUserSeries = async (userId) => {
     try {
-        const { data } = await axios.get(`${API_BASE_URL}/api/comics`);
-        const filtered = data.filter(comic => comic.author?._id === userId);
-        setUserComics(filtered);
-      } catch (error) {
-        console.error('Error fetching comics:', error);
-      }
+      const { data } = await axios.get(`${API_BASE_URL}/api/series?author=${userId}`);
+      setUserSeries(data); // ← עכשיו זה הולך למקום הנכון
+    } catch (error) {
+      console.error('Error fetching series:', error);
+    }
   };
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -123,6 +123,24 @@ const UserProfile = () => {
       alert('אירעה שגיאה במחיקה');
     }
   };
+
+  const handleDeleteSeries = async (seriesId) => {
+  if (!window.confirm('האם אתה בטוח שברצונך למחוק את הסדרה?')) return;
+
+  try {
+    await axios.delete(`${API_BASE_URL}/api/series/${seriesId}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+
+    setUserSeries((prev) => prev.filter((s) => s._id !== seriesId));
+  } catch (err) {
+    console.error('שגיאה במחיקת סדרה:', err);
+    alert('אירעה שגיאה בעת המחיקה');
+  }
+};
+
 
   const handleFileChange = (e) => {
     setAvatarFile(e.target.files[0]);
@@ -179,7 +197,7 @@ const UserProfile = () => {
             series={userSeries}
             currentUserId={profile._id}
             loggedInUserId={currentUser._id}
-          // onDelete={handleDeleteSeries} // אם תרצה גם למחוק סדרה
+            onDelete={isCurrentUser ? handleDeleteSeries : null}
           />
           {isCurrentUser && (
             <EditProfileModal
