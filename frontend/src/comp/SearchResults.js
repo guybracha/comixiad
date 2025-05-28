@@ -4,7 +4,7 @@ import axios from 'axios';
 import '../SearchResults.css';
 import { API_BASE_URL } from '../Config'
 import RandomThree from './RandomThree';
-
+import '../SearchResult.css'; // נשתמש באותו CSS כמו קומיקסים אחרים
 const SearchResults = () => {
     const location = useLocation();
     const navigate = useNavigate();
@@ -44,7 +44,8 @@ const SearchResults = () => {
             <h2>תוצאות חיפוש עבור: "{query}"</h2>
 
             <h3>קומיקסים</h3>
-            <div className="results-grid">
+            <div className="results-section">  
+                <div className="results-grid">
                 {comics.map((comic) => (
                     <div key={comic._id} className="result-card">
                         <img
@@ -69,8 +70,10 @@ const SearchResults = () => {
                     </div>
                 ))}
             </div>
+            </div>
 
             <h3>סדרות</h3>
+            <div className="results-section">
             <div className="results-grid">
                 {series.map((seriesItem) => (
                     <div key={seriesItem._id} className="result-card">
@@ -96,8 +99,10 @@ const SearchResults = () => {
                     </div>
                 ))}
             </div>
+            </div>
 
             <h3>משתמשים</h3>
+            <div className="results-section">
             <div className="results-grid">
                 {users.map((user) => (
                     <div key={user._id} className="result-card">
@@ -128,6 +133,7 @@ const SearchResults = () => {
                         </div>
                     </div>
                 ))}
+            </div>
             </div>
             <RandomThree/>
         </div>

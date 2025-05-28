@@ -40,16 +40,18 @@ function CategoryPage() {
 
         if (!genreField) return false;
 
-        if (Array.isArray(genreField)) {
-          return genreField.some(g => g.toLowerCase() === category.toLowerCase());
-        }
+        // הפוך את genre למערך אם הוא מחרוזת
+        const genreArray = Array.isArray(genreField)
+          ? genreField
+          : [genreField];
 
-        return genreField.toLowerCase() === category.toLowerCase();
+        return genreArray.some(g => g.toLowerCase() === category.toLowerCase());
       });
 
       setFilteredComics(filtered);
     }
   }, [comics, category]);
+
 
   return (
     <div className='container'>
