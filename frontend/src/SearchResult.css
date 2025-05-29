@@ -17,6 +17,9 @@
   width: 100%;
   max-width: 300px;
   transition: transform 0.2s ease;
+
+  display: flex; /* ✅ חדש */
+  flex-direction: column; /* ✅ חדש */
 }
 
 .result-card:hover {
@@ -33,7 +36,9 @@
   padding: 1rem;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   height: 100%;
+  flex-grow: 1;
 }
 
 .card-body h5 {
@@ -45,6 +50,8 @@
 .card-body p {
   font-size: 0.9rem;
   color: #555;
+  margin-bottom: 1rem;
+
   flex-grow: 1;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -53,7 +60,8 @@
   -webkit-box-orient: vertical;
 }
 
+
 .card-body button {
   align-self: center;
-  margin-top: 1rem;
+  margin-top: auto;
 }
