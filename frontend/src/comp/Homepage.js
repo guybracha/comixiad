@@ -7,6 +7,7 @@ import About from './About';
 import { Helmet } from 'react-helmet';
 import genres from '../config/Genres';
 import RandomThree from './RandomThree';
+import TopFive from './TopFive';
 
 function Homepage() {
   return (
@@ -24,6 +25,7 @@ function Homepage() {
           העלו את הקומיקס שלכם
         </Link>
       </header>
+      <TopFive/>
       {/* Section 2: Categories */}
       <section className="homepage-categories">
         <h2>קטגוריות פופולריות</h2>
