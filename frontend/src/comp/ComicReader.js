@@ -5,6 +5,7 @@ import '../ComicReader.css';
 import { Helmet } from 'react-helmet';
 import { API_BASE_URL } from '../Config';
 import RandomThree from './RandomThree';
+import { useUser } from '../context/UserContext'; // הוסף למעלה
 
 const ComicReader = () => {
   const { id: comicId } = useParams();
@@ -12,23 +13,61 @@ const ComicReader = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [imgErrors, setImgErrors] = useState({});
+  const { user } = useUser(); // בתוך ComicReader
+  const [hasLiked, setHasLiked] = useState(false); // למעקב אחרי לייק אישי
 
   useEffect(() => {
-    const fetchComic = async () => {
-      try {
-        const response = await axios.get(`${API_BASE_URL}/api/comics/${comicId}`);
-        setComic(response.data);
-        await axios.put(`${API_BASE_URL}/api/comics/${comicId}/view`);
-      } catch (err) {
-        console.error('Error fetching comic:', err);
-        setError('לא ניתן לטעון את הקומיקס');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchComic();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [comicId]);
+
+  useEffect(() => {
+  const fetchComic = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/comics/${comicId}`);
+      setComic(response.data);
+      await axios.put(`${API_BASE_URL}/api/comics/${comicId}/view`);
+
+      if (response.data.likedBy?.includes(user?._id)) {
+        setHasLiked(true);
+      } else {
+        setHasLiked(false);
+      }
+    } catch (err) {
+      console.error('Error fetching comic:', err);
+      setError('לא ניתן לטעון את הקומיקס');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchComic();
+}, [comicId, user?._id]);
+
+
+  const handleLike = async () => {
+  try {
+    const response = await axios.put(`${API_BASE_URL}/api/comics/${comicId}/like`, {
+      userId: user._id,
+    });
+    setComic(response.data);
+    setHasLiked(true);
+  } catch (err) {
+    console.error('Error liking comic:', err);
+  }
+};
+
+const handleUnlike = async () => {
+  try {
+    const response = await axios.put(`${API_BASE_URL}/api/comics/${comicId}/unlike`, {
+      userId: user._id,
+    });
+    setComic(response.data);
+    setHasLiked(false);
+  } catch (err) {
+    console.error('Error unliking comic:', err);
+  }
+};
+
 
   if (loading) return <div className="text-center py-5">📚 טוען קומיקס...</div>;
   if (error) return <div className="alert alert-danger">{error}</div>;
@@ -58,8 +97,20 @@ const ComicReader = () => {
 
       {/* צפיות + כפתורי שיתוף */}
       <div className="d-flex justify-content-between align-items-center mb-3 share-buttons">
-        <span>📊 צפיות: {comic?.views || 0}</span>
+      <span>📊 צפיות: {comic?.views || 0}</span>
+        <span>❤️ לייקים: {comic?.likes || 0}</span>
 
+        {user && (
+          hasLiked ? (
+            <button className="btn btn-outline-danger btn-sm" onClick={handleUnlike}>
+              הסר לייק
+            </button>
+          ) : (
+            <button className="btn btn-outline-success btn-sm" onClick={handleLike}>
+              לייק
+            </button>
+          )
+        )}
         <div className="d-flex gap-2">
           <a
             href={`https://www.facebook.com/sharer/sharer.php?u=https://comixiad.com/preview/comic/${comicId}`}
