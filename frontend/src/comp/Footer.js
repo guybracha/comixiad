@@ -1,6 +1,6 @@
 import React from 'react';
 import { Container, Row, Col } from 'react-bootstrap';
-import { FaFacebook, FaGithub, FaInstagram, FaTwitter } from 'react-icons/fa';
+import { FaFacebook, FaInstagram } from 'react-icons/fa';
 import '../Footer.css';
 
 function Footer() {
@@ -13,7 +13,7 @@ function Footer() {
             <p className="small">
               פלטפורמה ליצירה ושיתוף של קומיקס
               <br />
-              כל הזכויות שמורות © 2024
+              כל הזכויות שמורות לגיא ברכה © 2025-2024
             </p>
           </Col>
           
@@ -24,12 +24,6 @@ function Footer() {
               <a href="https://www.instagram.com/brachaverse/" className="social-icon"><FaInstagram size={24} /></a>
             </div>
           </Col>
-          <Col md={4} className="mb-3 social-links">
-          <h5 className='text-primary'>קוד מקור</h5>
-          <div className='d-flex justify-content-center justify-content-md-start gap-3'>
-            <a href='https://github.com/guybracha/comixiad'><FaGithub size={24}/></a>
-          </div>
-        </Col>
         </Row>
       </Container>
     </footer>
