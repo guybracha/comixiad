@@ -55,21 +55,37 @@ const SeriesDetail = () => {
     fetchFollowingStatus();
   }, [user, id]);
 
-  const handleFollowSeries = async () => {
-    if (!user || !user._id) {
-      setError('You must be logged in to follow a series.');
-      return;
-    }
+      const handleFollowSeries = async () => {
+      if (!user || !user._id) {
+        setError('You must be logged in to follow a series.');
+        return;
+      };
 
-    try {
-      await axios.post(`${API_BASE_URL}/api/series/${id}/follow`, { userId: user._id });
-      setIsFollowing(true);
-      setError('');
-    } catch (err) {
-      console.error('Error following series:', err);
-      setError(`Failed to follow series: ${err.response?.data?.message || err.message}`);
-    }
-  };
+      try {
+        await axios.post(`${API_BASE_URL}/api/series/${id}/follow`, { userId: user._id });
+        setIsFollowing(true);
+        setError('');
+      } catch (err) {
+        console.error('Error following series:', err);
+        setError(`Failed to follow series: ${err.response?.data?.message || err.message}`);
+      }
+    };
+
+    const handleUnfollowSeries = async () => {
+      if (!user || !user._id) {
+        setError('You must be logged in to unfollow a series.');
+        return;
+      }
+
+      try {
+        await axios.post(`${API_BASE_URL}/api/series/${id}/unfollow`, { userId: user._id });
+        setIsFollowing(false);
+        setError('');
+      } catch (err) {
+        console.error('Error unfollowing series:', err);
+        setError(`Failed to unfollow series: ${err.response?.data?.message || err.message}`);
+      }
+    };
 
   if (loading) return <div className="loading">טוען...</div>;
   if (error) return <div className="alert alert-danger">{error}</div>;
@@ -95,15 +111,26 @@ const SeriesDetail = () => {
       <h2>{series.name}</h2>
       <p>{series.description}</p>
 
+      {series.followers && (
+        <div className="mt-2 text-muted">
+          📢 {series.followers.length} עוקבים לסדרה זו
+        </div>
+      )}
+      
+      {isFollowing ? (
+        <button className="btn btn-outline-secondary mt-2" onClick={handleUnfollowSeries}>
+          בטל מעקב
+        </button>
+      ) : (
+        <button className="btn btn-primary mt-2" onClick={handleFollowSeries}>
+          עקוב אחרי הסדרה
+        </button>
+      )}
       <img
         src={series.coverImage ? `${API_BASE_URL}/uploads/${series.coverImage}` : '../images/placeholder.jpg'}
         alt={series.name}
         className="img-fluid"
       />
-
-      <button className="btn btn-primary mt-2" onClick={handleFollowSeries} disabled={isFollowing}>
-        {isFollowing ? 'עוקב' : 'עקוב אחרי הסדרה'}
-      </button>
 
       <h3 className="mt-4">קומיקסים בסדרה זו:</h3>
       <div className="comics-grid">
