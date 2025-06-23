@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Card, Row, Col } from 'react-bootstrap';
 import { API_BASE_URL } from '../Config';
+import { useTranslation } from 'react-i18next';
 
 function TopFive() {
   const [topComics, setTopComics] = useState([]);
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     const fetchTopComics = async () => {
@@ -35,7 +37,7 @@ function TopFive() {
 
   return (
     <div className="container mt-4">
-      <h3 className="mb-3">Top 5 Most Viewed Comics</h3>
+      <h3 className="mb-3">{t('topFiveTitle')}</h3>
       <Row xs={1} sm={2} md={3} lg={5} className="g-3">
         {topComics.map((comic, index) => (
           <Col key={comic._id}>
@@ -50,8 +52,11 @@ function TopFive() {
               <Card.Body className="text-center">
                 <Card.Title>{`${comic.title} ${index + 1}`}</Card.Title>
                 <Card.Text>
-                  <strong>VIEWS:</strong> {comic.views}
-                </Card.Text>
+                  <strong>{t('views')}: </strong>{''}
+                 {comic.views.toLocaleString(
+                  i18n.language === 'he' ? 'he-IL' : 'en-US'
+                  )}
+                  </Card.Text>
               </Card.Body>
             </Card>
           </Col>

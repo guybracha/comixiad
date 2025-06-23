@@ -1,0 +1,79 @@
+{
+  "bannerTitle": "ברוכים הבאים ל־Comixiad!",
+  "bannerSubtitle": "הפלטפורמה שלכם לקרוא, לשתף וליצור קומיקס מכל העולם.",
+  "uploadBtn": "העלו את הקומיקס שלכם",
+  "popularCats": "קטגוריות פופולריות",
+  "featuredComics": "קומיקסים מומלצים",
+  "houseSeries": "סדרות הבית שלנו",
+  "topFiveTitle": "חמשת הקומיקסים הנצפים ביותר",
+  "views": "צפיות",
+
+  "genres": {
+    "action": "פעולה",
+    "adventure": "הרפתקאות",
+    "comedy": "קומדיה",
+    "drama": "דרמה",
+    "fantasy": "פנטזיה",
+    "horror": "אימה",
+    "romance": "רומנטיקה",
+    "scifi": "מדע בדיוני",
+    "superhero": "גיבורי-על",
+    "thriller": "מותחן"
+  },
+    "nav": {
+    "home": "בית",
+    "upload": "העלה קומיקס",
+    "createSeries": "צור סדרה",
+    "profile": "פרופיל",
+    "search": "חפש…",
+    "searchBtn": "חיפוש",
+    "dark": "מצב כהה",
+    "light": "מצב בהיר",
+    "login": "התחבר",
+    "register": "הרשמה",
+    "logout": "התנתק"
+  },
+  "random": {
+    "title": "קומיקסים אקראיים",
+    "loading": "טוען קומיקסים אקראיים...",
+    "none": "אין קומיקסים זמינים",
+    "readBtn": "קרא קומיקס"
+  },
+  "profile": {
+    "loading": "טוען פרופיל...",
+    "postedComics": "קומיקסים שפורסמו",
+    "createdSeries": "סדרות שיצר",
+    "confirmDeleteComic": "האם אתה בטוח שברצונך למחוק קומיקס זה?",
+    "confirmDeleteSeries": "האם אתה בטוח שברצונך למחוק את הסדרה?",
+    "errorDelete": "אירעה שגיאה במחיקה."
+  },
+  "upload": {
+    "title": "העלה קומיקס",
+    "comicName": "שם קומיקס",
+    "description": "תיאור",
+    "language": "שפה",
+    "chooseLanguage": "בחר שפה",
+    "genre": "ז׳אנר",
+    "chooseGenre": "בחר ז׳אנר",
+    "pages": "עמודים",
+    "seriesOpt": "סדרה (אופציונלי)",
+    "chooseSeries": "בחר סדרה",
+    "submit": "העלה קומיקס",
+    "createSeries": "צור סדרה",
+    "success": "הקומיקס הועלה בהצלחה!",
+    "fail": "ההעלאה נכשלה. נסה שוב.",
+    "adultLabel": "תוכן למבוגרים (18+)",
+    "adultHint":  "סמן אם הקומיקס מיועד למבוגרים"
+  },
+  "search": {
+    "loading": "טוען...",
+    "error": "השגת התוצאות נכשלה. נסה מאוחר יותר.",
+    "resultsFor": "תוצאות חיפוש עבור: \"{{query}}\"",
+    "comics": "קומיקסים",
+    "series": "סדרות",
+    "users": "משתמשים",
+    "viewComic": "צפה בקומיקס",
+    "viewSeries": "צפה בסדרה",
+    "viewProfile": "צפה בפרופיל"
+  }
+}

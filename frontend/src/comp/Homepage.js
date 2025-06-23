@@ -1,37 +1,51 @@
 import React from 'react';
-import ComicList from './ComicList';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import '../Homepage.css';
-import SeriesList from './SeriesList';
-import About from './About';
 import { Helmet } from 'react-helmet';
-import genres from '../config/Genres';
+import ComicList from './ComicList';
+import SeriesList from './SeriesList';
 import RandomThree from './RandomThree';
 import TopFive from './TopFive';
+import LanguageSwitcher from './LanguageSwitcher';
+import genres from '../config/Genres';
+import '../Homepage.css';
 
 function Homepage() {
+  const { t } = useTranslation();
+
   return (
     <div className="homepage">
       <Helmet>
-        <title>Comixiad - קהילת הקומיקס שלכם</title>
-        <meta name="description" content="קראו, שתפו וצרו קומיקסים ייחודיים עם יוצרים מרחבי העולם." />
-        <meta name="keywords" content="קומיקס, קומיקס ישראלי, manga, comic book, artist, יצירה" />
+        <title>Comixiad</title>
+        <meta
+          name="description"
+          content={t('bannerSubtitle')}
+        />
+        <html lang={document.documentElement.lang} />
       </Helmet>
-      {/* Section 1: Banner */}
-      <header className="homepage-banner">
-        <h1>ברוכים הבאים ל-Comixiad!</h1>
-        <p>הפלטפורמה שלכם לקרוא, לשתף וליצור קומיקס מכל העולם.</p>
+
+      {/* Banner */}
+      <header className="homepage-banner text-center">
+        <LanguageSwitcher /> {/* מראה תמיד בפינה */}
+        <h1>{t('bannerTitle')}</h1>
+        <p>{t('bannerSubtitle')}</p>
         <Link to="/upload" className="btn btn-primary mt-3">
-          העלו את הקומיקס שלכם
+          {t('uploadBtn')}
         </Link>
       </header>
-      <TopFive/>
-      {/* Section 2: Categories */}
+
+      <TopFive />
+
+      {/* Categories */}
       <section className="homepage-categories">
-        <h2>קטגוריות פופולריות</h2>
+        <h2>{t('popularCats')}</h2>
         <div className="categories-list">
           {genres.map((genre) => (
-            <Link key={genre.id} to={`/category/${genre.id}`} className="category-card">
+            <Link
+              key={genre.id}
+              to={`/category/${genre.id}`}
+              className="category-card"
+            >
               <span>{genre.emoji}</span>
               {genre.label}
             </Link>
@@ -39,24 +53,22 @@ function Homepage() {
         </div>
       </section>
 
-      {/* Section 3: Featured Comics */}
+      {/* Featured */}
       <section className="homepage-featured">
-        <div className='container'>
-        <h2>קומיקסים מומלצים</h2>
-        <ComicList />
+        <div className="container">
+          <h2>{t('featuredComics')}</h2>
+          <ComicList />
         </div>
-        </section>
+      </section>
 
-        <section className="homepage-featured">
-        <div className='container'>
-        <h2>סדרות הבית שלנו</h2>
-        <SeriesList />
+      <section className="homepage-featured">
+        <div className="container">
+          <h2>{t('houseSeries')}</h2>
+          <SeriesList />
         </div>
-        </section>
-        <RandomThree />
-        <div>
-        <About />
-      </div>
+      </section>
+
+      <RandomThree />
     </div>
   );
 }
