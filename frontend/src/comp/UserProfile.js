@@ -1,15 +1,21 @@
+// src/comp/UserProfile.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+
 import ProfileHeader from './Profile/ProfileHeader';
 import CreatedComicList from './Profile/CreatedComicList';
 import CreatedSeriesList from './Profile/CreatedSeriesList';
 import EditProfileModal from './Profile/EditProfileModal';
-import { API_BASE_URL } from '../Config';
-import '../UserProfile.css'; // Make sure to create this CSS file for styling
 
-const UserProfile = () => {
+import { API_BASE_URL } from '../Config';
+import '../UserProfile.css';
+
+function UserProfile() {
+  const { t, i18n } = useTranslation();
   const { id } = useParams();
+
   const [profile, setProfile] = useState({});
   const [userComics, setUserComics] = useState([]);
   const [userSeries, setUserSeries] = useState([]);
@@ -20,6 +26,9 @@ const UserProfile = () => {
 
   const isCurrentUser = currentUser?._id === id;
 
+  /* -------------------------------------------------- */
+  /*                 LOADERS                            */
+  /* -------------------------------------------------- */
   useEffect(() => {
     const loadProfile = async () => {
       try {
@@ -37,24 +46,21 @@ const UserProfile = () => {
             deviantart: data.socialLinks?.deviantart || ''
           }
         });
-      } catch (error) {
-        console.error('Error loading profile:', error);
+      } catch (err) {
+        console.error(err);
       }
     };
 
     const loadCurrentUser = async () => {
       const token = localStorage.getItem('token');
       if (!token) return;
-
       try {
         const { data } = await axios.get(`${API_BASE_URL}/api/users/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+          headers: { Authorization: `Bearer ${token}` }
         });
         setCurrentUser(data);
-      } catch (error) {
-        console.error('Error loading current user:', error);
+      } catch (err) {
+        console.error(err);
       }
     };
 
@@ -71,34 +77,36 @@ const UserProfile = () => {
 
   const fetchUserComics = async (userId) => {
     try {
-      const { data } = await axios.get(`${API_BASE_URL}/api/comics?author=${userId}`);
+      const { data } = await axios.get(
+        `${API_BASE_URL}/api/comics?author=${userId}`
+      );
       setUserComics(data);
-    } catch (error) {
-      console.error('Error fetching comics:', error);
+    } catch (err) {
+      console.error(err);
     }
   };
 
   const fetchUserSeries = async (userId) => {
     try {
-      const { data } = await axios.get(`${API_BASE_URL}/api/series?author=${userId}`);
-      setUserSeries(data); // ← עכשיו זה הולך למקום הנכון
-    } catch (error) {
-      console.error('Error fetching series:', error);
+      const { data } = await axios.get(
+        `${API_BASE_URL}/api/series?author=${userId}`
+      );
+      setUserSeries(data);
+    } catch (err) {
+      console.error(err);
     }
   };
 
-
+  /* -------------------------------------------------- */
+  /*                 HANDLERS                           */
+  /* -------------------------------------------------- */
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-
     if (name.startsWith('socialLinks.')) {
-      const socialKey = name.split('.')[1];
+      const key = name.split('.')[1];
       setFormData((prev) => ({
         ...prev,
-        socialLinks: {
-          ...prev.socialLinks,
-          [socialKey]: value
-        }
+        socialLinks: { ...prev.socialLinks, [key]: value }
       }));
     } else if (name === 'favoriteGenres') {
       setFormData((prev) => ({
@@ -106,60 +114,42 @@ const UserProfile = () => {
         favoriteGenres: value.split(',').map((g) => g.trim())
       }));
     } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value
-      }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
-   const handleDeleteComic = async (comicId) => {
-    if (!window.confirm('האם אתה בטוח שברצונך למחוק קומיקס זה?')) return;
-
+  const handleDeleteComic = async (comicId) => {
+    if (!window.confirm(t('profile.confirmDeleteComic'))) return;
     try {
       await axios.delete(`${API_BASE_URL}/api/comics/${comicId}`);
-      setUserComics((prev) => prev.filter((comic) => comic._id !== comicId));
+      setUserComics((prev) => prev.filter((c) => c._id !== comicId));
     } catch (err) {
-      console.error('שגיאה במחיקת קומיקס:', err);
-      alert('אירעה שגיאה במחיקה');
+      console.error(err);
+      alert(t('profile.errorDelete'));
     }
   };
 
   const handleDeleteSeries = async (seriesId) => {
-  if (!window.confirm('האם אתה בטוח שברצונך למחוק את הסדרה?')) return;
-
-  try {
-    await axios.delete(`${API_BASE_URL}/api/series/${seriesId}`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`
-      }
-    });
-
-    setUserSeries((prev) => prev.filter((s) => s._id !== seriesId));
-  } catch (err) {
-    console.error('שגיאה במחיקת סדרה:', err);
-    alert('אירעה שגיאה בעת המחיקה');
-  }
-};
-
-
-  const handleFileChange = (e) => {
-    setAvatarFile(e.target.files[0]);
+    if (!window.confirm(t('profile.confirmDeleteSeries'))) return;
+    try {
+      await axios.delete(`${API_BASE_URL}/api/series/${seriesId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      setUserSeries((prev) => prev.filter((s) => s._id !== seriesId));
+    } catch (err) {
+      console.error(err);
+      alert(t('profile.errorDelete'));
+    }
   };
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     try {
       const form = new FormData();
-      form.append('username', formData.username);
-      form.append('email', formData.email);
-      form.append('bio', formData.bio);
-      form.append('location', formData.location);
-      form.append('favoriteGenres', JSON.stringify(formData.favoriteGenres));
-      form.append('socialLinks', JSON.stringify(formData.socialLinks));
-      if (avatarFile) {
-        form.append('avatar', avatarFile);
-      }
+      Object.entries(formData).forEach(([k, v]) =>
+        form.append(k, typeof v === 'string' ? v : JSON.stringify(v))
+      );
+      if (avatarFile) form.append('avatar', avatarFile);
 
       await axios.put(`${API_BASE_URL}/api/users/${profile._id}`, form, {
         headers: {
@@ -169,53 +159,58 @@ const UserProfile = () => {
       });
 
       setShowModal(false);
-      const updated = await axios.get(`${API_BASE_URL}/api/users/${profile._id}`);
+      const updated = await axios.get(
+        `${API_BASE_URL}/api/users/${profile._id}`
+      );
       setProfile(updated.data);
-    } catch (error) {
-      console.error('Error updating profile:', error);
+    } catch (err) {
+      console.error(err);
     }
   };
 
+  /* -------------------------------------------------- */
+  /*                 RENDER                             */
+  /* -------------------------------------------------- */
+  if (!profile.username)
+    return <div className="profile-loading">🔄 {t('profile.loading')}</div>;
+
   return (
-  <div className="user-profile-container">
-    {!profile.username ? (
-      <div className="profile-loading">🔄 טוען פרופיל...</div>
-    ) : (
-      <>
-        <ProfileHeader
-          profile={profile}
-          onEdit={isCurrentUser ? () => setShowModal(true) : null}
+    <div className="user-profile-container">
+      <ProfileHeader
+        profile={profile}
+        onEdit={isCurrentUser ? () => setShowModal(true) : null}
+      />
+
+      <hr />
+      <h3 className="section-title">📚 {t('profile.postedComics')}</h3>
+      <CreatedComicList
+        comics={userComics}
+        currentUserId={profile._id}
+        loggedInUserId={currentUser._id}
+        onDelete={handleDeleteComic}
+      />
+
+      <hr />
+      <h3 className="section-title">🎞️ {t('profile.createdSeries')}</h3>
+      <CreatedSeriesList
+        series={userSeries}
+        currentUserId={profile._id}
+        loggedInUserId={currentUser._id}
+        onDelete={isCurrentUser ? handleDeleteSeries : null}
+      />
+
+      {isCurrentUser && (
+        <EditProfileModal
+          show={showModal}
+          onHide={() => setShowModal(false)}
+          onSubmit={handleFormSubmit}
+          formData={formData}
+          onChange={handleInputChange}
+          onFileChange={(e) => setAvatarFile(e.target.files[0])}
         />
-        <hr />
-        <h3 className="section-title">📚 קומיקסים שפורסמו</h3>
-        <CreatedComicList
-          comics={userComics}
-          currentUserId={profile._id}
-          loggedInUserId={currentUser._id}
-          onDelete={handleDeleteComic}
-        />
-        <hr />
-        <h3 className="section-title">🎞️ סדרות שיצר</h3>
-        <CreatedSeriesList
-          series={userSeries}
-          currentUserId={profile._id}
-          loggedInUserId={currentUser._id}
-          onDelete={isCurrentUser ? handleDeleteSeries : null}
-        />
-        {isCurrentUser && (
-          <EditProfileModal
-            show={showModal}
-            onHide={() => setShowModal(false)}
-            onSubmit={handleFormSubmit}
-            formData={formData}
-            onChange={handleInputChange}
-            onFileChange={handleFileChange}
-          />
-        )}
-      </>
-    )}
-  </div>
+      )}
+    </div>
   );
-};
+}
 
 export default UserProfile;

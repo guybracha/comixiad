@@ -1,143 +1,158 @@
+// src/comp/SearchResults.js
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { useUser } from '../context/UserContext';
 import axios from 'axios';
-import '../SearchResults.css';
-import { API_BASE_URL } from '../Config'
+import { API_BASE_URL } from '../Config';
 import RandomThree from './RandomThree';
-import '../SearchResult.css'; // נשתמש באותו CSS כמו קומיקסים אחרים
-const SearchResults = () => {
-    const location = useLocation();
-    const navigate = useNavigate();
-    const query = new URLSearchParams(location.search).get('query');
-    const [comics, setComics] = useState([]);
-    const [series, setSeries] = useState([]);
-    const [users, setUsers] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+import '../SearchResults.css';
 
-    useEffect(() => {
-        const fetchSearchResults = async () => {
-            try {
-                const response = await axios.get(`${API_BASE_URL}/api/search?query=${encodeURIComponent(query)}`);
-                const { comics, series, users } = response.data;
+function SearchResults() {
+  const { t }          = useTranslation();
+  const { user }       = useUser();           // ➜ כאן נגלה isAdult
+  const location       = useLocation();
+  const navigate       = useNavigate();
+  const query          = new URLSearchParams(location.search).get('query') || '';
+  const [comics,  setComics]  = useState([]);
+  const [series,  setSeries]  = useState([]);
+  const [users,   setUsers]   = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState('');
 
-                setComics(comics);
-                setSeries(series);
-                setUsers(users);
-                setError('');
-            } catch (err) {
-                console.error('Error fetching search results:', err);
-                setError('Failed to fetch search results. Please try again later.');
-            } finally {
-                setLoading(false);
-            }
-        };
+  /* -------------------------------- fetch -------------------------------- */
+  useEffect(() => {
+    const fetchSearchResults = async () => {
+      try {
+        const { data } = await axios.get(
+          `${API_BASE_URL}/api/search?query=${encodeURIComponent(query)}`
+        );
+        setComics(data.comics);
+        setSeries(data.series);
+        setUsers(data.users);
+        setError('');
+      } catch (err) {
+        console.error(err);
+        setError(t('search.error'));
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSearchResults();
+  }, [query, t]);
 
-        fetchSearchResults();
-    }, [query]);
+  /* ----------------------------- helper fn ------------------------------- */
+  const filterAdult = (item) =>
+    !item.adultOnly || user?.isAdult; // מציג אם לא 18+ או שהמשתמש בגיר
 
-    if (loading) return <div>טוען...</div>;
-    if (error) return <div className="alert alert-danger">{error}</div>;
+  if (loading) return <div>{t('search.loading')}</div>;
+  if (error)   return <div className="alert alert-danger">{error}</div>;
 
-    return (
-        <div className="container mt-4">
-            <h2>תוצאות חיפוש עבור: "{query}"</h2>
+  return (
+    <div className="container mt-4">
+      <h2>
+        {t('search.resultsFor', { query })}
+      </h2>
 
-            <h3>קומיקסים</h3>
-            <div className="results-section">  
-                <div className="results-grid">
-                {comics.map((comic) => (
-                    <div key={comic._id} className="result-card">
-                        <img
-                            src={
-                            comic.pages[0]?.url
-                                ? `${API_BASE_URL}/${comic.pages[0].url.replace(/\\/g, '/')}`
-                                : 'https://www.gravatar.com/avatar/?d=mp'
-                            }
-                            alt={comic.title}
-                            className="result-image"
-                            />
-                        <div className="card-body">
-                            <h5>{comic.title}</h5>
-                            <p>{comic.description}</p>
-                            <button 
-                                className="btn btn-primary"
-                                onClick={() => navigate(`/comics/${comic._id}`)}
-                            >
-                                ראה קומיקס
-                            </button>
-                        </div>
-                    </div>
-                ))}
+      {/* ------------ COMICS ------------- */}
+      <h3>{t('search.comics')}</h3>
+      <div className="results-section">
+        <div className="results-grid">
+          {comics.filter(filterAdult).map((c) => (
+            <div key={c._id} className="result-card">
+              <img
+                src={
+                  c.pages?.[0]?.url
+                    ? `${API_BASE_URL}/${c.pages[0].url.replace(/\\/g, '/')}`
+                    : '/images/placeholder.jpg'
+                }
+                alt={c.title}
+                className="result-image"
+              />
+              <div className="card-body">
+                <h5>{c.title} {c.adultOnly && '🔞'}</h5>
+                <p>{c.description}</p>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => navigate(`/comics/${c._id}`)}
+                >
+                  {t('search.viewComic')}
+                </button>
+              </div>
             </div>
-            </div>
-
-            <h3>סדרות</h3>
-            <div className="results-section">
-            <div className="results-grid">
-                {series.map((seriesItem) => (
-                    <div key={seriesItem._id} className="result-card">
-                        <img
-                            src={
-                            seriesItem.coverImage
-                                ? `${API_BASE_URL}/uploads/${seriesItem.coverImage}`
-                                : 'https://www.gravatar.com/avatar/?d=mp'
-                            }
-                        alt={seriesItem.name}
-                        className="result-image"
-                        />
-                        <div className="card-body">
-                            <h5>{seriesItem.name}</h5>
-                            <p>{seriesItem.description}</p>
-                            <button 
-                                className="btn btn-primary"
-                                onClick={() => navigate(`/series/${seriesItem._id}`)}
-                            >
-                                ראה סדרה
-                            </button>
-                        </div>
-                    </div>
-                ))}
-            </div>
-            </div>
-
-            <h3>משתמשים</h3>
-            <div className="results-section">
-            <div className="results-grid">
-                {users.map((user) => (
-                    <div key={user._id} className="result-card">
-                        <img
-                            src={
-                            user.avatar
-                                ? user.avatar.startsWith('http')
-                                ? user.avatar
-                                : `${API_BASE_URL}/${user.avatar.replace(/\\/g, '/')}`
-                                : 'https://www.gravatar.com/avatar/?d=mp'
-                            }
-                            alt={user.username}
-                            className="result-image"
-                                onError={(e) => {
-                                e.target.onerror = null;
-                                e.target.src = 'https://www.gravatar.com/avatar/?d=mp';
-                                }}
-                        />
-                        <div className="card-body">
-                            <h5>{user.username}</h5>
-                            <p>{user.bio}</p>
-                            <button 
-                                className="btn btn-primary"
-                                onClick={() => navigate(`/profile/${user._id}`)}
-                            >
-                                ראה פרופיל
-                            </button>
-                        </div>
-                    </div>
-                ))}
-            </div>
-            </div>
-            <RandomThree/>
+          ))}
         </div>
-    );
-};
+      </div>
+
+      {/* ------------ SERIES ------------- */}
+      <h3>{t('search.series')}</h3>
+      <div className="results-section">
+        <div className="results-grid">
+          {series.filter(filterAdult).map((s) => (
+            <div key={s._id} className="result-card">
+              <img
+                src={
+                  s.coverImage
+                    ? `${API_BASE_URL}/uploads/${s.coverImage}`
+                    : '/images/placeholder.jpg'
+                }
+                alt={s.name}
+                className="result-image"
+              />
+              <div className="card-body">
+                <h5>{s.name} {s.adultOnly && '🔞'}</h5>
+                <p>{s.description}</p>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => navigate(`/series/${s._id}`)}
+                >
+                  {t('search.viewSeries')}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ------------ USERS ------------- */}
+      <h3>{t('search.users')}</h3>
+      <div className="results-section">
+        <div className="results-grid">
+          {users.map((u) => (
+            <div key={u._id} className="result-card">
+              <img
+                src={
+                  u.avatar?.startsWith('http')
+                    ? u.avatar
+                    : u.avatar
+                    ? `${API_BASE_URL}/${u.avatar.replace(/\\/g, '/')}`
+                    : 'https://www.gravatar.com/avatar/?d=mp'
+                }
+                alt={u.username}
+                className="result-image"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = 'https://www.gravatar.com/avatar/?d=mp';
+                }}
+              />
+              <div className="card-body">
+                <h5>{u.username}</h5>
+                <p>{u.bio}</p>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => navigate(`/profile/${u._id}`)}
+                >
+                  {t('search.viewProfile')}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <RandomThree />
+    </div>
+  );
+}
 
 export default SearchResults;
