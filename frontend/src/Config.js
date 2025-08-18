@@ -1,6 +1,5 @@
-const API_BASE_URL =
-  process.env.NODE_ENV === 'development'
-    ? 'http://localhost:5000'
-    : 'https://api.comixiad.com'; // ← שים לב ל-https!
+export const API_BASE_URL =
+  process.env.REACT_APP_API_URL || "https://api.comixiad.com";
 
-export { API_BASE_URL };
+// בדיקת דיאגנוסטיקה חד-פעמית
+console.log("API_BASE_URL =", API_BASE_URL);

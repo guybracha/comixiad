@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Card, Row, Col } from 'react-bootstrap';
 import { API_BASE_URL } from '../Config';
 import { useTranslation } from 'react-i18next';
+import '../TopFive.css';
 
 function TopFive() {
   const [topComics, setTopComics] = useState([]);
@@ -21,7 +21,6 @@ function TopFive() {
     fetchTopComics();
   }, []);
 
-  // ✅ מחזיר את כתובת התמונה של עמוד 1 (fallback אם אין)
   const getImageUrl = (comic) => {
     if (!comic?.pages?.[0]) return '/images/placeholder.jpg';
 
@@ -36,32 +35,35 @@ function TopFive() {
   };
 
   return (
-    <div className="container mt-4">
-      <h3 className="mb-3">{t('topFiveTitle')}</h3>
-      <Row xs={1} sm={2} md={3} lg={5} className="g-3">
+    <div className="top-five-container container mt-4">
+      <h2 className="top-five-title">🔥 {t('topFiveTitle')}</h2>
+      <div className="row g-4">
         {topComics.map((comic, index) => (
-          <Col key={comic._id}>
-            <Card className="h-100">
-              <Card.Img
-                variant="top"
+          <div className="col-6 col-md-4 col-lg-2" key={comic._id}>
+            <div className="comic-card-top">
+              <div className={`rank-badge rank-${index + 1}`}>
+                #{index + 1}
+              </div>
+              <img
                 src={getImageUrl(comic)}
                 alt={comic.title}
-                onError={(e) => { e.target.src = '/images/placeholder.jpg'; }}
-                style={{ height: '200px', objectFit: 'cover' }}
+                className="comic-top-img"
+                onError={(e) => {
+                  e.target.src = '/images/placeholder.jpg';
+                }}
               />
-              <Card.Body className="text-center">
-                <Card.Title>{`${comic.title} ${index + 1}`}</Card.Title>
-                <Card.Text>
-                  <strong>{t('views')}: </strong>{''}
-                 {comic.views.toLocaleString(
-                  i18n.language === 'he' ? 'he-IL' : 'en-US'
+              <div className="comic-info">
+                <h5 className="comic-title">{comic.title}</h5>
+                <p className="comic-views">
+                  👁 {comic.views.toLocaleString(
+                    i18n.language === 'he' ? 'he-IL' : 'en-US'
                   )}
-                  </Card.Text>
-              </Card.Body>
-            </Card>
-          </Col>
+                </p>
+              </div>
+            </div>
+          </div>
         ))}
-      </Row>
+      </div>
     </div>
   );
 }
