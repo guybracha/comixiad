@@ -1,4 +1,4 @@
-// src/comp/Navbar.js   (או הנתיב שבו הקובץ יושב)
+// src/comp/Navbar.js
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
@@ -6,6 +6,9 @@ import { useTranslation } from 'react-i18next';
 import '../Navbar.css';
 import { API_BASE_URL } from '../Config';
 import logo from '../img/logo.jpg';
+
+const baseLang = (lng = 'en') => lng.toLowerCase().split('-')[0];
+const isRTL = (lng) => ['he', 'ar', 'fa', 'ur'].includes(baseLang(lng));
 
 const Navbar = () => {
   const { t, i18n } = useTranslation();
@@ -27,13 +30,28 @@ const Navbar = () => {
   };
 
   const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    document.body.classList.toggle('dark-mode', !darkMode);
+    setDarkMode((prev) => {
+      const next = !prev;
+      document.body.classList.toggle('dark-mode', next);
+      return next;
+    });
   };
 
-  // ——— כפתור החלפת שפה קטן  ———
-  const otherLng = i18n.language === 'he' ? 'en' : 'he';
+  // --- לשוניות שפה (כפתור החלפה אחד) ---
+  const current = baseLang(i18n.resolvedLanguage || i18n.language);
+  const otherLng = current === 'he' ? 'en' : 'he';
   const switchLabel = otherLng === 'he' ? 'עִבְרִית' : 'EN';
+
+  const handleSwitchLanguage = async () => {
+    const code = otherLng; // 'en' / 'he'
+    // עדכון i18n
+    await i18n.changeLanguage(code);
+    // עיגון בלוקל-סטורג' כדי שישרוד ריענון/סשן
+    localStorage.setItem('i18nextLng', code);
+    // עדכון כיוון מסמך (גיבוי לצד ה-setDir שכבר עשית ב-i18n.js)
+    document.documentElement.lang = code;
+    document.documentElement.dir = isRTL(code) ? 'rtl' : 'ltr';
+  };
 
   return (
     <nav
@@ -42,7 +60,7 @@ const Navbar = () => {
       } shadow-sm`}
     >
       <div className="container-fluid">
-        {/* לוגו  */}
+        {/* לוגו */}
         <Link className="navbar-brand d-flex align-items-center" to="/">
           <img
             src={logo}
@@ -56,6 +74,9 @@ const Navbar = () => {
           type="button"
           data-bs-toggle="collapse"
           data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
         >
           <span className="navbar-toggler-icon"></span>
         </button>
@@ -116,7 +137,8 @@ const Navbar = () => {
           {/* ——— מתג שפה ——— */}
           <button
             className="btn btn-outline-primary rounded-pill me-2"
-            onClick={() => i18n.changeLanguage(otherLng)}
+            onClick={handleSwitchLanguage}
+            aria-label="Switch language"
           >
             {switchLabel}
           </button>

@@ -59,9 +59,10 @@ function UploadComic() {
       const form = new FormData();
       form.append('title', title);
       form.append('description', description);
-      form.append('language', language);
+      form.append('language', String(language).toLowerCase());
       form.append('genre', genre);
       if (series) form.append('series', series);
+      form.append('adultOnly', adultOnly ? 'true' : 'false');
       pages.forEach((p) => form.append('pages', p));
 
       await axios.post(`${API_BASE_URL}/api/comics/upload`, form, {
@@ -79,8 +80,8 @@ function UploadComic() {
       setSeries('');
       setPages([]);
     } catch (err) {
-      console.error(err);
-      setError(t('upload.fail'));
+      console.error('upload error ->', err.response?.status, err.response?.data);
+      setError(err.response?.data?.error || t('upload.fail'));
     }
   };
 
@@ -132,11 +133,11 @@ function UploadComic() {
           >
             <option value="">{t('upload.chooseLanguage')}</option>
             {languages.map((lang) => (
-              <option key={lang.id} value={lang.id}>
-                {lang.emoji} {t(`languages.${lang.id}`)}
+              <option key={lang.code} value={lang.code}>
+                {lang.emoji} {lang.label} {/* התווית מתורגמת כבר בקובץ עצמו */}
               </option>
             ))}
-          </select>
+          </select> 
         </div>
 
         <div className="mb-3">
@@ -153,7 +154,7 @@ function UploadComic() {
             <option value="">{t('upload.chooseGenre')}</option>
             {genres.map((g) => (
               <option key={g.id} value={g.id}>
-                {g.emoji} {t(`genres.${g.id}`)}
+                {g.emoji} {t(`genres.${g.id}`)} {/* מפתח i18n רק לתצוגה */}
               </option>
             ))}
           </select>

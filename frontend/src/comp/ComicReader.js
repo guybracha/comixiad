@@ -15,33 +15,47 @@ const ComicReader = () => {
   const [imgErrors, setImgErrors] = useState({});
   const { user } = useUser(); // בתוך ComicReader
   const [hasLiked, setHasLiked] = useState(false); // למעקב אחרי לייק אישי
+  const adultKey = `adult-ok:${comicId}`;
+  const [showAdultGate, setShowAdultGate] = useState(false);
 
   useEffect(() => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [comicId]);
 
   useEffect(() => {
-  const fetchComic = async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/api/comics/${comicId}`);
-      setComic(response.data);
-      await axios.put(`${API_BASE_URL}/api/comics/${comicId}/view`);
+    const fetchComic = async () => {
+      try {
+        const { data } = await axios.get(`${API_BASE_URL}/api/comics/${comicId}`);
+        setComic(data);
+        await axios.put(`${API_BASE_URL}/api/comics/${comicId}/view`);
 
-      if (response.data.likedBy?.includes(user?._id)) {
-        setHasLiked(true);
-      } else {
-        setHasLiked(false);
+        setHasLiked(!!data.likedBy?.includes(user?._id));
+
+        // 🔴 NEW: decide if to show adult gate
+        const isAdult = !!data?.adultOnly;
+        const ok = localStorage.getItem(adultKey) === 'true';
+        setShowAdultGate(isAdult && !ok);
+      } catch (err) {
+        console.error('Error fetching comic:', err);
+        setError('לא ניתן לטעון את הקומיקס');
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error('Error fetching comic:', err);
-      setError('לא ניתן לטעון את הקומיקס');
-    } finally {
-      setLoading(false);
-    }
+    };
+
+    fetchComic();
+  }, [comicId, user?._id, adultKey]); // adultKey תלוי ב-comicId
+
+  const handleAdultConfirm = () => {
+    localStorage.setItem(adultKey, 'true');
+    setShowAdultGate(false);
   };
 
-  fetchComic();
-}, [comicId, user?._id]);
+  const handleAdultExit = () => {
+    // חזרה אחורה אם אפשר; אחרת לעמוד הבית
+    if (window.history.length > 1) window.history.back();
+    else window.location.href = '/';
+  };
 
 
   const handleLike = async () => {
@@ -73,7 +87,7 @@ const handleUnlike = async () => {
   if (error) return <div className="alert alert-danger">{error}</div>;
 
   return (
-    <div className="container mt-4">
+    <div className={`container mt-4 ${showAdultGate ? 'blurred' : ''}`}>
       <Helmet>
         <title>{comic.title} - קומיקס ב־Comixiad</title>
         <meta name="description" content={comic.description || 'קרא קומיקס ב־Comixiad'} />
@@ -90,6 +104,37 @@ const handleUnlike = async () => {
         <meta property="og:url" content={`https://comixiad.com/series/${comic.series}`} />
         <meta property="og:type" content="article" />
       </Helmet>
+       {/* מודאל אזהרת 18+ */}
+       {showAdultGate && (
+        <div
+          className="modal fade show"
+          style={{ display: 'block', background: 'rgba(0,0,0,0.6)' }}
+          tabIndex="-1"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">תוכן למבוגרים (18+)</h5>
+              </div>
+              <div className="modal-body">
+                <p className="mb-0">
+                  הקומיקס מכיל תוכן שמיועד למבוגרים בלבד. כדי להמשיך, אשר/י כי הינך מעל גיל 18.
+                </p>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={handleAdultExit}>
+                  חזרה
+                </button>
+                <button type="button" className="btn btn-primary" onClick={handleAdultConfirm}>
+                  אני מעל 18
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* כותרת ותיאור */}
       <h2>{comic?.title || 'ללא שם'}</h2>

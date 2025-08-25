@@ -108,3 +108,8 @@
     right: 10px;
   }
 }
+
+.blurred {
+  filter: blur(3px);
+  pointer-events: none; /* מונע אינטראקציה מתחת למודאל */
+}
