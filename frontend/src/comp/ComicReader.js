@@ -1,42 +1,55 @@
+// src/comp/ComicReader.js
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
 import '../ComicReader.css';
 import { Helmet } from 'react-helmet';
-import { API_BASE_URL } from '../Config';
 import RandomThree from './RandomThree';
-import { useUser } from '../context/UserContext'; // הוסף למעלה
+import { useUser } from '../context/UserContext';
+import api, { toPublicUrl } from '../lib/api';
 
 const ComicReader = () => {
   const { id: comicId } = useParams();
+  const { user } = useUser();
+
   const [comic, setComic] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [imgErrors, setImgErrors] = useState({});
-  const { user } = useUser(); // בתוך ComicReader
-  const [hasLiked, setHasLiked] = useState(false); // למעקב אחרי לייק אישי
+  const [hasLiked, setHasLiked] = useState(false);
   const adultKey = `adult-ok:${comicId}`;
   const [showAdultGate, setShowAdultGate] = useState(false);
 
   useEffect(() => {
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [comicId]);
+
+  // עוזר קטן לפתרון הבדלי סכמות של pages (מחרוזת path או אובייקט עם url)
+  const resolvePageUrl = (page) => {
+    if (!page) return null;
+    if (typeof page === 'string') return toPublicUrl(page);
+    if (typeof page === 'object') return toPublicUrl(page.url || page.path || page.src || '');
+    return null;
+  };
 
   useEffect(() => {
     const fetchComic = async () => {
+      setLoading(true);
       try {
-        const { data } = await axios.get(`${API_BASE_URL}/api/comics/${comicId}`);
+        const { data } = await api.get(`/api/comics/${comicId}`);
         setComic(data);
-        await axios.put(`${API_BASE_URL}/api/comics/${comicId}/view`);
 
-        setHasLiked(!!data.likedBy?.includes(user?._id));
+        // העלאת מונה צפיות (לא דורש auth בדרך כלל)
+        try { await api.put(`/api/comics/${comicId}/view`); } catch {}
 
-        // 🔴 NEW: decide if to show adult gate
+        setHasLiked(Boolean(data?.likedBy?.includes?.(user?._id)));
+
+        // שער 18+
         const isAdult = !!data?.adultOnly;
         const ok = localStorage.getItem(adultKey) === 'true';
         setShowAdultGate(isAdult && !ok);
+        setError(null);
       } catch (err) {
-        console.error('Error fetching comic:', err);
+        console.error('Error fetching comic:', err?.response?.data || err);
         setError('לא ניתן לטעון את הקומיקס');
       } finally {
         setLoading(false);
@@ -44,7 +57,7 @@ const ComicReader = () => {
     };
 
     fetchComic();
-  }, [comicId, user?._id, adultKey]); // adultKey תלוי ב-comicId
+  }, [comicId, user?._id, adultKey]);
 
   const handleAdultConfirm = () => {
     localStorage.setItem(adultKey, 'true');
@@ -52,39 +65,44 @@ const ComicReader = () => {
   };
 
   const handleAdultExit = () => {
-    // חזרה אחורה אם אפשר; אחרת לעמוד הבית
     if (window.history.length > 1) window.history.back();
     else window.location.href = '/';
   };
 
-
   const handleLike = async () => {
-  try {
-    const response = await axios.put(`${API_BASE_URL}/api/comics/${comicId}/like`, {
-      userId: user._id,
-    });
-    setComic(response.data);
-    setHasLiked(true);
-  } catch (err) {
-    console.error('Error liking comic:', err);
-  }
-};
+    if (!user?._id) return;
+    try {
+      const { data } = await api.put(`/api/comics/${comicId}/like`, {}); // user מזוהה בשרת
+      setComic(data);
+      setHasLiked(true);
+    } catch (err) {
+      console.error('Error liking comic:', err?.response?.data || err);
+      if (err?.response?.status === 401 || err?.response?.status === 403) {
+        localStorage.removeItem('token');
+      }
+    }
+  };
 
-const handleUnlike = async () => {
-  try {
-    const response = await axios.put(`${API_BASE_URL}/api/comics/${comicId}/unlike`, {
-      userId: user._id,
-    });
-    setComic(response.data);
-    setHasLiked(false);
-  } catch (err) {
-    console.error('Error unliking comic:', err);
-  }
-};
-
+  const handleUnlike = async () => {
+    if (!user?._id) return;
+    try {
+      const { data } = await api.put(`/api/comics/${comicId}/unlike`, {});
+      setComic(data);
+      setHasLiked(false);
+    } catch (err) {
+      console.error('Error unliking comic:', err?.response?.data || err);
+      if (err?.response?.status === 401 || err?.response?.status === 403) {
+        localStorage.removeItem('token');
+      }
+    }
+  };
 
   if (loading) return <div className="text-center py-5">📚 טוען קומיקס...</div>;
   if (error) return <div className="alert alert-danger">{error}</div>;
+  if (!comic) return <div className="alert alert-warning">קומיקס לא נמצא.</div>;
+
+  const firstPageUrl = comic?.pages?.[0] ? resolvePageUrl(comic.pages[0]) : null;
+  const ogImage = firstPageUrl || 'https://comixiad.com/default-cover.jpg';
 
   return (
     <div className={`container mt-4 ${showAdultGate ? 'blurred' : ''}`}>
@@ -93,19 +111,13 @@ const handleUnlike = async () => {
         <meta name="description" content={comic.description || 'קרא קומיקס ב־Comixiad'} />
         <meta property="og:title" content={`${comic.title} - קומיקס ב־Comixiad`} />
         <meta property="og:description" content={comic.description || 'קרא קומיקס מקורי'} />
-        <meta
-          property="og:image"
-          content={
-            comic.pages[0]?.url
-              ? `${API_BASE_URL}/${comic.pages[0].url.replace(/\\/g, '/')}`
-              : 'https://comixiad.com/default-cover.jpg'
-          }
-        />
+        <meta property="og:image" content={ogImage} />
         <meta property="og:url" content={`https://comixiad.com/series/${comic.series}`} />
         <meta property="og:type" content="article" />
       </Helmet>
-       {/* מודאל אזהרת 18+ */}
-       {showAdultGate && (
+
+      {/* מודאל אזהרת 18+ */}
+      {showAdultGate && (
         <div
           className="modal fade show"
           style={{ display: 'block', background: 'rgba(0,0,0,0.6)' }}
@@ -140,9 +152,9 @@ const handleUnlike = async () => {
       <h2>{comic?.title || 'ללא שם'}</h2>
       <p>{comic?.description || 'אין תיאור זמין'}</p>
 
-      {/* צפיות + כפתורי שיתוף */}
+      {/* צפיות + לייק + שיתוף */}
       <div className="d-flex justify-content-between align-items-center mb-3 share-buttons">
-      <span>📊 צפיות: {comic?.views || 0}</span>
+        <span>📊 צפיות: {comic?.views || 0}</span>
         <span>❤️ לייקים: {comic?.likes || 0}</span>
 
         {user && (
@@ -156,9 +168,10 @@ const handleUnlike = async () => {
             </button>
           )
         )}
+
         <div className="d-flex gap-2">
           <a
-            href={`https://www.facebook.com/sharer/sharer.php?u=https://comixiad.com/preview/comic/${comicId}`}
+            href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://comixiad.com/preview/comic/${comicId}`)}`}
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn-outline-primary btn-sm"
@@ -182,15 +195,15 @@ const handleUnlike = async () => {
           <img
             src={
               comic.author.avatar
-                ? comic.author.avatar.startsWith('http')
-                  ? comic.author.avatar
-                  : `${API_BASE_URL}/${comic.author.avatar.replace(/\\/g, '/')}`
+                ? (comic.author.avatar.startsWith('http')
+                    ? comic.author.avatar
+                    : toPublicUrl(comic.author.avatar))
                 : 'https://www.gravatar.com/avatar/?d=mp'
             }
             alt={comic.author.username}
             onError={(e) => {
-              e.target.onerror = null;
-              e.target.src = 'https://www.gravatar.com/avatar/?d=mp';
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = 'https://www.gravatar.com/avatar/?d=mp';
             }}
           />
           <a href={`/profile/${comic.author._id}`}>{comic.author.username}</a>
@@ -199,19 +212,17 @@ const handleUnlike = async () => {
 
       {/* עמודי הקומיקס */}
       <div className="comic-pages">
-        {comic?.pages?.length > 0 ? (
+        {Array.isArray(comic?.pages) && comic.pages.length > 0 ? (
           comic.pages.map((page, index) => {
-            const imageUrl = `${API_BASE_URL}/${page.url.replace(/\\/g, '/')}`;
+            const imageUrl = resolvePageUrl(page);
             return (
               <div key={index} className="comic-page mb-4">
                 {!imgErrors[index] ? (
                   <img
-                    src={imageUrl}
+                    src={imageUrl || 'https://www.gravatar.com/avatar/?d=mp'}
                     alt={`Page ${index + 1}`}
-                    onError={(e) => {
+                    onError={() => {
                       setImgErrors((prev) => ({ ...prev, [index]: true }));
-                      e.target.onerror = null;
-                      e.target.src = 'https://www.gravatar.com/avatar/?d=mp';
                     }}
                     className="img-fluid"
                   />

@@ -6,48 +6,75 @@ import { API_BASE_URL } from '../Config';
 
 const ComicList = () => {
   const [comics, setComics] = useState([]);
-  const [visibleCount, setVisibleCount] = useState(6); // הצגה ראשונית של 6 קומיקסים
+  const [visibleCount, setVisibleCount] = useState(6);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchComics = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/api/comics`);
-      if (!response.data) throw new Error('No data received');
-      setComics(response.data);
-    } catch (error) {
-      console.error('Error fetching comics:', error);
-      setError(error.message || 'Failed to load comics');
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // בקשת רשימת קומיקסים עם ביטול בטאבים/ניווט
   useEffect(() => {
-    fetchComics();
+    const ctrl = new AbortController();
+    (async () => {
+      try {
+        setLoading(true);
+        const { data } = await axios.get(`${API_BASE_URL}/api/comics`, { signal: ctrl.signal });
+        setComics(Array.isArray(data) ? data : []);
+        setError(null);
+      } catch (err) {
+        if (err.name !== 'CanceledError' && err.name !== 'AbortError') {
+          console.error('Error fetching comics:', err);
+          setError(err?.message || 'Failed to load comics');
+        }
+      } finally {
+        setLoading(false);
+      }
+    })();
+    return () => ctrl.abort();
   }, []);
 
+  // נורמליזציה של כל הנתיבים האפשריים לתמונה → URL מלא
+  const buildImageUrl = (rawPath) => {
+    if (!rawPath) return null;
+
+    let p = String(rawPath).replace(/\\/g, '/'); // backslashes → slashes
+
+    // אם זה כבר URL מלא (CDN/חיצוני) – החזר כמו שהוא
+    if (/^https?:\/\//i.test(p)) return p;
+
+    // המרה מנתיבים ישנים מהלוגים: //root/backend/uploads/... → /uploads/...
+    const legacyIdx = p.indexOf('/uploads/');
+    if (legacyIdx > -1) p = p.slice(legacyIdx);
+
+    // ודא שמתחיל ב-/uploads
+    if (!p.startsWith('/uploads')) {
+      if (p.startsWith('uploads')) p = `/${p}`;
+      else p = `/uploads/${p.replace(/^\/?uploads\/?/, '')}`;
+    }
+
+    // הסרת כפילויות של "//"
+    p = p.replace(/\/{2,}/g, '/');
+
+    return `${API_BASE_URL}${p}`;
+  };
+
+  // בחירת תמונה לכל קומיקס (coverImage ואז העמוד הראשון)
   const getImageUrl = (comic) => {
-    if (!comic?.pages?.[0]) return '../images/placeholder.jpg';
+    // נסה קודם coverImage אם קיים ב־DB
+    const cover = buildImageUrl(comic?.coverImage);
+    if (cover) return cover;
 
-    const firstPage = comic.pages[0];
-    const imagePath = firstPage.url || firstPage.filename;
+    // ואז העמוד הראשון
+    const first = comic?.pages?.[0];
+    const candidate = first?.url || first?.path || first?.filename;
+    const img = buildImageUrl(candidate);
 
-    if (!imagePath) return '../images/placeholder.jpg';
-    if (imagePath.startsWith('uploads/')) return `${API_BASE_URL}/${imagePath}`;
-    if (imagePath.startsWith('/')) return `${API_BASE_URL}/uploads${imagePath}`;
-
-    return `${API_BASE_URL}/uploads/${imagePath}`;
+    // fallback מקומי (יחסי לאפליקציה – ודא שקובץ placeholder קיים ב־/public/images/)
+    return img || '/images/placeholder.jpg';
   };
 
-  const truncateText = (text, maxLength = 100) => {
-    return text?.length > maxLength ? text.substring(0, maxLength) + '…' : text;
-  };
+  const truncateText = (text, maxLength = 100) =>
+    text?.length > maxLength ? text.slice(0, maxLength) + '…' : text || '';
 
-  const handleShowMore = () => {
-    setVisibleCount((prev) => prev + 6); // הצג עוד 6 בכל לחיצה
-  };
+  const handleShowMore = () => setVisibleCount((n) => n + 6);
 
   if (loading) return <div className="loading-spinner">Loading...</div>;
   if (error) return <div className="alert alert-danger">{error}</div>;
@@ -65,8 +92,10 @@ const ComicList = () => {
                     src={getImageUrl(comic)}
                     className="card-img-top comic-image"
                     alt={comic.title}
+                    loading="lazy"
                     onError={(e) => {
-                      e.target.src = '../images/placeholder.jpg';
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = '/images/placeholder.jpg';
                     }}
                   />
                 </div>
