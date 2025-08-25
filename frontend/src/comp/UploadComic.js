@@ -1,12 +1,10 @@
-// src/comp/UploadComic.js
 import React, { useState, useEffect } from 'react';
 import { useUser } from '../context/UserContext';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
+import api from '../lib/api';
 import languages from '../config/Languages';
 import genres from '../config/Genres';
 import { Link, useNavigate } from 'react-router-dom';
-import { API_BASE_URL } from '../Config';
 
 function UploadComic() {
   const { t } = useTranslation();
@@ -26,9 +24,7 @@ function UploadComic() {
 
   /* ---------- חסימת דף למשתמשים לא מחוברים ---------- */
   useEffect(() => {
-    if (!user?._id) {
-      navigate('/login', { replace: true });
-    }
+    if (!user?._id) navigate('/login', { replace: true });
   }, [user, navigate]);
 
   /* ---------- טעינת הסדרות של המשתמש ---------- */
@@ -37,50 +33,70 @@ function UploadComic() {
 
     const fetchSeries = async () => {
       try {
-        const { data } = await axios.get(`${API_BASE_URL}/api/series`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        });
+        const { data } = await api.get('/api/series'); // ה־JWT מצורף אוטומטית
         setAllSeries(data.filter((s) => s.author === user._id));
       } catch (err) {
-        console.error(err);
+        console.error('series fetch error ->', err?.response || err);
       }
     };
     fetchSeries();
-  }, [user?._id]);
+  }, [user]);
 
-  const handlePagesChange = (e) => setPages(Array.from(e.target.files));
+  const handlePagesChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    setPages(files);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage('');
     setError('');
 
+    if (!pages.length) {
+      setError(t('upload.noPages') || 'לא נבחרו עמודים');
+      return;
+    }
+
     try {
       const form = new FormData();
-      form.append('title', title);
-      form.append('description', description);
-      form.append('language', language);
+      form.append('title', title.trim());
+      form.append('description', description.trim());
+      form.append('language', String(language || '').toLowerCase());
       form.append('genre', genre);
       if (series) form.append('series', series);
+      form.append('adultOnly', adultOnly ? 'true' : 'false');
+
+      // multer בצד שרת מצפה לשם 'pages'
       pages.forEach((p) => form.append('pages', p));
 
-      await axios.post(`${API_BASE_URL}/api/comics/upload`, form, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        }
+      await api.post('/api/comics/upload', form, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
 
-      setMessage(t('upload.success'));
+      setMessage(t('upload.success') || 'העלאה הצליחה!');
       setTitle('');
       setDescription('');
       setLanguage('');
       setGenre('');
       setSeries('');
       setPages([]);
+      setAdultOnly(false);
+      // אפשר לנווט לעמוד הקומיקס החדש אם השרת מחזיר _id
+      // navigate(`/comic/${res.data._id}`);
     } catch (err) {
-      console.error(err);
-      setError(t('upload.fail'));
+      console.error('upload error ->', err?.response?.status, err?.response?.data || err);
+      if (err?.response?.status === 401 || err?.response?.status === 403) {
+        localStorage.removeItem('token');
+        navigate('/login', { replace: true });
+        return;
+      }
+      const apiMsg =
+        err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        err?.message ||
+        t('upload.fail') ||
+        'העלאה נכשלה. נסה שוב.';
+      setError(apiMsg);
     }
   };
 
@@ -132,8 +148,8 @@ function UploadComic() {
           >
             <option value="">{t('upload.chooseLanguage')}</option>
             {languages.map((lang) => (
-              <option key={lang.id} value={lang.id}>
-                {lang.emoji} {t(`languages.${lang.id}`)}
+              <option key={lang.code} value={lang.code}>
+                {lang.emoji} {lang.label}
               </option>
             ))}
           </select>
@@ -192,20 +208,20 @@ function UploadComic() {
             ))}
           </select>
         </div>
-        <div className="form-check mb-3">
-        <input
-          id="adultOnly"
-          type="checkbox"
-          className="form-check-input"
-          checked={adultOnly}
-          onChange={(e) => setAdultOnly(e.target.checked)}
-        />
-        <label className="form-check-label" htmlFor="adultOnly">
-          {t('upload.adultLabel')}
-        </label>
-        <div className="form-text">{t('upload.adultHint')}</div>
-      </div>
 
+        <div className="form-check mb-3">
+          <input
+            id="adultOnly"
+            type="checkbox"
+            className="form-check-input"
+            checked={adultOnly}
+            onChange={(e) => setAdultOnly(e.target.checked)}
+          />
+          <label className="form-check-label" htmlFor="adultOnly">
+            {t('upload.adultLabel')}
+          </label>
+          <div className="form-text">{t('upload.adultHint')}</div>
+        </div>
 
         <button className="btn btn-primary" type="submit">
           {t('upload.submit')}

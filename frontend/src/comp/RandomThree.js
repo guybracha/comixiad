@@ -1,4 +1,4 @@
-// src/comp/RandomThree.js   (או הנתיב שלך)
+// src/comp/RandomThree.js
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
@@ -7,31 +7,71 @@ import { API_BASE_URL } from '../Config';
 import '../ComicList.css';
 
 function RandomThree() {
-  const { t, i18n } = useTranslation();
-
+  const { t } = useTranslation();
   const [randomComics, setRandomComics] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // נורמליזציה של נתיב תמונה -> URL מלא
+  const buildImageUrl = (rawPath) => {
+    if (!rawPath) return null;
+    let p = String(rawPath).replace(/\\/g, '/');           // backslashes -> slashes
+    if (/^https?:\/\//i.test(p)) return p;                 // כבר URL מלא
+
+    // תמיכה בנתיבים ישנים מהלוגים: //root/backend/uploads/...
+    const legacyIdx = p.indexOf('/uploads/');
+    if (legacyIdx > -1) p = p.slice(legacyIdx);
+
+    // ודא התחלה ב-/uploads
+    if (!p.startsWith('/uploads')) {
+      if (p.startsWith('uploads')) p = `/${p}`;
+      else p = `/uploads/${p.replace(/^\/?uploads\/?/, '')}`;
+    }
+
+    // הסרת כפילויות של "//"
+    p = p.replace(/\/{2,}/g, '/');
+    return `${API_BASE_URL}${p}`;
+  };
+
+  const comicCover = (comic) => {
+    // קודם coverImage אם קיים
+    const cover = buildImageUrl(comic?.coverImage);
+    if (cover) return cover;
+
+    // אחרת העמוד הראשון
+    const first = comic?.pages?.[0];
+    const candidate = first?.url || first?.path || first?.filename;
+    return buildImageUrl(candidate) || '/images/placeholder.jpg';
+  };
+
   useEffect(() => {
-    const fetchAndPickRandom = async () => {
+    const ctrl = new AbortController();
+
+    (async () => {
       try {
-        const { data } = await axios.get(`${API_BASE_URL}/api/comics`);
-        if (data.length > 0) {
-          const shuffled = data.sort(() => 0.5 - Math.random());
-          setRandomComics(shuffled.slice(0, 3));
+        const { data } = await axios.get(`${API_BASE_URL}/api/comics`, { signal: ctrl.signal });
+        const list = Array.isArray(data) ? data : [];
+
+        // בחר 3 קומיקסים אקראיים ללא שיכפולים (Fisher-Yates קליל)
+        const arr = list.slice();
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
         }
+        setRandomComics(arr.slice(0, 3));
       } catch (err) {
-        console.error('Error fetching comics:', err);
+        if (err.name !== 'CanceledError' && err.name !== 'AbortError') {
+          console.error('Error fetching comics:', err);
+        }
       } finally {
         setLoading(false);
       }
-    };
+    })();
 
-    fetchAndPickRandom();
+    return () => ctrl.abort();
   }, []);
 
   if (loading) return <div>{t('random.loading')}</div>;
-  if (randomComics.length === 0) return <div>{t('random.none')}</div>;
+  if (!randomComics.length) return <div>{t('random.none')}</div>;
 
   return (
     <div className="container my-4">
@@ -39,35 +79,29 @@ function RandomThree() {
 
       <div className="row g-4">
         {randomComics.map((comic) => {
-          const imageUrl = comic.pages?.[0]?.url
-            ? `${API_BASE_URL}/${comic.pages[0].url.replace(/\\/g, '/')}`
-            : '/images/placeholder.jpg';
-
-          const animationClass =
-            Math.random() > 0.5 ? 'fade-in-up' : 'fade-in-scale';
+          const imageUrl = comicCover(comic);
+          const animationClass = Math.random() > 0.5 ? 'fade-in-up' : 'fade-in-scale';
 
           return (
             <div className={`col-sm-6 col-md-4 ${animationClass}`} key={comic._id}>
-              <Link
-                to={`/comics/${comic._id}`}
-                className="text-decoration-none"
-              >
+              <Link to={`/comics/${comic._id}`} className="text-decoration-none">
                 <div className="card h-100 comic-card">
                   <div className="comic-image-container">
                     <img
                       src={imageUrl}
                       alt={comic.title}
                       className="card-img-top comic-image"
+                      loading="lazy"
                       onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = '/images/placeholder.jpg';
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = '/images/placeholder.jpg';
                       }}
                     />
                   </div>
 
                   <div className="comic-info-box p-3 d-flex flex-column">
                     <h5 className="comic-title text-center">{comic.title}</h5>
-                    {comic.description && (
+                    {!!comic.description && (
                       <p className="comic-description">
                         {comic.description.slice(0, 100)}…
                       </p>
