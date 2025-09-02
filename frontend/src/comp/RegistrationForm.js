@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useUser } from '../context/UserContext';
 import { API_BASE_URL } from '../Config';
+import { GoogleLogin } from '@react-oauth/google'; // NEW
+import jwtDecode from 'jwt-decode'; // אופציונלי, רק אם תרצה הדגמה מקומית
 
 const RegistrationForm = () => {
   const navigate = useNavigate();
@@ -20,42 +22,67 @@ const RegistrationForm = () => {
     e.preventDefault();
     setError('');
     setLoading(true);
-  
-    // Debug log
-    console.log('Submitting registration form:', formData);
-  
+
     try {
-        const response = await axios.post(`${API_BASE_URL}/api/register`, {
+      const res = await axios.post(`${API_BASE_URL}/api/register`, {
         username: formData.username,
         email: formData.email,
         password: formData.password,
         confirmPassword: formData.confirmPassword
-      });
-  
-      console.log('Registration response:', response.data);
-  
-      if (response.data.user) {
-        setUser(response.data.user);
+      }, { withCredentials: true });
+
+      if (res.data.user) {
+        setUser(res.data.user);
         navigate('/');
       }
     } catch (err) {
-      console.error('Registration error details:', err.response?.data);
       setError(err.response?.data?.error || 'Registration failed');
     } finally {
       setLoading(false);
     }
   };
-  
+
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // --- Google: קבלת credential ושליחה לשרת ---
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      const { credential } = credentialResponse; // ה-JWT ש-Google מחזיר
+      // אופציונלי: console.log(jwtDecode(credential)); // לראות payload
+
+      const res = await axios.post(
+        `${API_BASE_URL}/api/auth/google`,
+        { credential },
+        { withCredentials: true } // אם אתה משתמש ב־cookies ל־JWT
+      );
+
+      if (res.data.user) {
+        setUser(res.data.user);
+        navigate('/');
+      }
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.error || 'Google sign-in failed');
+    }
+  };
+
+  const handleGoogleError = () => {
+    setError('Google sign-in was cancelled or failed');
   };
 
   return (
     <div className="container mt-5">
       <h2>הרשמה</h2>
+
+      {/* --- כפתור Google --- */}
+      <div className="mb-3">
+        <GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleError} />
+      </div>
+
+      <div className="text-muted mb-3">או הרשמה עם אימייל וסיסמה:</div>
+
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
           <label htmlFor="username" className="form-label">שם משתמש</label>
@@ -69,6 +96,7 @@ const RegistrationForm = () => {
             required
           />
         </div>
+
         <div className="mb-3">
           <label htmlFor="email" className="form-label">אימייל</label>
           <input
@@ -81,6 +109,7 @@ const RegistrationForm = () => {
             required
           />
         </div>
+
         <div className="mb-3">
           <label htmlFor="password" className="form-label">סיסמא</label>
           <input
@@ -94,6 +123,7 @@ const RegistrationForm = () => {
             minLength="6"
           />
         </div>
+
         <div className="mb-3">
           <label htmlFor="confirmPassword" className="form-label">אימות סיסמא</label>
           <input
@@ -107,12 +137,10 @@ const RegistrationForm = () => {
             minLength="6"
           />
         </div>
+
         {error && <div className="alert alert-danger">{error}</div>}
-        <button 
-          type="submit" 
-          className="btn btn-primary"
-          disabled={loading}
-        >
+
+        <button type="submit" className="btn btn-primary" disabled={loading}>
           {loading ? 'מבצע הרשמה...' : 'הרשמה'}
         </button>
       </form>

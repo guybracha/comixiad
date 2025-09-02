@@ -1,91 +1,96 @@
+// src/comp/account/CreatedSeriesList.jsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Row, Col, Card, Button, ButtonGroup } from 'react-bootstrap';
 import { API_BASE_URL } from '../../Config';
 
-const CreatedComicList = ({ comics = [], currentUserId, loggedInUserId, onDelete }) => {
+const normalizeUrl = (u) => {
+  if (!u) return '/images/placeholder.jpg';
+  let cleaned = String(u).replace(/\\/g, '/').replace(/^\/+/, '');
+  if (!cleaned.startsWith('uploads/')) cleaned = `uploads/${cleaned}`;
+  return `${API_BASE_URL}/${cleaned}`;
+};
+
+const CreatedSeriesList = ({ series, currentUserId, onDelete }) => {
   const navigate = useNavigate();
 
-  const handleEdit = (comicId) => navigate(`/comics/edit/${comicId}`);
-  const handleView = (comicId) => navigate(`/comics/${comicId}`);
-
-  // --- normalize image paths to full URL ---
-  const buildImageUrl = (rawPath) => {
-    if (!rawPath) return null;
-    let p = String(rawPath).replace(/\\/g, '/');
-    if (/^https?:\/\//i.test(p)) return p;
-
-    const idx = p.indexOf('/uploads/');
-    if (idx > -1) p = p.slice(idx);
-
-    if (!p.startsWith('/uploads')) {
-      if (p.startsWith('uploads')) p = `/${p}`;
-      else p = `/uploads/${p.replace(/^\/?uploads\/?/, '')}`;
-    }
-
-    p = p.replace(/\/{2,}/g, '/');
-    return `${API_BASE_URL}${p}`;
+  const handleDelete = (id, name) => {
+    if (!onDelete) return;
+    const ok = window.confirm(`למחוק את הסדרה "${name}"? פעולה זו אינה הפיכה.`);
+    if (ok) onDelete(id);
   };
-
-  const comicCover = (comic) => {
-    const cover = buildImageUrl(comic?.coverImage);
-    if (cover) return cover;
-
-    const first = comic?.pages?.[0];
-    const candidate = first?.url || first?.path || first?.filename;
-    return buildImageUrl(candidate) || '/images/placeholder.jpg';
-  };
-
-  // author יכול להיות אובייקט או מחרוזת id
-  const toId = (a) => (typeof a === 'object' ? a?._id : a);
-  const userComics = comics.filter((c) => toId(c.author) === currentUserId);
-
-  const isOwnProfile = currentUserId === loggedInUserId;
 
   return (
-    <div>
-      <h3>Comics Created</h3>
-      {userComics.length === 0 && <p>לא נמצאו קומיקסים שיצרת.</p>}
+    <div className="container mt-4">
+      <h3 className="mb-4">Series Created</h3>
 
-      <div className="comics-grid">
-        {userComics.map((comic) => {
-          const imageUrl = comicCover(comic);
+      {(!series || series.length === 0) && <p>לא נמצאו סדרות שיצרת.</p>}
+
+      <Row xs={1} sm={2} md={3} lg={4} className="g-4">
+        {series.map((s) => {
+          const imageUrl = s.coverImage ? normalizeUrl(s.coverImage) : '/images/placeholder.jpg';
+          // אם תרצה להקפיד שרק היוצר יערוך:
+          // const authorId = typeof s.author === 'string' ? s.author : s.author?._id;
+          // const canEdit = !currentUserId || authorId === currentUserId;
+          const canEdit = true; // לפי הבקשה — להציג תמיד בדף "הסדרות שיצרת"
 
           return (
-            <div key={comic._id} className="comic-card">
-              <img
-                src={imageUrl}
-                alt={comic.title}
-                className="comic-image"
-                style={{ cursor: 'pointer' }}
-                loading="lazy"
-                onClick={() => handleView(comic._id)}
-                onError={(e) => {
-                  e.currentTarget.onerror = null;
-                  e.currentTarget.src = '/images/placeholder.jpg';
-                }}
-              />
+            <Col key={s._id}>
+              <Card className="h-100 shadow-sm">
+                <Card.Img
+                  variant="top"
+                  src={imageUrl}
+                  alt={s.name}
+                  style={{ height: '220px', objectFit: 'cover', cursor: 'pointer' }}
+                  onClick={() => navigate(`/series/${s._id}`)}
+                  onError={(e) => {
+                    e.currentTarget.src = '/images/placeholder.jpg';
+                  }}
+                />
+                <Card.Body className="d-flex flex-column">
+                  <Card.Title className="mb-1">{s.name}</Card.Title>
+                  <Card.Text className="text-muted mb-3" style={{ fontSize: '0.95rem' }}>
+                    {s.description}
+                  </Card.Text>
 
-              <div className="comic-info">
-                <h5>{comic.title}</h5>
-                <p>{comic.description}</p>
+                  {canEdit && (
+                    <div className="mt-auto d-flex justify-content-between align-items-center">
+                      <ButtonGroup>
+                        <Button
+                          variant="warning"
+                          size="sm"
+                          onClick={() => navigate(`/series/${s._id}/edit`)}
+                          title="עריכת סדרה"
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          onClick={() => handleDelete(s._id, s.name)}
+                          title="מחיקת סדרה"
+                        >
+                          Delete
+                        </Button>
+                      </ButtonGroup>
 
-                {isOwnProfile && onDelete && (
-                  <div className="mt-2">
-                    <button className="btn btn-warning me-2" onClick={() => handleEdit(comic._id)}>
-                      Edit
-                    </button>
-                    <button className="btn btn-danger" onClick={() => onDelete(comic._id)}>
-                      Delete
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        onClick={() => navigate(`/series/${s._id}`)}
+                      >
+                        פתיחה
+                      </Button>
+                    </div>
+                  )}
+                </Card.Body>
+              </Card>
+            </Col>
           );
         })}
-      </div>
+      </Row>
     </div>
   );
 };
 
-export default CreatedComicList;
+export default CreatedSeriesList;

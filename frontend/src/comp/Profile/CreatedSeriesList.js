@@ -46,6 +46,14 @@ const CreatedSeriesList = ({ series, currentUserId, onDelete }) => {
                       Delete
                     </Button>
                   )}
+                  <Button
+                    variant="warning"
+                    size="sm"
+                    onClick={() => navigate(`/series/${s._id}/edit`)}
+                    title="עריכת סדרה"
+                  >
+                    Edit
+                  </Button>
                 </Card.Body>
               </Card>
             </Col>
