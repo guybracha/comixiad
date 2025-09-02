@@ -75,27 +75,48 @@ function UserProfile() {
     }
   }, [profile._id]);
 
-  const fetchUserComics = async (userId) => {
-    try {
-      const { data } = await axios.get(
-        `${API_BASE_URL}/api/comics?author=${userId}`
-      );
-      setUserComics(data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+// UserProfile.js
+const fetchUserComics = async (userId) => {
+  try {
+    const { data } = await axios.get(`${API_BASE_URL}/api/comics?author=${userId}`);
 
-  const fetchUserSeries = async (userId) => {
-    try {
-      const { data } = await axios.get(
-        `${API_BASE_URL}/api/series?author=${userId}`
-      );
-      setUserSeries(data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+    const normalized = (Array.isArray(data) ? data : []).map(c => {
+      const firstPage = Array.isArray(c.pages) && c.pages.length ? c.pages[0].url : '';
+      return {
+        ...c,
+        title: c.title || 'Untitled',
+        // נשמור נתיב יחסי (למשל /uploads/...)
+        coverImage: firstPage || ''
+      };
+    });
+
+    setUserComics(normalized);
+  } catch (err) {
+    console.error(err);
+    setUserComics([]); // חשוב כדי לא להשאיר undefined
+  }
+};
+
+
+const fetchUserSeries = async (userId) => {
+  try {
+    const { data } = await axios.get(`${API_BASE_URL}/api/series?author=${userId}`);
+
+    // נרמול לשדות אחידים שקומפוננטות יודעות לצרוך
+    const normalized = (Array.isArray(data) ? data : []).map(s => ({
+      ...s,
+      title: s.title || s.name || 'Untitled',
+      // נשאיר כאן את שם הקובץ כמו שמגיע (ללא /uploads) – נבנה URL מוחלט בקומפוננטה
+      coverImage: s.coverImage || '',
+    }));
+
+    setUserSeries(normalized);
+  } catch (err) {
+    console.error(err);
+    setUserSeries([]);
+  }
+};
+
 
   /* -------------------------------------------------- */
   /*                 HANDLERS                           */
