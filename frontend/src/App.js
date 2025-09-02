@@ -14,6 +14,7 @@ import Footer from './comp/Footer';
 import UserProfile from './comp/UserProfile';
 import CreateSeries from './comp/CreateSeries';
 import EditComic from './comp/EditComic';
+import EditSeries from './comp/EditSeries';
 import SearchResults from './comp/SearchResults';
 import SeriesDetail from './comp/SeriesDetail';
 import 'bootstrap-icons/font/bootstrap-icons.css';
@@ -49,18 +50,23 @@ const AppContent = () => {
                     path="/upload" 
                     element={user ? <UploadComic /> : <Navigate to="/login" replace />} 
                 />
-                <Route path="/CreateSeries" element={<CreateSeries />} />
+                <Route 
+                path="/createSeries" 
+                element={user ? <CreateSeries /> : <Navigate to="/login" replace />} 
+                />
                 <Route path="/comics/:id" element={<ComicReader />} />
                 <Route path="/register" element={<RegistrationForm />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/category/:category" element={<CategoryPage />} />
                 <Route path="/profile/:id" element={<UserProfile />} />
-                <Route 
-                    path="/comics/edit/:comicId" 
-                    element={user ? <EditComic /> : <Navigate to="/login" replace />} 
-                />
-                <Route 
-                    path="/series/edit/:seriesId" 
+                <Route
+                    path="/series/:seriesId/edit"
+                    element={user ? <EditSeries /> : <Navigate to="/login" replace />}
+                    />
+
+                    {/* עריכת קומיקס */}
+                <Route
+                    path="/comics/:comicId/edit"
                     element={user ? <EditComic /> : <Navigate to="/login" replace />}
                 />
                 <Route path="/series/:id" element={<SeriesDetail />} />

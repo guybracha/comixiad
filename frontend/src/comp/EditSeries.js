@@ -1,8 +1,16 @@
+// src/comp/EditSeries.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE_URL } from '../Config';
 import { Button, Modal, Form } from 'react-bootstrap';
+
+const normalizeUploadUrl = (u) => {
+  if (!u) return '';
+  let cleaned = String(u).replace(/\\/g, '/').trim().replace(/^\/+/, '');
+  if (!cleaned.startsWith('uploads/')) cleaned = `uploads/${cleaned}`;
+  return `${API_BASE_URL}/${cleaned}`;
+};
 
 const EditSeries = () => {
   const { seriesId } = useParams();
@@ -30,16 +38,17 @@ const EditSeries = () => {
         const authorId = typeof s.author === 'string' ? s.author : s.author?._id;
         if (authorId !== user._id) {
           setError('You are not authorized to edit this series.');
-          return navigate('/');
+          navigate('/');
+          return;
         }
 
         setSeries(s);
         setFormData({
-          name: s.name,
-          description: s.description,
-          coverImage: null, // לא נשלף — נטען מחדש אם רוצים
+          name: s.name || '',
+          description: s.description || '',
+          coverImage: null, // נטען מחדש אם המשתמש יבחר קובץ חדש
         });
-        setPreview(`${API_BASE_URL}/uploads/${s.coverImage}`);
+        setPreview(normalizeUploadUrl(s.coverImage));
       } catch (err) {
         console.error('Error loading series:', err);
         setError('Failed to load series.');
@@ -49,17 +58,30 @@ const EditSeries = () => {
     fetchSeries();
   }, [seriesId, user._id, navigate]);
 
+  useEffect(() => {
+    // ניקוי ObjectURL אם נוצר
+    return () => {
+      if (preview?.startsWith('blob:')) {
+        URL.revokeObjectURL(preview);
+      }
+    };
+  }, [preview]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData(prev => ({ ...prev, coverImage: file }));
-      setPreview(URL.createObjectURL(file));
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setFormData((prev) => ({ ...prev, coverImage: file }));
+
+    // ניקוי קודמת אם הייתה
+    if (preview?.startsWith('blob:')) {
+      URL.revokeObjectURL(preview);
     }
+    setPreview(URL.createObjectURL(file));
   };
 
   const handleSubmit = (e) => {
@@ -127,11 +149,7 @@ const EditSeries = () => {
 
         <Form.Group className="mb-3">
           <Form.Label>Cover Image</Form.Label>
-          <Form.Control
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-          />
+          <Form.Control type="file" accept="image/*" onChange={handleFileChange} />
         </Form.Group>
 
         {preview && (
@@ -140,6 +158,9 @@ const EditSeries = () => {
               src={preview}
               alt="Cover Preview"
               style={{ width: '200px', height: 'auto', borderRadius: '8px' }}
+              onError={(e) => {
+                e.currentTarget.src = '/images/placeholder.jpg';
+              }}
             />
           </div>
         )}
