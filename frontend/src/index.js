@@ -17,29 +17,20 @@ import { I18nextProvider } from 'react-i18next';
 const clientIdRaw = process.env.REACT_APP_GOOGLE_CLIENT_ID || '';
 const clientId = clientIdRaw.trim();
 
-// === Debug ===
+// debug נחמד לראות שאין רווחים/ריקים
 console.log(`🔑 CLIENT=[${clientIdRaw}] (raw len=${clientIdRaw.length})`);
 console.log(`🔑 CLIENT_TRIM=[${clientId}] (trim len=${clientId.length})`);
 
 const container = document.getElementById('root');
 const root = createRoot(container);
 
-// מסך טעינה בסיסי עד שה-i18n מוכן
 function Loading() {
   return <div style={{ padding: 16 }}>Loading…</div>;
 }
 
-// אם אין clientId, נתריע בקונסול (נרנדר ללא Provider כדי לא לשבור את האפליקציה)
-if (!clientId) {
-  // eslint-disable-next-line no-console
-  console.warn(
-    '⚠️ Missing REACT_APP_GOOGLE_CLIENT_ID. Add it to your frontend .env and restart the dev server.'
-  );
-}
-
+// רנדר ראשוני למסך טעינה
 root.render(<Loading />);
 
-// נוודא שהתרגומים מוכנים לפני הרנדר הראשי
 i18nReady.then(() => {
   const appTree = (
     <React.StrictMode>
@@ -53,7 +44,7 @@ i18nReady.then(() => {
     </React.StrictMode>
   );
 
-  // נעטוף ב-GoogleOAuthProvider רק אם יש clientId תקין
+  // עוטפים בגוגל רק אם יש clientId תקין
   root.render(
     clientId ? (
       <GoogleOAuthProvider clientId={clientId}>

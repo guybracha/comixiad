@@ -27,7 +27,7 @@ export default function CreatedComicList({
     <div className="row g-3">
       {list.map((c) => {
         const img = c.coverImage ? toAbsoluteUrl(c.coverImage) : PLACEHOLDER;
-        const linkTo = `/comic/${c.slug || c._id}`;
+        const linkTo = `/comics/${c.slug || c._id}`;
         const editLink = `/comics/${c._id}/edit`; // 👈 קישור לעריכת הקומיקס
 
         return (
