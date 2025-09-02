@@ -1,13 +1,35 @@
+// ProfileHeader.js
 import React from 'react';
 import { Button } from 'react-bootstrap';
 import { API_BASE_URL } from '../../Config';
 
+// helper קטן שמייצר URL ציבורי מהערך במסד
+function buildAvatarUrl(raw) {
+  if (!raw) return null;
+  if (raw.startsWith('http')) return raw;
+
+  // unify slashes
+  let p = raw.replace(/\\/g, '/');
+
+  // אם יש נתיב מוחלט של שרת, חילוץ החל מ-/uploads/ ואילך
+  const pos = p.lastIndexOf('/uploads/');
+  if (pos !== -1) {
+    p = p.slice(pos + 1); // "uploads/1747....jpg"
+  } else {
+    // דוגמאות נפוצות: "/root/backend/uploads/..." או "backend/uploads/..."
+    p = p.replace(/^\/?root\/backend\/uploads\//, 'uploads/');
+    p = p.replace(/^\/?backend\/uploads\//, 'uploads/');
+  }
+
+  // לוודא שאין סלאש מוביל כפול
+  p = p.replace(/^\/+/, '');
+
+  return `${API_BASE_URL}/${p}`;
+}
+
 const ProfileHeader = ({ profile, onEdit }) => {
-  const avatarUrl = profile.avatar?.startsWith('http')
-    ? profile.avatar
-    : profile.avatar
-      ? `${API_BASE_URL}/${profile.avatar.replace(/\\/g, '/')}`
-      : 'https://www.gravatar.com/avatar/?d=mp';
+  const avatarUrl =
+    buildAvatarUrl(profile.avatar) || 'https://www.gravatar.com/avatar/?d=mp';
 
   const joinedDate = profile.joinDate
     ? new Date(profile.joinDate).toLocaleDateString()
@@ -17,20 +39,17 @@ const ProfileHeader = ({ profile, onEdit }) => {
 
   return (
     <div className="user-profile-container text-center">
-      {/* תמונת פרופיל */}
       <img
         src={avatarUrl}
         alt="avatar"
         className="profile-avatar"
-        onError={(e) => { e.target.src = 'https://www.gravatar.com/avatar/?d=mp'; }}
+        onError={(e) => { e.currentTarget.src = 'https://www.gravatar.com/avatar/?d=mp'; }}
       />
 
-      {/* שם משתמש */}
       <h2 className="profile-name">
         {profile.username ? `${profile.username}'s Profile` : 'User Profile'}
       </h2>
 
-      {/* פרטי מידע */}
       <div className="profile-details">
         <p className="profile-info"><span>Email:</span> {profile.email || 'N/A'}</p>
         <p className="profile-info"><span>Bio:</span> {profile.bio || 'N/A'}</p>
@@ -42,7 +61,6 @@ const ProfileHeader = ({ profile, onEdit }) => {
         <p className="profile-info"><span>Joined:</span> {joinedDate}</p>
       </div>
 
-      {/* קישורים חברתיים */}
       {(twitter || instagram || deviantart) && (
         <div className="social-links mt-3">
           {twitter && <a href={twitter} target="_blank" rel="noreferrer" className="social-link">🐦 Twitter</a>}
@@ -51,7 +69,6 @@ const ProfileHeader = ({ profile, onEdit }) => {
         </div>
       )}
 
-      {/* כפתור עריכה */}
       {onEdit && (
         <Button className="edit-btn" onClick={onEdit}>
           Edit Profile

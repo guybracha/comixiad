@@ -1,4 +1,4 @@
-// index.js
+// src/index.js
 import React, { Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import { GoogleOAuthProvider } from '@react-oauth/google';
@@ -13,35 +13,55 @@ import { UserProvider } from './context/UserContext';
 import i18n, { i18nReady } from './i18n';
 import { I18nextProvider } from 'react-i18next';
 
-// === CRA: קרא רק מ-REACT_APP_* ===
-const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+// CRA קורא רק משתנים שמתחילים ב-REACT_APP_
+const clientIdRaw = process.env.REACT_APP_GOOGLE_CLIENT_ID || '';
+const clientId = clientIdRaw.trim();
 
-if (!clientId) {
-  // eslint-disable-next-line no-console
-  console.warn(
-    'Missing Google Client ID. Set REACT_APP_GOOGLE_CLIENT_ID in your frontend .env and restart the dev server.'
-  );
-}
+// === Debug ===
+console.log(`🔑 CLIENT=[${clientIdRaw}] (raw len=${clientIdRaw.length})`);
+console.log(`🔑 CLIENT_TRIM=[${clientId}] (trim len=${clientId.length})`);
 
 const container = document.getElementById('root');
 const root = createRoot(container);
 
-// מסך טעינה זמני עד שה-i18n מוכן
-root.render(<div style={{ padding: 16 }}>Loading…</div>);
+// מסך טעינה בסיסי עד שה-i18n מוכן
+function Loading() {
+  return <div style={{ padding: 16 }}>Loading…</div>;
+}
 
+// אם אין clientId, נתריע בקונסול (נרנדר ללא Provider כדי לא לשבור את האפליקציה)
+if (!clientId) {
+  // eslint-disable-next-line no-console
+  console.warn(
+    '⚠️ Missing REACT_APP_GOOGLE_CLIENT_ID. Add it to your frontend .env and restart the dev server.'
+  );
+}
+
+root.render(<Loading />);
+
+// נוודא שהתרגומים מוכנים לפני הרנדר הראשי
 i18nReady.then(() => {
-  root.render(
+  const appTree = (
     <React.StrictMode>
-      <GoogleOAuthProvider clientId={clientId || ''}>
-        <I18nextProvider i18n={i18n}>
-          <Suspense fallback={null}>
-            <UserProvider>
-              <App />
-            </UserProvider>
-          </Suspense>
-        </I18nextProvider>
-      </GoogleOAuthProvider>
+      <I18nextProvider i18n={i18n}>
+        <Suspense fallback={<Loading />}>
+          <UserProvider>
+            <App />
+          </UserProvider>
+        </Suspense>
+      </I18nextProvider>
     </React.StrictMode>
+  );
+
+  // נעטוף ב-GoogleOAuthProvider רק אם יש clientId תקין
+  root.render(
+    clientId ? (
+      <GoogleOAuthProvider clientId={clientId}>
+        {appTree}
+      </GoogleOAuthProvider>
+    ) : (
+      appTree
+    )
   );
 });
 

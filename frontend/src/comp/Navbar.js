@@ -1,5 +1,5 @@
 // src/comp/Navbar.js
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { useTranslation } from 'react-i18next';
@@ -9,6 +9,31 @@ import logo from '../img/logo.jpg';
 
 const baseLang = (lng = 'en') => lng.toLowerCase().split('-')[0];
 const isRTL = (lng) => ['he', 'ar', 'fa', 'ur'].includes(baseLang(lng));
+
+/** נירמול avatar ל־URL ציבורי שניתן להציג בדפדפן */
+function buildAvatarUrl(raw) {
+  if (!raw) return null;
+  if (raw.startsWith('http')) return raw; // כבר URL מלא
+
+  // unify slashes
+  let p = raw.replace(/\\/g, '/');
+
+  // אם נשמר נתיב מוחלט ממערכת קבצים (e.g. /root/backend/uploads/xxx.jpg)
+  const pos = p.lastIndexOf('/uploads/');
+  if (pos !== -1) {
+    p = p.slice(pos + 1); // "uploads/xxx.jpg"
+  } else {
+    // וריאציות נפוצות
+    p = p.replace(/^\/?root\/backend\/uploads\//, 'uploads/');
+    p = p.replace(/^\/?backend\/uploads\//, 'uploads/');
+    p = p.replace(/^\/?uploads\//, 'uploads/');
+  }
+
+  // ודא שאין סלאשים מובילים
+  p = p.replace(/^\/+/, '');
+
+  return `${API_BASE_URL}/${p}`;
+}
 
 const Navbar = () => {
   const { t, i18n } = useTranslation();
@@ -20,7 +45,7 @@ const Navbar = () => {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    navigate(`/search?query=${searchQuery}`);
+    navigate(`/search?query=${encodeURIComponent(searchQuery)}`);
   };
 
   const handleLogoutClick = () => {
@@ -43,15 +68,18 @@ const Navbar = () => {
   const switchLabel = otherLng === 'he' ? 'עִבְרִית' : 'EN';
 
   const handleSwitchLanguage = async () => {
-    const code = otherLng; // 'en' / 'he'
-    // עדכון i18n
+    const code = otherLng;
     await i18n.changeLanguage(code);
-    // עיגון בלוקל-סטורג' כדי שישרוד ריענון/סשן
     localStorage.setItem('i18nextLng', code);
-    // עדכון כיוון מסמך (גיבוי לצד ה-setDir שכבר עשית ב-i18n.js)
     document.documentElement.lang = code;
     document.documentElement.dir = isRTL(code) ? 'rtl' : 'ltr';
   };
+
+  // URL של אווטאר משתמש
+  const userAvatarUrl = useMemo(() => {
+    const url = buildAvatarUrl(user?.avatar);
+    return url || 'https://www.gravatar.com/avatar/?d=mp';
+  }, [user?.avatar]);
 
   return (
     <nav
@@ -146,22 +174,20 @@ const Navbar = () => {
           {/* ——— התחברות / פרופיל ——— */}
           {user ? (
             <div className="d-flex align-items-center">
-              <img
-                src={
-                  user.avatar
-                    ? user.avatar.startsWith('http')
-                      ? user.avatar
-                      : `${API_BASE_URL}/${user.avatar.replace(/\\/g, '/')}`
-                    : 'https://www.gravatar.com/avatar/?d=mp'
-                }
-                alt="avatar"
-                className="rounded-circle me-2"
-                style={{ width: '40px', height: '40px', objectFit: 'cover' }}
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = 'https://www.gravatar.com/avatar/?d=mp';
-                }}
-              />
+              {/* מקשר גם לפרופיל של המשתמש */}
+              <Link to={`/profile/${user._id}`} className="d-inline-block me-2">
+                <img
+                  src={userAvatarUrl}
+                  alt={`${user.username || 'user'} avatar`}
+                  className="rounded-circle"
+                  style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = 'https://www.gravatar.com/avatar/?d=mp';
+                  }}
+                />
+              </Link>
+
               <button
                 className="btn btn-outline-danger rounded-pill px-3"
                 onClick={handleLogoutClick}

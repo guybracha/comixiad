@@ -63,7 +63,6 @@ const AppContent = () => {
                     path="/series/:seriesId/edit"
                     element={user ? <EditSeries /> : <Navigate to="/login" replace />}
                     />
-
                     {/* עריכת קומיקס */}
                 <Route
                     path="/comics/:comicId/edit"
