@@ -8,7 +8,6 @@ const PLACEHOLDER = 'https://via.placeholder.com/640x900?text=Comic+Cover';
 function toAbsoluteUrl(relOrAbs) {
   if (!relOrAbs) return '';
   if (/^https?:\/\//i.test(relOrAbs)) return relOrAbs;
-  // הסר / כפולים
   const clean = relOrAbs.startsWith('/') ? relOrAbs.slice(1) : relOrAbs;
   return `${API_BASE_URL}/${clean}`;
 }
@@ -29,6 +28,8 @@ export default function CreatedComicList({
       {list.map((c) => {
         const img = c.coverImage ? toAbsoluteUrl(c.coverImage) : PLACEHOLDER;
         const linkTo = `/comic/${c.slug || c._id}`;
+        const editLink = `/comics/${c._id}/edit`; // 👈 קישור לעריכת הקומיקס
+
         return (
           <div key={c._id || c.id} className="col-6 col-md-4 col-lg-3">
             <div className="card h-100 shadow-sm">
@@ -48,14 +49,28 @@ export default function CreatedComicList({
                     {c.title || 'Untitled'}
                   </Link>
                 </h6>
-                {(loggedInUserId === currentUserId) && onDelete && (
-                  <button
-                    type="button"
-                    className="btn btn-sm btn-outline-danger mt-auto"
-                    onClick={() => onDelete(c._id)}
-                  >
-                    מחיקה
-                  </button>
+
+                {loggedInUserId === currentUserId && (
+                  <div className="d-flex justify-content-between mt-auto">
+                    {/* כפתור עריכה */}
+                    <Link
+                      to={editLink}
+                      className="btn btn-sm btn-outline-primary"
+                    >
+                      עריכה
+                    </Link>
+
+                    {/* כפתור מחיקה */}
+                    {onDelete && (
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-danger"
+                        onClick={() => onDelete(c._id)}
+                      >
+                        מחיקה
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
