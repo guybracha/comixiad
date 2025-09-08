@@ -31,41 +31,6 @@ function usePageTracking() {
   }, [location]);
 }
 
-function AccessibilityWidget({ requireConsent = false }) {
-  useEffect(() => {
-    if (window.__userwayLoaded) return;
-
-    if (requireConsent) {
-      const consent = localStorage.getItem("cookieConsent"); // התאם למפתח שלך
-      if (!consent) return;
-    }
-
-    // 1) config לפני הטעינה
-    window._userway_config = {
-      account: "YOUR_USERWAY_ACCOUNT_ID",                 // ← להחליף
-      language: (document.documentElement.lang || "en").startsWith("he") ? "he" : "en",
-      position: "right",
-      size: "small",
-      mobile: true,
-      // color: "#0d6efd",
-      // statement_url: "/legal?tab=accessibility"
-    };
-
-    // 2) טעינת הסקריפט (עם SRI כמו בקוד שלך)
-    const s = document.createElement("script");
-    s.id = "userway-widget";
-    s.async = true;
-    s.src = "https://cdn.userway.org/widget.js";
-    s.integrity = "sha256-QPrb2tX87EVFWCE3Fbl0tzkoVG93kt8h6BrdZHod66U=";
-    s.crossOrigin = "anonymous";
-    s.onload = () => (window.__userwayLoaded = true);
-    document.body.appendChild(s);
-  }, [requireConsent]);
-
-  return null;
-}
-
-
 const AppContent = () => {
     const { user, setUser } = useUser();
     usePageTracking(); // ✅ עכשיו בתוך Router
@@ -79,7 +44,6 @@ const AppContent = () => {
 
     return (
         <>
-            <AccessibilityWidget requireConsent={false} />
             <Navbar user={user} />
             <Routes>
                 <Route path="/" element={<Homepage />} />
