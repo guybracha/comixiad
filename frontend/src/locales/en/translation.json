@@ -31,7 +31,10 @@
     "light": "Light mode",
     "login": "Login",
     "register": "Register",
-    "logout": "Logout"
+    "logout": "Logout",
+    "terms": "Terms of Use",
+    "privacy": "Privacy Policy",
+    "accessibility": "Accessibility"
   },
   "random": {
     "title": "Random Comics",
@@ -39,7 +42,7 @@
     "none": "No comics available",
     "readBtn": "Read"
   },
-    "profile": {
+  "profile": {
     "loading": "Loading profile…",
     "postedComics": "Published comics",
     "createdSeries": "Created series",
@@ -63,9 +66,9 @@
     "success": "Comic uploaded successfully!",
     "fail": "Upload failed. Please try again.",
     "adultLabel": "18+ adult content",
-    "adultHint":  "Mark if this comic is intended for adults"
+    "adultHint": "Mark if this comic is intended for adults"
   },
-   "search": {
+  "search": {
     "loading": "Loading…",
     "error": "Failed to fetch search results. Please try again later.",
     "resultsFor": "Search results for: \"{{query}}\"",
@@ -75,5 +78,15 @@
     "viewComic": "View comic",
     "viewSeries": "View series",
     "viewProfile": "View profile"
+  },
+  "legal": {
+    "lastUpdated": "Last updated: {{date}}",
+    "contact": "Contact",
+    "contactNote": "For any questions or requests, contact us:",
+    "email": "Email",
+    "termsTitle": "Terms of Use",
+    "privacyTitle": "Privacy Policy",
+    "privacyTitleEN": "Privacy Policy (EN)",
+    "accessTitle": "Accessibility Statement"
   }
 }
