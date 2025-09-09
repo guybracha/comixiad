@@ -20,7 +20,7 @@
     "superhero": "גיבורי-על",
     "thriller": "מותחן"
   },
-    "nav": {
+  "nav": {
     "home": "בית",
     "upload": "העלה קומיקס",
     "createSeries": "צור סדרה",
@@ -31,7 +31,10 @@
     "light": "מצב בהיר",
     "login": "התחבר",
     "register": "הרשמה",
-    "logout": "התנתק"
+    "logout": "התנתק",
+    "terms": "תנאי שימוש",
+    "privacy": "מדיניות פרטיות",
+    "accessibility": "הצהרת נגישות"
   },
   "random": {
     "title": "קומיקסים אקראיים",
@@ -63,7 +66,7 @@
     "success": "הקומיקס הועלה בהצלחה!",
     "fail": "ההעלאה נכשלה. נסה שוב.",
     "adultLabel": "תוכן למבוגרים (18+)",
-    "adultHint":  "סמן אם הקומיקס מיועד למבוגרים"
+    "adultHint": "סמן אם הקומיקס מיועד למבוגרים"
   },
   "search": {
     "loading": "טוען...",
@@ -75,5 +78,15 @@
     "viewComic": "צפה בקומיקס",
     "viewSeries": "צפה בסדרה",
     "viewProfile": "צפה בפרופיל"
+  },
+  "legal": {
+    "lastUpdated": "עודכן לאחרונה: {{date}}",
+    "contact": "יצירת קשר",
+    "contactNote": "לכל שאלה או בקשה, ניתן לפנות אלינו:",
+    "email": "אימייל",
+    "termsTitle": "תנאי שימוש",
+    "privacyTitle": "מדיניות פרטיות",
+    "privacyTitleEN": "Privacy Policy (EN)",
+    "accessTitle": "הצהרת נגישות"
   }
 }

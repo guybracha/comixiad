@@ -17,6 +17,7 @@ import EditComic from './comp/EditComic';
 import EditSeries from './comp/EditSeries';
 import SearchResults from './comp/SearchResults';
 import SeriesDetail from './comp/SeriesDetail';
+import Legal from './comp/Legal';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
 
@@ -71,6 +72,7 @@ const AppContent = () => {
                 <Route path="/series/:id" element={<SeriesDetail />} />
                 <Route path="/search" element={<SearchResults />} />
                 <Route path="*" element={<Error />} />
+                <Route path="/legal" element={<Legal />} />
             </Routes>
             <Footer />
         </>
