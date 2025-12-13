@@ -221,7 +221,7 @@ const ComicReader = () => {
 
         <div className="d-flex gap-2">
           <a
-            href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://comixiad.com/preview/comic/${comicId}`)}`}
+            href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://comixiad.com/comic/${comicId}`)}`}
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn-outline-primary btn-sm"
@@ -229,7 +229,7 @@ const ComicReader = () => {
             <i className="bi bi-facebook me-1"></i> שתף בפייסבוק
           </a>
           <a
-            href={`https://wa.me/?text=${encodeURIComponent(`📖 ${comic.title} ב־Comixiad: https://comixiad.com/preview/comic/${comicId}`)}`}
+            href={`https://wa.me/?text=${encodeURIComponent(`📖 ${comic.title} ב־Comixiad: https://comixiad.com/comic/${comicId}`)}`}
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn-outline-success btn-sm"
