@@ -7,6 +7,7 @@
   flex-wrap: wrap;
   gap: 1.5rem;
   justify-content: start;
+  direction: ltr;
 }
 
 .result-card {
@@ -20,6 +21,7 @@
 
   display: flex; /* ✅ חדש */
   flex-direction: column; /* ✅ חדש */
+  direction: ltr;
 }
 
 .result-card:hover {

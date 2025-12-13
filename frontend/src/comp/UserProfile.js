@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import ProfileHeader from './Profile/ProfileHeader';
 import CreatedComicList from './Profile/CreatedComicList';
 import CreatedSeriesList from './Profile/CreatedSeriesList';
+import FavoriteComicsList from './Profile/FavoriteComicsList';
 import EditProfileModal from './Profile/EditProfileModal';
 
 import { API_BASE_URL } from '../Config';
@@ -245,10 +246,15 @@ function UserProfile() {
       <h3 className="section-title">🎞️ {t('profile.createdSeries')}</h3>
       <CreatedSeriesList
         series={userSeries}
-        currentUserId={profile._id}
+        profileUserId={profile._id}
         loggedInUserId={currentUser?._id}
         onDelete={isCurrentUser ? handleDeleteSeries : null}
       />
+
+      {/* Favorite Comics Section */}
+      <div className="favorite-section mt-5">
+        <FavoriteComicsList userId={profile._id} />
+      </div>
 
       {isCurrentUser && (
         <EditProfileModal

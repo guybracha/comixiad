@@ -1,0 +1,102 @@
+/* RTL/LTR Direction Fix - Prevents button/element order from changing */
+
+/* Force LTR on all navigation elements */
+nav,
+.navbar,
+.navbar-brand,
+.navbar-nav,
+.navbar-collapse,
+.navbar-toggler,
+.nav-item,
+.nav-link,
+.dropdown-menu {
+  direction: ltr !important;
+}
+
+/* Force LTR on all button groups and action buttons */
+.btn,
+.button,
+button,
+.btn-group,
+.btn-toolbar,
+a.btn,
+button.btn,
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+  direction: ltr !important;
+}
+
+/* Force LTR on grid layouts */
+.grid,
+.categories-list,
+.results-grid,
+.comics-grid,
+.comic-pages,
+.social-links {
+  direction: ltr !important;
+}
+
+/* Force LTR on card components */
+.card,
+.card-body,
+.card-header,
+.card-footer,
+.comic-card,
+.series-card,
+.result-card,
+.category-card {
+  direction: ltr !important;
+}
+
+/* Force LTR on flexbox containers that shouldn't flip */
+.d-flex,
+.flex-row,
+.flex-column,
+[class*="d-flex"] {
+  direction: ltr !important;
+}
+
+/* Force LTR on Bootstrap grid */
+.row,
+.col,
+[class*="col-"] {
+  direction: ltr !important;
+}
+
+/* Homepage banner buttons */
+.homepage-banner .btn {
+  direction: ltr !important;
+}
+
+/* Image galleries and media */
+.image-gallery,
+.media-container,
+.comic-reader {
+  direction: ltr !important;
+}
+
+/* Ensure text content can still be RTL when needed */
+.text-content,
+.description,
+.bio {
+  /* Allow text direction to be inherited from parent */
+  text-align: inherit;
+}
+
+/* Links in lists should maintain order */
+ul.nav,
+ol.nav,
+.nav-list {
+  direction: ltr !important;
+}
+
+/* Pagination */
+.pagination {
+  direction: ltr !important;
+}
+
+/* Breadcrumbs */
+.breadcrumb {
+  direction: ltr !important;
+}

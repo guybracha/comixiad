@@ -11,8 +11,44 @@
 }
 
 .custom-navbar.dark {
-  background: rgba(28, 28, 28, 0.9);
-  border-bottom: 1px solid #444;
+  background: rgba(28, 28, 28, 0.95);
+  border-bottom: 1px solid #555;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Dark mode - navbar styles */
+.navbar-dark {
+  background: rgba(28, 28, 28, 0.95) !important;
+  backdrop-filter: blur(10px);
+}
+
+.navbar-dark .navbar-brand {
+  color: #fff !important;
+}
+
+.navbar-dark .navbar-toggler {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.navbar-dark .navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.75%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+/* תמיכה ב-RTL/LTR ללא שינוי סדר */
+.navbar {
+  direction: ltr !important;
+}
+
+.navbar .container-fluid {
+  direction: ltr !important;
+}
+
+.navbar-nav {
+  direction: ltr !important;
+}
+
+.navbar-collapse {
+  direction: ltr !important;
 }
 
 /* לוגו/טקסט */
@@ -61,15 +97,110 @@
   background-color: rgba(0, 0, 0, 0.05);
 }
 
+/* Dark mode links */
+.navbar-dark .nav-link,
 .custom-navbar.dark .nav-link {
-  color: #f1f1f1 !important;
+  color: #e0e0e0 !important;
 }
 
+.navbar-dark .nav-link:hover,
 .custom-navbar.dark .nav-link:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #fff !important;
+}
+
+.navbar-dark .nav-link::after {
+  background: linear-gradient(to right, #ff6a00, #ff4b2b, #ff416c);
 }
 
 /* כפתורים */
+.btn {
+  transition: all 0.3s ease-in-out;
+  border-radius: 10px;
+}
+
+.btn:hover {
+  transform: translateY(-2px) scale(1.05);
+}
+
+/* Dark mode buttons */
+.navbar-dark .btn-outline-secondary {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #e0e0e0;
+}
+
+.navbar-dark .btn-outline-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: #fff;
+}
+
+.navbar-dark .btn-outline-primary {
+  border-color: #5a9fd4;
+  color: #5a9fd4;
+}
+
+.navbar-dark .btn-outline-primary:hover {
+  background-color: #5a9fd4;
+  border-color: #5a9fd4;
+  color: #fff;
+}
+
+.navbar-dark .btn-outline-danger {
+  border-color: #dc3545;
+  color: #dc3545;
+}
+/* תמונת פרופיל */
+.avatar-thumbnail {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-left: 12px;
+  border: 2px solid #ccc;
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.avatar-thumbnail:hover {
+  transform: scale(1.15);
+  border-color: #ff4b2b;
+}
+
+.custom-navbar.dark .avatar-thumbnail,
+.navbar-dark .avatar-thumbnail,
+.navbar-dark .rounded-circle {
+  border-color: #777;
+}
+
+.navbar-dark .avatar-thumbnail:hover,
+.navbar-dark .rounded-circle:hover {
+  border-color: #ff6a00;
+}
+
+/* Dark mode - general improvements */
+.navbar-dark {
+  border-bottom: 2px solid #444;
+}
+
+body.dark-mode {
+  background-color: #1a1a1a;
+  color: #e0e0e0;
+}navbar-dark .form-control {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.navbar-dark .form-control::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.navbar-dark .form-control:focus {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-color: #5a9fd4;
+  color: #fff;
+  box-shadow: 0 0 0 0.2rem rgba(90, 159, 212, 0.25);
+}* כפתורים */
 .btn {
   transition: all 0.3s ease-in-out;
   border-radius: 10px;

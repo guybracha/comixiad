@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import '../ComicReader.css';
 import { Helmet } from 'react-helmet';
 import RandomThree from './RandomThree';
+import CommentSection from './CommentSection';
 import { useUser } from '../context/UserContext';
 import api, { toPublicUrl } from '../lib/api';
 
@@ -16,6 +17,7 @@ const ComicReader = () => {
   const [error, setError] = useState(null);
   const [imgErrors, setImgErrors] = useState({});
   const [hasLiked, setHasLiked] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
   const adultKey = `adult-ok:${comicId}`;
   const [showAdultGate, setShowAdultGate] = useState(false);
 
@@ -42,6 +44,16 @@ const ComicReader = () => {
         try { await api.put(`/api/comics/${comicId}/view`); } catch {}
 
         setHasLiked(Boolean(data?.likedBy?.includes?.(user?._id)));
+
+        // בדיקה אם קומיקס במועדפים
+        if (user?._id) {
+          try {
+            const { data: userData } = await api.get(`/api/users/${user._id}/favorites`);
+            setIsFavorite(userData.favoriteComics?.some(fav => fav._id === comicId));
+          } catch (err) {
+            console.error('Error checking favorites:', err);
+          }
+        }
 
         // שער 18+
         const isAdult = !!data?.adultOnly;
@@ -72,7 +84,7 @@ const ComicReader = () => {
   const handleLike = async () => {
     if (!user?._id) return;
     try {
-      const { data } = await api.put(`/api/comics/${comicId}/like`, {}); // user מזוהה בשרת
+      const { data } = await api.put(`/api/comics/${comicId}/like`, {});
       setComic(data);
       setHasLiked(true);
     } catch (err) {
@@ -94,6 +106,32 @@ const ComicReader = () => {
       if (err?.response?.status === 401 || err?.response?.status === 403) {
         localStorage.removeItem('token');
       }
+    }
+  };
+
+  const handleAddToFavorites = async () => {
+    if (!user?._id) {
+      alert('Please login to add favorites');
+      return;
+    }
+    try {
+      await api.post(`/api/users/${user._id}/favorites/${comicId}`);
+      setIsFavorite(true);
+    } catch (err) {
+      console.error('Error adding to favorites:', err);
+      if (err?.response?.status === 400) {
+        alert('Comic is already in favorites');
+      }
+    }
+  };
+
+  const handleRemoveFromFavorites = async () => {
+    if (!user?._id) return;
+    try {
+      await api.delete(`/api/users/${user._id}/favorites/${comicId}`);
+      setIsFavorite(false);
+    } catch (err) {
+      console.error('Error removing from favorites:', err);
     }
   };
 
@@ -131,17 +169,29 @@ const ComicReader = () => {
                 <h5 className="modal-title">תוכן למבוגרים (18+)</h5>
               </div>
               <div className="modal-body">
-                <p className="mb-0">
-                  הקומיקס מכיל תוכן שמיועד למבוגרים בלבד. כדי להמשיך, אשר/י כי הינך מעל גיל 18.
-                </p>
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={handleAdultExit}>
-                  חזרה
-                </button>
-                <button type="button" className="btn btn-primary" onClick={handleAdultConfirm}>
-                  אני מעל 18
-                </button>
+        {user && (
+          <>
+            {hasLiked ? (
+              <button className="btn btn-outline-danger btn-sm" onClick={handleUnlike}>
+                הסר לייק
+              </button>
+            ) : (
+              <button className="btn btn-outline-success btn-sm" onClick={handleLike}>
+                לייק
+              </button>
+            )}
+            
+            {isFavorite ? (
+              <button className="btn btn-warning btn-sm" onClick={handleRemoveFromFavorites}>
+                ⭐ הסר ממועדפים
+              </button>
+            ) : (
+              <button className="btn btn-outline-warning btn-sm" onClick={handleAddToFavorites}>
+                ☆ הוסף למועדפים
+              </button>
+            )}
+          </>
+        )}
               </div>
             </div>
           </div>
@@ -236,6 +286,9 @@ const ComicReader = () => {
           <p>אין עמודים להצגה</p>
         )}
       </div>
+
+      {/* תגובות */}
+      <CommentSection comicId={comicId} />
 
       {/* קומיקס נוספים אקראיים */}
       <RandomThree />

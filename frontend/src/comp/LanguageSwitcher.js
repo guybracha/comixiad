@@ -11,11 +11,12 @@ function LanguageSwitcher() {
   };
 
   return (
-    <div className="btn-group">
+    <div className="btn-group" style={{ direction: 'ltr' }}>
       <button
         className="btn btn-outline-secondary btn-sm"
         disabled={i18n.language === 'en'}
         onClick={() => change('en')}
+        style={{ direction: 'ltr' }}
       >
         EN
       </button>
@@ -23,6 +24,7 @@ function LanguageSwitcher() {
         className="btn btn-outline-secondary btn-sm"
         disabled={i18n.language === 'he'}
         onClick={() => change('he')}
+        style={{ direction: 'ltr' }}
       >
         עִבְרִית
       </button>

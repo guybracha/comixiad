@@ -22,16 +22,38 @@ function TopFive() {
   }, []);
 
   const getImageUrl = (comic) => {
-    if (!comic?.pages?.[0]) return '/images/placeholder.jpg';
+    if (!comic?.pages?.[0]) {
+      return 'https://via.placeholder.com/300x400/cccccc/666666?text=No+Image';
+    }
 
     const firstPage = comic.pages[0];
     const imagePath = firstPage.url || firstPage.filename;
 
-    if (!imagePath) return '/images/placeholder.jpg';
-    if (imagePath.startsWith('uploads/')) return `${API_BASE_URL}/${imagePath}`;
-    if (imagePath.startsWith('/')) return `${API_BASE_URL}/uploads${imagePath}`;
+    if (!imagePath) {
+      return 'https://via.placeholder.com/300x400/cccccc/666666?text=No+Image';
+    }
 
-    return `${API_BASE_URL}/uploads/${imagePath}`;
+    // Clean up path
+    let cleanPath = imagePath.replace(/\\/g, '/');
+    
+    // If already a full URL
+    if (cleanPath.startsWith('http')) return cleanPath;
+    
+    // If starts with uploads/
+    if (cleanPath.startsWith('uploads/')) return `${API_BASE_URL}/${cleanPath}`;
+    
+    // If starts with /uploads/
+    if (cleanPath.startsWith('/uploads/')) return `${API_BASE_URL}${cleanPath}`;
+    
+    // If has uploads somewhere in the path
+    if (cleanPath.includes('/uploads/')) {
+      const uploadsIndex = cleanPath.lastIndexOf('/uploads/');
+      cleanPath = cleanPath.substring(uploadsIndex + 1);
+      return `${API_BASE_URL}/${cleanPath}`;
+    }
+    
+    // Default: assume it's just a filename
+    return `${API_BASE_URL}/uploads/comics/${cleanPath}`;
   };
 
   return (
@@ -49,7 +71,9 @@ function TopFive() {
                 alt={comic.title}
                 className="comic-top-img"
                 onError={(e) => {
-                  e.target.src = '/images/placeholder.jpg';
+                  console.error('Failed to load image for:', comic.title, 'Path:', getImageUrl(comic));
+                  e.target.onerror = null; // Prevent infinite loop
+                  e.target.src = 'https://via.placeholder.com/300x400/cccccc/666666?text=No+Image';
                 }}
               />
               <div className="comic-info">

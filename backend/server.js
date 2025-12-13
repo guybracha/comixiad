@@ -16,6 +16,7 @@ const registerRoute = require('./routers/Register');
 const loginRoute = require('./routers/Login');
 const authRouter = require('./routers/Auth');
 const seriesRouter = require('./routers/Series');
+const commentsRouter = require('./routers/Comments');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -27,7 +28,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Middleware
 app.use(cors({
-        origin: 'https://comixiad.com',
+        origin: ['https://comixiad.com', 'http://localhost:3000', 'http://localhost:5173'],
         credentials: true,
         methods:['GET','POST','PUT','DELETE', 'PATCH', 'OPTIONS'],
         allowedHeaders: ['Content-Type','Authorization']
@@ -53,7 +54,8 @@ app.use('/api/search', searchRouter);
 app.use('/api/register', registerRoute);
 app.use('/api/login', loginRoute);
 app.use('/api/auth', authRouter);
-app.use('/api/series', seriesRouter); // ✅
+app.use('/api/series', seriesRouter);
+app.use('/api', commentsRouter); // תגובות
 
 app.get("/", (req, res) => {
   res.send("🚀 API is live at /api");

@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
 import './index.css';
+import './rtl-fix.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 import App from './App';

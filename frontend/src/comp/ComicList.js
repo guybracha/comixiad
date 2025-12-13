@@ -67,8 +67,8 @@ const ComicList = () => {
     const candidate = first?.url || first?.path || first?.filename;
     const img = buildImageUrl(candidate);
 
-    // fallback מקומי (יחסי לאפליקציה – ודא שקובץ placeholder קיים ב־/public/images/)
-    return img || '/images/placeholder.jpg';
+    // fallback אונליין
+    return img || 'https://via.placeholder.com/300x400/cccccc/666666?text=No+Image';
   };
 
   const truncateText = (text, maxLength = 100) =>
@@ -94,8 +94,9 @@ const ComicList = () => {
                     alt={comic.title}
                     loading="lazy"
                     onError={(e) => {
+                      console.error('Failed to load image for comic:', comic.title);
                       e.currentTarget.onerror = null;
-                      e.currentTarget.src = '/images/placeholder.jpg';
+                      e.currentTarget.src = 'https://via.placeholder.com/300x400/cccccc/666666?text=No+Image';
                     }}
                   />
                 </div>

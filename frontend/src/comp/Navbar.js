@@ -142,7 +142,7 @@ const Navbar = () => {
           </ul>
 
           {/* ——— חיפוש ——— */}
-          <form className="d-flex me-3" onSubmit={handleSearchSubmit}>
+          <form className="d-flex me-3" onSubmit={handleSearchSubmit} style={{ direction: 'ltr' }}>
             <input
               className="form-control rounded-pill px-3"
               type="search"
@@ -163,6 +163,7 @@ const Navbar = () => {
           <button
             className="btn btn-outline-secondary rounded-pill me-2"
             onClick={toggleDarkMode}
+            style={{ direction: 'ltr' }}
           >
             {darkMode ? '☀️ ' + t('nav.light') : '🌙 ' + t('nav.dark')}
           </button>
@@ -172,13 +173,14 @@ const Navbar = () => {
             className="btn btn-outline-primary rounded-pill me-2"
             onClick={handleSwitchLanguage}
             aria-label="Switch language"
+            style={{ direction: 'ltr' }}
           >
             {switchLabel}
           </button>
 
           {/* ——— התחברות / פרופיל ——— */}
           {user ? (
-            <div className="d-flex align-items-center">
+            <div className="d-flex align-items-center" style={{ direction: 'ltr' }}>
               {/* מקשר גם לפרופיל של המשתמש */}
               <Link to={`/profile/${user._id}`} className="d-inline-block me-2">
                 <img
@@ -196,12 +198,13 @@ const Navbar = () => {
               <button
                 className="btn btn-outline-danger rounded-pill px-3"
                 onClick={handleLogoutClick}
+                style={{ direction: 'ltr' }}
               >
                 🚪 {t('nav.logout')}
               </button>
             </div>
           ) : (
-            <ul className="navbar-nav">
+            <ul className="navbar-nav" style={{ direction: 'ltr' }}>
               <li className="nav-item">
                 <Link className="nav-link" to="/login">
                   🔑 {t('nav.login')}

@@ -14,7 +14,8 @@ const userSchema = new mongoose.Schema({
     },
     avatar: { type: String },
     joinDate: { type: Date, default: Date.now },
-    followingSeries: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Series' }]
+    followingSeries: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Series' }],
+    favoriteComics: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comic' }]
 });
 
 module.exports = mongoose.model('User', userSchema);

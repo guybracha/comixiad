@@ -95,6 +95,17 @@ body {
   transform: translateY(1px);
 }
 
+/* Global direction fix for RTL/LTR switching */
+* {
+  box-sizing: border-box;
+}
+
+html[dir="rtl"] .navbar,
+html[dir="rtl"] .navbar-nav,
+html[dir="rtl"] .navbar-collapse {
+  direction: ltr !important;
+}
+
 /* Footer Styling */
 footer {
   background-color: #343a40;

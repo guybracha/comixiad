@@ -1,6 +1,5 @@
 .footer {
   background: #ffe66d; /* צהוב עז בסגנון קומיקס */
-  direction: rtl;
   border-top: 4px solid #000;
   padding: 2rem 1rem;
   font-family: 'Rubik', sans-serif;
@@ -37,6 +36,7 @@
   display: flex;
   justify-content: center;
   gap: 1.2rem;
+  direction: ltr;
 }
 
 .social-icon {

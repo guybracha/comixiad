@@ -1,0 +1,258 @@
+/* Comments Section Styling */
+.comments-section {
+  max-width: 900px;
+  margin: 3rem auto;
+  padding: 2rem;
+  background: #ffffff;
+  border: 4px solid #000;
+  border-radius: 12px;
+  box-shadow: 8px 8px 0 #000;
+}
+
+.comments-title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #d62828;
+  text-shadow: 2px 2px 0 #000;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+/* Comment Form */
+.comment-form {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #fffaf0;
+  border: 3px solid #000;
+  border-radius: 8px;
+}
+
+.comment-input-group {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  direction: ltr;
+}
+
+.comment-avatar-small {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #000;
+  flex-shrink: 0;
+}
+
+.comment-textarea {
+  flex: 1;
+  padding: 0.75rem;
+  border: 2px solid #000;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.comment-textarea:focus {
+  outline: none;
+  border-color: #ff4b2b;
+  box-shadow: 0 0 0 3px rgba(255, 75, 43, 0.1);
+}
+
+.comment-form-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  direction: ltr;
+}
+
+.char-count {
+  font-size: 0.875rem;
+  color: #666;
+}
+
+/* Login Prompt */
+.login-prompt {
+  text-align: center;
+  padding: 2rem;
+  background: #f0f0f0;
+  border: 3px dashed #999;
+  border-radius: 8px;
+  color: #666;
+}
+
+/* Comments List */
+.comments-list {
+  margin-top: 2rem;
+}
+
+.no-comments {
+  text-align: center;
+  color: #999;
+  font-style: italic;
+  padding: 2rem;
+}
+
+.comment-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: #fff;
+  border: 3px solid #000;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  direction: ltr;
+}
+
+.comment-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 4px 4px 0 #000;
+}
+
+.comment-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #000;
+  flex-shrink: 0;
+}
+
+.comment-content {
+  flex: 1;
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.comment-author {
+  font-weight: bold;
+  color: #003049;
+  font-size: 1.1rem;
+}
+
+.comment-date {
+  font-size: 0.875rem;
+  color: #999;
+}
+
+.comment-text {
+  margin: 0.75rem 0;
+  line-height: 1.6;
+  color: #333;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.comment-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: #5a9fd4;
+  cursor: pointer;
+  font-size: 0.875rem;
+  padding: 0;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.btn-link:hover {
+  color: #ff4b2b;
+}
+
+.btn-link.text-danger {
+  color: #dc3545;
+}
+
+.btn-link.text-danger:hover {
+  color: #c82333;
+}
+
+/* Comment Edit Form */
+.comment-edit-form {
+  margin-top: 0.5rem;
+}
+
+.comment-edit-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  direction: ltr;
+}
+
+/* Loading State */
+.comments-loading {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .comments-section {
+    padding: 1rem;
+    margin: 1.5rem auto;
+  }
+
+  .comment-input-group {
+    flex-direction: column;
+  }
+
+  .comment-avatar-small {
+    width: 40px;
+    height: 40px;
+  }
+
+  .comment-item {
+    flex-direction: column;
+  }
+
+  .comment-avatar {
+    width: 48px;
+    height: 48px;
+  }
+
+  .comment-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* Dark Mode Support */
+body.dark-mode .comments-section {
+  background: #2a2a2a;
+  border-color: #555;
+  box-shadow: 8px 8px 0 #111;
+}
+
+body.dark-mode .comment-form {
+  background: #333;
+  border-color: #555;
+}
+
+body.dark-mode .comment-item {
+  background: #333;
+  border-color: #555;
+}
+
+body.dark-mode .comment-text {
+  color: #e0e0e0;
+}
+
+body.dark-mode .comment-textarea {
+  background: #444;
+  color: #fff;
+  border-color: #666;
+}
