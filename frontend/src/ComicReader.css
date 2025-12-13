@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;700&display=swap');
 
-/* 🧩 קונטיינר תמונות */
 .comic-pages {
   display: flex;
   flex-wrap: wrap;
@@ -10,7 +9,6 @@
   direction: ltr;
 }
 
-/* 🖼️ תמונת עמוד קומיקס */
 .comic-page img {
   max-width: 100%;
   height: auto;
@@ -26,7 +24,6 @@
   box-shadow: 10px 10px 0 #d62828;
 }
 
-/* 🖥️ מסך מלא */
 .full-size-page {
   max-width: 100%;
   height: auto;

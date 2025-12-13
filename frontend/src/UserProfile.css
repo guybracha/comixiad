@@ -13,7 +13,6 @@
   position: relative;
 }
 
-/* תמונת פרופיל */
 .profile-avatar {
   width: 160px;
   height: 160px;
@@ -24,7 +23,6 @@
   margin-bottom: 1rem;
 }
 
-/* שם משתמש */
 .profile-name {
   font-size: 2.2rem;
   font-weight: 700;
@@ -33,7 +31,6 @@
   margin: 1rem 0;
 }
 
-/* מידע כללי */
 .profile-info {
   font-size: 1.1rem;
   margin: 0.3rem 0;
@@ -44,7 +41,6 @@
   color: #d62828;
 }
 
-/* כותרות אזורים */
 .section-title {
   font-size: 1.8rem;
   font-weight: bold;
@@ -58,7 +54,6 @@
   border-radius: 8px;
 }
 
-/* קומיקסים שהמשתמש יצר */
 .comics-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));

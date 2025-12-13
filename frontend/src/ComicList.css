@@ -9,13 +9,11 @@
   animation: fadeInUp 0.6s ease-out forwards;
 }
 
-/* אפקט hover "קומיקסי" */
 .comic-card:hover {
   transform: translateY(-8px) rotate(-1deg);
   box-shadow: 12px 12px 0 #f72585;
 }
 
-/* תוויות */
 .comic-badge {
   position: absolute;
   top: 12px;
@@ -82,7 +80,6 @@
   line-height: 1.4;
 }
 
-/* כפתור קומיקסי */
 .read-btn {
   display: inline-block;
   background: #ffbe0b;
@@ -102,7 +99,6 @@
   background: #f9c74f;
 }
 
-/* מצבי טעינה/אין קומיקסים – עם bounce */
 .loading-spinner,
 .no-comics {
   text-align: center;

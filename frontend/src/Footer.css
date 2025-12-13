@@ -1,5 +1,5 @@
 .footer {
-  background: #ffe66d; /* צהוב עז בסגנון קומיקס */
+  background: #ffe66d;
   border-top: 4px solid #000;
   padding: 2rem 1rem;
   font-family: 'Rubik', sans-serif;
@@ -50,7 +50,6 @@
   color: #f72585;
 }
 
-/* עיצוב של קו תחתון גלי כמו קומיקס */
 .footer::after {
   content: "";
   position: absolute;

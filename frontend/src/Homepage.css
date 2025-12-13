@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Bangers&display=swap'); /* פונט קומיקסי */
+@import url('https://fonts.googleapis.com/css2?family=Bangers&display=swap');
 
 .homepage {
   font-family: 'Bangers', cursive;
@@ -15,8 +15,6 @@ h1, h2, h3, p .hebrew {
   font-family: 'Bangers', cursive;
 }
 
-
-/* 🔶 באנר קומיקס עליון */
 .homepage-banner {
   text-align: center;
   background: repeating-linear-gradient(
@@ -92,7 +90,8 @@ h1, h2, h3, p .hebrew {
   border-bottom: 4px double black;
   display: inline-block;
   padding: 0 10px;
-/* 🎯 קטגוריות קומיקס */
+}
+
 .categories-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -118,8 +117,6 @@ h1, h2, h3, p .hebrew {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   direction: ltr;
   text-align: center;
-} box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.6);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .category-card:hover {
