@@ -29,10 +29,19 @@
 }
 
 .page-preview-item.dragging {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: grabbing;
-  transform: scale(0.95);
+  transform: scale(0.9) rotate(5deg);
   border-color: #764ba2;
+  box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+  z-index: 1000;
+}
+
+.page-preview-item.drag-over {
+  border-color: #48bb78;
+  background: #f0fff4;
+  transform: scale(1.05);
+  box-shadow: 0 0 0 4px rgba(72, 187, 120, 0.2);
 }
 
 .page-preview-item img {

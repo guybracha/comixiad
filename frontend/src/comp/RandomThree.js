@@ -15,21 +15,12 @@ function RandomThree() {
   const buildImageUrl = (rawPath) => {
     if (!rawPath) return null;
     let p = String(rawPath).replace(/\\/g, '/');           // backslashes -> slashes
-    if (/^https?:\/\//i.test(p)) return p;                 // כבר URL מלא
+    
+    // ה-API כבר מחזיר URLs מלאים - פשוט החזר אותם
+    if (/^https?:\/\//i.test(p)) return p;
 
-    // תמיכה בנתיבים ישנים מהלוגים: //root/backend/uploads/...
-    const legacyIdx = p.indexOf('/uploads/');
-    if (legacyIdx > -1) p = p.slice(legacyIdx);
-
-    // ודא התחלה ב-/uploads
-    if (!p.startsWith('/uploads')) {
-      if (p.startsWith('uploads')) p = `/${p}`;
-      else p = `/uploads/${p.replace(/^\/?uploads\/?/, '')}`;
-    }
-
-    // הסרת כפילויות של "//"
-    p = p.replace(/\/{2,}/g, '/');
-    return `${API_BASE_URL}${p}`;
+    // נתיב יחסי - הוסף את ה-base URL
+    return p.startsWith('/') ? `${API_BASE_URL}${p}` : `${API_BASE_URL}/${p}`;
   };
 
   const comicCover = (comic) => {

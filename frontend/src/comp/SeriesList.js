@@ -53,7 +53,11 @@ const SeriesList = () => {
             <Card className='series-card'>
               <Card.Img
                 variant="top"
-                src={`${API_BASE_URL}/uploads/${seriesItem.coverImage}`}
+                src={
+                  seriesItem.coverImage?.startsWith('http')
+                    ? seriesItem.coverImage
+                    : `${API_BASE_URL}${seriesItem.coverImage?.startsWith('/') ? '' : '/'}${seriesItem.coverImage}`
+                }
               />
               <Card.Body>
                 <Card.Title>{seriesItem.name}</Card.Title>

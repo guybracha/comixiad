@@ -37,23 +37,11 @@ const ComicList = () => {
 
     let p = String(rawPath).replace(/\\/g, '/'); // backslashes → slashes
 
-    // אם זה כבר URL מלא (CDN/חיצוני) – החזר כמו שהוא
+    // ה-API כבר מחזיר URLs מלאים - פשוט החזר אותם
     if (/^https?:\/\//i.test(p)) return p;
 
-    // המרה מנתיבים ישנים מהלוגים: //root/backend/uploads/... → /uploads/...
-    const legacyIdx = p.indexOf('/uploads/');
-    if (legacyIdx > -1) p = p.slice(legacyIdx);
-
-    // ודא שמתחיל ב-/uploads
-    if (!p.startsWith('/uploads')) {
-      if (p.startsWith('uploads')) p = `/${p}`;
-      else p = `/uploads/${p.replace(/^\/?uploads\/?/, '')}`;
-    }
-
-    // הסרת כפילויות של "//"
-    p = p.replace(/\/{2,}/g, '/');
-
-    return `${API_BASE_URL}${p}`;
+    // נתיב יחסי - הוסף את ה-base URL
+    return p.startsWith('/') ? `${API_BASE_URL}${p}` : `${API_BASE_URL}/${p}`;
   };
 
   // בחירת תמונה לכל קומיקס (coverImage ואז העמוד הראשון)

@@ -28,9 +28,20 @@ const ComicReader = () => {
   // עוזר קטן לפתרון הבדלי סכמות של pages (מחרוזת path או אובייקט עם url)
   const resolvePageUrl = (page) => {
     if (!page) return null;
-    if (typeof page === 'string') return toPublicUrl(page);
-    if (typeof page === 'object') return toPublicUrl(page.url || page.path || page.src || '');
-    return null;
+    let url = '';
+    if (typeof page === 'string') {
+      url = page;
+    } else if (typeof page === 'object') {
+      url = page.url || page.path || page.src || '';
+    }
+    
+    // אם ה-URL כבר מלא (מכיל http/https), החזר אותו כמו שהוא
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    
+    // אחרת, הוסף את ה-base URL
+    return toPublicUrl(url);
   };
 
   useEffect(() => {

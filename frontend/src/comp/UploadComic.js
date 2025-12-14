@@ -62,16 +62,28 @@ function UploadComic() {
   }, [pagePreviews]);
 
   // פונקציות Drag & Drop
+  const [dragOverIndex, setDragOverIndex] = useState(null);
+
   const handleDragStart = (index) => {
     setDraggedIndex(index);
   };
 
-  const handleDragOver = (e) => {
+  const handleDragOver = (e, index) => {
     e.preventDefault();
+    if (draggedIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
   };
 
   const handleDrop = (dropIndex) => {
-    if (draggedIndex === null || draggedIndex === dropIndex) return;
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDragOverIndex(null);
+      return;
+    }
 
     const newPages = [...pages];
     const newPreviews = [...pagePreviews];
@@ -89,6 +101,7 @@ function UploadComic() {
     setPages(newPages);
     setPagePreviews(newPreviews);
     setDraggedIndex(null);
+    setDragOverIndex(null);
   };
 
   const handleRemovePage = (index) => {
@@ -256,10 +269,11 @@ function UploadComic() {
               {pagePreviews.map((preview, index) => (
                 <div
                   key={index}
-                  className={`page-preview-item ${draggedIndex === index ? 'dragging' : ''}`}
+                  className={`page-preview-item ${draggedIndex === index ? 'dragging' : ''} ${dragOverIndex === index ? 'drag-over' : ''}`}
                   draggable
                   onDragStart={() => handleDragStart(index)}
-                  onDragOver={handleDragOver}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDragLeave={handleDragLeave}
                   onDrop={() => handleDrop(index)}
                 >
                   <div className="page-number">#{index + 1}</div>

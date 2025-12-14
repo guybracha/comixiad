@@ -22,18 +22,11 @@ const SeriesDetail = () => {
     if (!u) return '/images/placeholder.jpg';
     let cleaned = String(u).replace(/\\/g, '/').trim();
 
-    // אם כבר מוחלט
+    // ה-API כבר מחזיר URLs מלאים - פשוט החזר אותם
     if (/^https?:\/\//i.test(cleaned)) return cleaned;
 
-    // הסרת סלאשים מיותרים בתחילת המחרוזת
-    cleaned = cleaned.replace(/^\/+/, '');
-
-    // אם חסר uploads/ הוסף
-    if (!cleaned.startsWith('uploads/')) {
-      cleaned = `uploads/${cleaned}`;
-    }
-
-    return `${API_BASE_URL}/${cleaned}`;
+    // נתיב יחסי - הוסף את ה-base URL
+    return cleaned.startsWith('/') ? `${API_BASE_URL}${cleaned}` : `${API_BASE_URL}/${cleaned}`;
   };
 
   // --- שליפה: פרטי סדרה + קומיקסים ---

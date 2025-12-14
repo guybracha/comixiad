@@ -100,26 +100,90 @@ router.post(
 // 📥 שליפת כל הקומיקסים
 router.get('/', async (req, res) => {
     try {
-        const comics = await Comic.find().populate('author', 'username').sort({ createdAt: -1 });
-        res.json(comics);
+        // אם יש פרמטר author ב-query, נסנן לפיו
+        const filter = {};
+        if (req.query.author) {
+            filter.author = req.query.author;
+        }
+        
+        const comics = await Comic.find(filter).populate('author', 'username').sort({ createdAt: -1 }).lean();
+        
+        // עדכון ה-URLs לכתובות מלאות
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        const comicsWithFullUrls = comics.map(comic => ({
+            ...comic,
+            pages: comic.pages.map(page => ({
+                ...page,
+                url: page.url.startsWith('http') ? page.url : `${baseUrl}${page.url.startsWith('/') ? '' : '/'}${page.url}`
+            })),
+            coverImage: comic.coverImage ? 
+                (comic.coverImage.startsWith('http') ? comic.coverImage : `${baseUrl}${comic.coverImage.startsWith('/') ? '' : '/'}${comic.coverImage}`) 
+                : null
+        }));
+        
+        res.json(comicsWithFullUrls);
     } catch (error) {
         console.error('Error fetching comics:', error);
         res.status(500).json({ message: 'Error fetching comics', error: error.message });
     }
 });
 
-// 📥 שליפת קומיקס לפי ID (שימו לב – מופיע **אחרי** /series)
+// 📥 שליפת קומיקס לפי סדרה
 router.get('/series/:seriesId', async (req, res) => {
     try {
-        const comics = await Comic.find({ series: req.params.seriesId }).populate('author', 'username');
-        res.json(comics);
+        const comics = await Comic.find({ series: req.params.seriesId }).populate('author', 'username').lean();
+        
+        // עדכון ה-URLs לכתובות מלאות
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        const comicsWithFullUrls = comics.map(comic => ({
+            ...comic,
+            pages: comic.pages.map(page => ({
+                ...page,
+                url: page.url.startsWith('http') ? page.url : `${baseUrl}${page.url.startsWith('/') ? '' : '/'}${page.url}`
+            })),
+            coverImage: comic.coverImage ? 
+                (comic.coverImage.startsWith('http') ? comic.coverImage : `${baseUrl}${comic.coverImage.startsWith('/') ? '' : '/'}${comic.coverImage}`) 
+                : null
+        }));
+        
+        res.json(comicsWithFullUrls);
     } catch (error) {
         console.error('Error fetching comics by series:', error);
         res.status(500).json({ message: 'Error fetching comics by series', error: error.message });
     }
 });
 
-// ⚠️ חשוב: צריך להופיע **אחרי** /series כדי לא לבלוע אותו
+// 📊 שליפת הקומיקסים הכי פופולריים
+router.get('/top', async (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit) || 10;
+        const comics = await Comic.find()
+            .populate('author', 'username')
+            .sort({ views: -1, likes: -1 })
+            .limit(limit)
+            .lean();
+        
+        // עדכון ה-URLs לכתובות מלאות
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        const comicsWithFullUrls = comics.map(comic => ({
+            ...comic,
+            pages: comic.pages.map(page => ({
+                ...page,
+                url: page.url.startsWith('http') ? page.url : `${baseUrl}${page.url.startsWith('/') ? '' : '/'}${page.url}`
+            })),
+            coverImage: comic.coverImage ? 
+                (comic.coverImage.startsWith('http') ? comic.coverImage : `${baseUrl}${comic.coverImage.startsWith('/') ? '' : '/'}${comic.coverImage}`) 
+                : null
+        }));
+        
+        res.json(comicsWithFullUrls);
+    } catch (error) {
+        console.error('Error fetching top comics:', error);
+        res.status(500).json({ message: 'Error fetching top comics', error: error.message });
+    }
+});
+
+// ⚠️ חשוב: צריך להופיע **אחרי** /series ו-/top כדי לא לבלוע אותם
 router.get('/:id', async (req, res) => {
     try {
       const comic = await Comic.findById(req.params.id)
@@ -131,12 +195,16 @@ router.get('/:id', async (req, res) => {
       }
   
       // עדכון ה־URL של כל עמוד – יצירת כתובת מלאה לטעינה בדפדפן
-      const baseUrl = `${req.protocol}://${req.get('host')}`; // למשל: http://localhost:5000
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
   
       comic.pages = comic.pages.map(page => ({
         ...page,
-        url: `${baseUrl}/${page.url}`
+        url: page.url.startsWith('http') ? page.url : `${baseUrl}${page.url.startsWith('/') ? '' : '/'}${page.url}`
       }));
+      
+      if (comic.coverImage) {
+        comic.coverImage = comic.coverImage.startsWith('http') ? comic.coverImage : `${baseUrl}${comic.coverImage.startsWith('/') ? '' : '/'}${comic.coverImage}`;
+      }
   
       res.json(comic);
     } catch (error) {
@@ -147,14 +215,14 @@ router.get('/:id', async (req, res) => {
   
 
 // ✅ עדכון קומיקס
-router.put('/:id', authenticateUser, upload.array('newPages', 50), async (req, res) => {
+router.put('/:id', authRequired, upload.array('newPages', 50), async (req, res) => {
   try {
     const { title, description, language, genre, series, pageOrder } = req.body;
     const comic = await Comic.findById(req.params.id);
     if (!comic) return res.status(404).json({ message: 'Comic not found' });
 
     // ✅ בדוק אם המשתמש המחובר הוא גם היוצר של הקומיקס
-    if (comic.author.toString() !== req.user.userId) {
+    if (comic.author.toString() !== req.user.id) {
       return res.status(403).json({ message: 'Not authorized to edit this comic.' });
     }
 
@@ -187,7 +255,7 @@ router.put('/:id', authenticateUser, upload.array('newPages', 50), async (req, r
     // הוספת עמודים חדשים
     if (req.files && req.files.length > 0) {
       const additionalPages = req.files.map(file => ({
-        url: `uploads/comics/${file.filename}`
+        url: `/uploads/comics/${file.filename}`
       }));
       comic.pages.push(...additionalPages);
     }

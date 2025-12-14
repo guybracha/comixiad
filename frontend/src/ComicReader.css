@@ -111,3 +111,37 @@
   filter: blur(3px);
   pointer-events: none; /* מונע אינטראקציה מתחת למודאל */
 }
+
+/* פרטי היוצר */
+.author-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  margin: 20px 0;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.author-box img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 3px solid white;
+  object-fit: cover;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.author-box a {
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: color 0.3s ease;
+}
+
+.author-box a:hover {
+  color: #ffd700;
+  text-decoration: underline;
+}

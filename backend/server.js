@@ -24,7 +24,16 @@ const PORT = process.env.PORT || 5000;
 app.set('trust proxy', 1);
 
 // Static files - חשובה במיוחד להצגת תמונות
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+const uploadsPath = path.join(__dirname, 'uploads');
+console.log('📂 Uploads directory:', uploadsPath);
+
+// לוג לבקשות uploads - לפני ה-static middleware
+app.use('/uploads', (req, res, next) => {
+  console.log('📸 Upload request:', req.url);
+  next();
+});
+
+app.use('/uploads', express.static(uploadsPath));
 
 // Middleware
 app.use(cors({
@@ -87,10 +96,7 @@ app.use((err, req, res, next) => {
 });
 
 // Connect to MongoDB and start the server
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/comixiad', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-}).then(() => {
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/comixiad').then(() => {
   console.log('✅ Connected to MongoDB');
   console.log('Registerd routes:',
         app._router.stack

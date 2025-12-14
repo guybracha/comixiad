@@ -27,6 +27,7 @@ const EditComic = () => {
   const [pagePreviews, setPagePreviews] = useState([]);
   const [newPages, setNewPages] = useState([]);
   const [draggedIndex, setDraggedIndex] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
 
   const user = JSON.parse(localStorage.getItem('user')) || {};
   const token = localStorage.getItem('token');
@@ -60,6 +61,11 @@ const EditComic = () => {
           setPages(fetchedComic.pages);
           const previews = fetchedComic.pages.map(page => {
             const url = page.url || page.path || page.filename;
+            // אם ה-URL כבר מלא (מכיל http/https), השתמש בו ישירות
+            if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+              return url;
+            }
+            // אחרת, הוסף את ה-base URL
             return url ? `${API_BASE_URL}/${url.replace(/\\/g, '/')}` : '/images/placeholder.jpg';
           });
           setPagePreviews(previews);
@@ -124,12 +130,22 @@ const EditComic = () => {
     setDraggedIndex(index);
   };
 
-  const handleDragOver = (e) => {
+  const handleDragOver = (e, index) => {
     e.preventDefault();
+    if (draggedIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
   };
 
   const handleDrop = (dropIndex) => {
-    if (draggedIndex === null || draggedIndex === dropIndex) return;
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDragOverIndex(null);
+      return;
+    }
 
     const newPages = [...pages];
     const newPreviews = [...pagePreviews];
@@ -146,6 +162,7 @@ const EditComic = () => {
     setPages(newPages);
     setPagePreviews(newPreviews);
     setDraggedIndex(null);
+    setDragOverIndex(null);
   };
 
   const handleRemovePage = (index) => {
@@ -303,10 +320,11 @@ const EditComic = () => {
               {pagePreviews.map((preview, index) => (
                 <div
                   key={index}
-                  className={`page-preview-item ${draggedIndex === index ? 'dragging' : ''}`}
+                  className={`page-preview-item ${draggedIndex === index ? 'dragging' : ''} ${dragOverIndex === index ? 'drag-over' : ''}`}
                   draggable
                   onDragStart={() => handleDragStart(index)}
-                  onDragOver={handleDragOver}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDragLeave={handleDragLeave}
                   onDrop={() => handleDrop(index)}
                 >
                   <div className="page-number">#{index + 1}</div>

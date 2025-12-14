@@ -22,6 +22,7 @@ function TopFive() {
   }, []);
 
   const getImageUrl = (comic) => {
+    // אם אין עמודים, החזר placeholder
     if (!comic?.pages?.[0]) {
       return 'https://via.placeholder.com/300x400/cccccc/666666?text=No+Image';
     }
@@ -33,27 +34,14 @@ function TopFive() {
       return 'https://via.placeholder.com/300x400/cccccc/666666?text=No+Image';
     }
 
-    // Clean up path
-    let cleanPath = imagePath.replace(/\\/g, '/');
-    
-    // If already a full URL
-    if (cleanPath.startsWith('http')) return cleanPath;
-    
-    // If starts with uploads/
-    if (cleanPath.startsWith('uploads/')) return `${API_BASE_URL}/${cleanPath}`;
-    
-    // If starts with /uploads/
-    if (cleanPath.startsWith('/uploads/')) return `${API_BASE_URL}${cleanPath}`;
-    
-    // If has uploads somewhere in the path
-    if (cleanPath.includes('/uploads/')) {
-      const uploadsIndex = cleanPath.lastIndexOf('/uploads/');
-      cleanPath = cleanPath.substring(uploadsIndex + 1);
-      return `${API_BASE_URL}/${cleanPath}`;
+    // ה-API כבר מחזיר URLs מלאים, פשוט החזר אותם
+    // אם בכל זאת יש URL יחסי (למקרה של נתונים ישנים), הוסף את ה-base
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
     }
-    
-    // Default: assume it's just a filename
-    return `${API_BASE_URL}/uploads/comics/${cleanPath}`;
+
+    // נתיב יחסי - הוסף את ה-base URL
+    return imagePath.startsWith('/') ? `${API_BASE_URL}${imagePath}` : `${API_BASE_URL}/${imagePath}`;
   };
 
   return (
