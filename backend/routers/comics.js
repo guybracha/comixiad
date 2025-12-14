@@ -1,60 +1,101 @@
+// routers/Comics.js
 const express = require('express');
 const router = express.Router();
 const path = require('path');
 const fs = require('fs');
-const Comic = require('../models/Comic');
 const multer = require('multer');
-const authenticateUser = require('../middleware/auth');
+const mongoose = require('mongoose');
 
-// יצירת תיקיית העלאה אם לא קיימת
-const uploadDir = path.join(__dirname, '../uploads/comics'); // ✔️
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
+const Comic = require('../models/Comic');
+const { authRequired} = require('../middleware/authMiddleware'); // צריך לחשוף req.user
+const { compressUploadsArray } = require('../middleware/imageCompress');
 
-// Multer הגדרת
+// ===== יצירת תיקיית העלאות אם לא קיימת =====
+const UPLOAD_DIR = path.join(__dirname, '..', 'uploads', 'comics');
+if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+
+// ===== Multer: אחסון, סינון קבצים ומגבלות =====
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, uploadDir); // ✔️ ודא שזה מופעל!
-    },
-    filename: (req, file, cb) => {
-        cb(null, `${Date.now()}-${file.originalname}`);
-    }
+  destination: (req, file, cb) => cb(null, UPLOAD_DIR),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname || '.jpg');
+    const base = path.basename(file.originalname || 'page', ext)
+      .replace(/\s+/g, '_')
+      .replace(/[^\w.-]/g, '');
+    cb(null, `${Date.now()}_${base}${ext}`);
+  },
 });
 
-const upload = multer({ storage });
+const fileFilter = (req, file, cb) => {
+  if (/^image\/(png|jpe?g|webp|gif|avif)$/i.test(file.mimetype)) cb(null, true);
+  else cb(new multer.MulterError('LIMIT_UNEXPECTED_FILE', file.fieldname));
+};
 
-// 📌 יצירת קומיקס
-router.post('/upload', upload.array('pages', 50), async (req, res) => {
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 20 * 1024 * 1024, files: 100 }, // 20MB לקובץ, עד 100 עמודים
+});
+
+// ===== עזר =====
+const baseLang = (lng = 'en') => String(lng).toLowerCase().split('-')[0];
+
+// ================== יצירת קומיקס ==================
+router.post(
+  '/upload',
+  authRequired,
+  (req, res, next) => {
+    upload.array('pages', 100)(req, res, (err) => {
+      if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') return res.status(413).json({ error: 'File too large (max 20MB per page)' });
+        if (err.code === 'LIMIT_UNEXPECTED_FILE') return res.status(400).json({ error: 'Only image files are allowed' });
+        return res.status(400).json({ error: err.message });
+      }
+      if (err) return next(err);
+      next();
+    });
+  },
+  async (req, res) => {
     try {
-        const { title, description, language, genre, author, series } = req.body;
+      // === דיבאג חד־פעמי: ודא שיש יוזר ===
+      console.log('upload: auth user =', req.user);
 
-        if (!req.files || req.files.length === 0) {
-            return res.status(400).json({ message: 'No comic pages uploaded' });
-        }
+      const { title, description, language, genre, series, adultOnly } = req.body;
 
-        const pages = req.files.map(file => ({
-            url: `uploads/comics/${file.filename}`
-        }));
-        console.log('Files uploaded:', req.files);
+      if (!title || !description || !language || !genre) {
+        return res.status(422).json({ error: 'Missing required fields' });
+      }
+      if (!req.files || req.files.length === 0) {
+        return res.status(422).json({ error: 'No pages uploaded' });
+      }
+      if (!req.user?.id) {
+        return res.status(401).json({ error: 'No authenticated user on request' });
+      }
 
-        const newComic = new Comic({
-            title,
-            description,
-            language,
-            genre,
-            author,
-            series: series || null,
-            pages
-        });
+      const pages = req.files.map((f) => ({
+        url: require('path').posix.join('/uploads/comics', f.filename),
+      }));
 
-        await newComic.save();
-        res.status(201).json({ message: 'Comic uploaded successfully', comic: newComic });
+      const comic = await Comic.create({
+        title: String(title).trim(),
+        description: String(description).trim(),
+        language: String(language).toLowerCase().split('-')[0],
+        genre,
+        series: series || null,
+        adultOnly: String(adultOnly) === 'true',
+        pages,
+        coverImage: pages[0]?.url || null,
+        author: req.user.id,            // ← כאן!
+        uploadedBy: req.user.id,
+      });
+
+      return res.status(201).json({ ok: true, id: comic._id, comic });
     } catch (error) {
-        console.error('Upload error:', error);
-        res.status(500).json({ message: 'Error uploading comic', error: error.message });
+      console.error('Upload comic error:', error);
+      return res.status(500).json({ error: 'Upload failed', detail: error.message });
     }
-});
+  }
+);
 
 // 📥 שליפת כל הקומיקסים
 router.get('/', async (req, res) => {
@@ -106,9 +147,9 @@ router.get('/:id', async (req, res) => {
   
 
 // ✅ עדכון קומיקס
-router.put('/:id', authenticateUser, async (req, res) => {
+router.put('/:id', authenticateUser, upload.array('newPages', 50), async (req, res) => {
   try {
-    const { title, description, language, genre } = req.body;
+    const { title, description, language, genre, series, pageOrder } = req.body;
     const comic = await Comic.findById(req.params.id);
     if (!comic) return res.status(404).json({ message: 'Comic not found' });
 
@@ -121,6 +162,35 @@ router.put('/:id', authenticateUser, async (req, res) => {
     comic.description = description;
     comic.language = language;
     comic.genre = genre;
+    if (series) comic.series = series;
+
+    // עדכון סדר העמודים
+    if (pageOrder) {
+      try {
+        const order = JSON.parse(pageOrder);
+        const newPages = [];
+        
+        // סדר העמודים הקיימים לפי הסדר החדש
+        for (const identifier of order) {
+          const existingPage = comic.pages.find(p => p._id.toString() === identifier || p.url.includes(identifier));
+          if (existingPage) {
+            newPages.push(existingPage);
+          }
+        }
+        
+        comic.pages = newPages;
+      } catch (e) {
+        console.error('Error parsing pageOrder:', e);
+      }
+    }
+
+    // הוספת עמודים חדשים
+    if (req.files && req.files.length > 0) {
+      const additionalPages = req.files.map(file => ({
+        url: `uploads/comics/${file.filename}`
+      }));
+      comic.pages.push(...additionalPages);
+    }
 
     await comic.save();
     res.json(comic);

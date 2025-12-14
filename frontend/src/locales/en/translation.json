@@ -81,7 +81,12 @@
     "success": "Comic uploaded successfully!",
     "fail": "Upload failed. Please try again.",
     "adultLabel": "18+ adult content",
-    "adultHint": "Mark if this comic is intended for adults"
+    "adultHint": "Mark if this comic is intended for adults",
+    "noPages": "No pages selected",
+    "dragHint": "After upload, drag images to reorder them",
+    "preview": "Preview",
+    "pagesCount": "pages",
+    "removePage": "Remove page"
   },
   "search": {
     "loading": "Loading…",

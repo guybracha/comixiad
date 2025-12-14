@@ -5,6 +5,7 @@ import { Modal, Button } from 'react-bootstrap';
 import genres from '../config/Genres';
 import languages from '../config/Languages';
 import { API_BASE_URL } from '../Config';
+import '../UploadComic.css';
 
 const EditComic = () => {
   const { comicId } = useParams();
@@ -22,6 +23,10 @@ const EditComic = () => {
   });
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [pages, setPages] = useState([]);
+  const [pagePreviews, setPagePreviews] = useState([]);
+  const [newPages, setNewPages] = useState([]);
+  const [draggedIndex, setDraggedIndex] = useState(null);
 
   const user = JSON.parse(localStorage.getItem('user')) || {};
   const token = localStorage.getItem('token');
@@ -49,6 +54,16 @@ const EditComic = () => {
           genre: fetchedComic.genre,
           series: fetchedComic.series || ''
         });
+        
+        // טעינת עמודים קיימים
+        if (fetchedComic.pages && fetchedComic.pages.length > 0) {
+          setPages(fetchedComic.pages);
+          const previews = fetchedComic.pages.map(page => {
+            const url = page.url || page.path || page.filename;
+            return url ? `${API_BASE_URL}/${url.replace(/\\/g, '/')}` : '/images/placeholder.jpg';
+          });
+          setPagePreviews(previews);
+        }
       } catch (err) {
         console.error('Error fetching comic:', err);
         setError('Failed to fetch comic.');
@@ -76,12 +91,73 @@ const EditComic = () => {
   }, [user._id]);
 
 
+  // ניקוי URLs כשהקומפוננטה מתפרקת
+  useEffect(() => {
+    return () => {
+      pagePreviews.forEach(url => {
+        if (url && url.startsWith('blob:')) {
+          URL.revokeObjectURL(url);
+        }
+      });
+    };
+  }, [pagePreviews]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
+  };
+
+  const handleNewPagesChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    setNewPages(files);
+    
+    // יצירת תצוגה מקדימה
+    const newPreviews = files.map(file => URL.createObjectURL(file));
+    setPagePreviews([...pagePreviews, ...newPreviews]);
+    setPages([...pages, ...files.map((f, idx) => ({ filename: f.name, new: true, file: f }))]);
+  };
+
+  const handleDragStart = (index) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (dropIndex) => {
+    if (draggedIndex === null || draggedIndex === dropIndex) return;
+
+    const newPages = [...pages];
+    const newPreviews = [...pagePreviews];
+    
+    const draggedPage = newPages[draggedIndex];
+    const draggedPreview = newPreviews[draggedIndex];
+    
+    newPages.splice(draggedIndex, 1);
+    newPages.splice(dropIndex, 0, draggedPage);
+    
+    newPreviews.splice(draggedIndex, 1);
+    newPreviews.splice(dropIndex, 0, draggedPreview);
+    
+    setPages(newPages);
+    setPagePreviews(newPreviews);
+    setDraggedIndex(null);
+  };
+
+  const handleRemovePage = (index) => {
+    const newPages = pages.filter((_, i) => i !== index);
+    const newPreviews = pagePreviews.filter((_, i) => i !== index);
+    
+    if (pagePreviews[index]?.startsWith('blob:')) {
+      URL.revokeObjectURL(pagePreviews[index]);
+    }
+    
+    setPages(newPages);
+    setPagePreviews(newPreviews);
   };
 
   const handleFormSubmit = (e) => {
@@ -92,8 +168,28 @@ const EditComic = () => {
   const handleConfirmUpdate = async () => {
     setShowModal(false);
     try {
-      await axios.put(`${API_BASE_URL}/api/comics/${comicId}`, formData, {
-        headers: { Authorization: `Bearer ${token}` }
+      const form = new FormData();
+      form.append('title', formData.title);
+      form.append('description', formData.description);
+      form.append('language', formData.language);
+      form.append('genre', formData.genre);
+      if (formData.series) form.append('series', formData.series);
+      
+      // שליחת סדר העמודים
+      form.append('pageOrder', JSON.stringify(pages.map(p => p._id || p.filename)));
+      
+      // הוספת עמודים חדשים
+      pages.forEach((page) => {
+        if (page.new && page.file) {
+          form.append('newPages', page.file);
+        }
+      });
+
+      await axios.put(`${API_BASE_URL}/api/comics/${comicId}`, form, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
       });
       setSuccessMessage('Comic updated successfully!');
       setTimeout(() => {
@@ -197,6 +293,53 @@ const EditComic = () => {
               </option>
             ))}
           </select>
+        </div>
+
+        {/* תצוגה מקדימה של עמודים קיימים */}
+        {pagePreviews.length > 0 && (
+          <div className="mb-4">
+            <h5>Pages ({pages.length} pages)</h5>
+            <div className="pages-preview-grid">
+              {pagePreviews.map((preview, index) => (
+                <div
+                  key={index}
+                  className={`page-preview-item ${draggedIndex === index ? 'dragging' : ''}`}
+                  draggable
+                  onDragStart={() => handleDragStart(index)}
+                  onDragOver={handleDragOver}
+                  onDrop={() => handleDrop(index)}
+                >
+                  <div className="page-number">#{index + 1}</div>
+                  <img src={preview} alt={`Page ${index + 1}`} />
+                  <button
+                    type="button"
+                    className="remove-page-btn"
+                    onClick={() => handleRemovePage(index)}
+                    title="Remove page"
+                  >
+                    ✕
+                  </button>
+                  <div className="drag-handle">⋮⋮</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* הוספת עמודים חדשים */}
+        <div className="mb-3">
+          <label htmlFor="newPages" className="form-label">Add New Pages (Optional)</label>
+          <input
+            id="newPages"
+            type="file"
+            className="form-control"
+            multiple
+            accept="image/*"
+            onChange={handleNewPagesChange}
+          />
+          <div className="form-text">
+            Upload additional pages. You can drag and drop to reorder all pages.
+          </div>
         </div>
 
         <div className="d-flex justify-content-start gap-2">

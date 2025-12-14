@@ -165,6 +165,13 @@ const SeriesDetail = () => {
         </button>
       )}
 
+      {/* כפתור עריכה - רק ליוצר הסדרה */}
+      {user && series.author && (typeof series.author === 'string' ? series.author === user._id : series.author._id === user._id) && (
+        <Link to={`/edit-series/${series._id}`} className="btn btn-warning mt-2 ms-2">
+          ✏️ ערוך סדרה
+        </Link>
+      )}
+
       <img
         src={resolveUrl(series.coverImage)}
         alt={series.name}

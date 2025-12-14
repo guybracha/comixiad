@@ -5,6 +5,7 @@ import api from '../lib/api';
 import languages from '../config/Languages';
 import genres from '../config/Genres';
 import { Link, useNavigate } from 'react-router-dom';
+import '../UploadComic.css';
 
 function UploadComic() {
   const { t } = useTranslation();
@@ -16,6 +17,8 @@ function UploadComic() {
   const [language, setLanguage] = useState('');
   const [genre, setGenre] = useState('');
   const [pages, setPages] = useState([]);
+  const [pagePreviews, setPagePreviews] = useState([]); // תצוגה מקדימה
+  const [draggedIndex, setDraggedIndex] = useState(null);
   const [series, setSeries] = useState('');
   const [allSeries, setAllSeries] = useState([]);
   const [adultOnly, setAdultOnly] = useState(false);
@@ -45,6 +48,58 @@ function UploadComic() {
   const handlePagesChange = (e) => {
     const files = Array.from(e.target.files || []);
     setPages(files);
+    
+    // יצירת תצוגה מקדימה
+    const previews = files.map(file => URL.createObjectURL(file));
+    setPagePreviews(previews);
+  };
+
+  // ניקוי URLs כשהקומפוננטה מתפרקת
+  useEffect(() => {
+    return () => {
+      pagePreviews.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [pagePreviews]);
+
+  // פונקציות Drag & Drop
+  const handleDragStart = (index) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (dropIndex) => {
+    if (draggedIndex === null || draggedIndex === dropIndex) return;
+
+    const newPages = [...pages];
+    const newPreviews = [...pagePreviews];
+    
+    // החלפת מיקומים
+    const draggedPage = newPages[draggedIndex];
+    const draggedPreview = newPreviews[draggedIndex];
+    
+    newPages.splice(draggedIndex, 1);
+    newPages.splice(dropIndex, 0, draggedPage);
+    
+    newPreviews.splice(draggedIndex, 1);
+    newPreviews.splice(dropIndex, 0, draggedPreview);
+    
+    setPages(newPages);
+    setPagePreviews(newPreviews);
+    setDraggedIndex(null);
+  };
+
+  const handleRemovePage = (index) => {
+    const newPages = pages.filter((_, i) => i !== index);
+    const newPreviews = pagePreviews.filter((_, i) => i !== index);
+    
+    // ניקוי ה-URL המוסר
+    URL.revokeObjectURL(pagePreviews[index]);
+    
+    setPages(newPages);
+    setPagePreviews(newPreviews);
   };
 
   const handleSubmit = async (e) => {
@@ -188,7 +243,41 @@ function UploadComic() {
             onChange={handlePagesChange}
             required
           />
+          <div className="form-text">
+            {t('upload.dragHint') || 'אחרי העלאה, גרור את התמונות כדי לשנות את הסדר'}
+          </div>
         </div>
+
+        {/* תצוגה מקדימה של העמודים */}
+        {pagePreviews.length > 0 && (
+          <div className="mb-4">
+            <h5>{t('upload.preview') || 'תצוגה מקדימה'} ({pages.length} {t('upload.pagesCount') || 'עמודים'})</h5>
+            <div className="pages-preview-grid">
+              {pagePreviews.map((preview, index) => (
+                <div
+                  key={index}
+                  className={`page-preview-item ${draggedIndex === index ? 'dragging' : ''}`}
+                  draggable
+                  onDragStart={() => handleDragStart(index)}
+                  onDragOver={handleDragOver}
+                  onDrop={() => handleDrop(index)}
+                >
+                  <div className="page-number">#{index + 1}</div>
+                  <img src={preview} alt={`Page ${index + 1}`} />
+                  <button
+                    type="button"
+                    className="remove-page-btn"
+                    onClick={() => handleRemovePage(index)}
+                    title={t('upload.removePage') || 'הסר עמוד'}
+                  >
+                    ✕
+                  </button>
+                  <div className="drag-handle">⋮⋮</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="mb-3">
           <label htmlFor="series" className="form-label">
